@@ -3,13 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Clock, Target, TrendingUp, Trophy, Calendar, ChevronRight } from "lucide-react";
+import { Clock, Target, TrendingUp, Trophy, Calendar, ChevronRight, ChevronDown } from "lucide-react";
 import { format, subDays, startOfMonth, eachDayOfInterval, getDay } from "date-fns";
 import {
   PieChart,
@@ -42,6 +43,7 @@ export default function FocusInsights({
 }: FocusInsightsProps) {
   const [showMonthDetails, setShowMonthDetails] = useState(false);
   const [activeTab, setActiveTab] = useState("today");
+  const [isOpen, setIsOpen] = useState(true);
 
   const todayPieData = [
     { name: "Pomodoro", value: 65, color: "#8b5cf6" },
@@ -124,15 +126,22 @@ export default function FocusInsights({
 
   return (
     <>
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base flex items-center gap-2">
-            <TrendingUp className="w-4 h-4" />
-            Insights
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <Card>
+          <CollapsibleTrigger asChild>
+            <CardHeader className="pb-2 cursor-pointer hover-elevate rounded-t-lg" data-testid="button-toggle-insights">
+              <CardTitle className="text-base flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4" />
+                  Insights
+                </div>
+                <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
+              </CardTitle>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent>
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="w-full grid grid-cols-4">
               <TabsTrigger value="today" data-testid="tab-today">Today</TabsTrigger>
               <TabsTrigger value="week" data-testid="tab-week">Week</TabsTrigger>
@@ -285,9 +294,11 @@ export default function FocusInsights({
                 </div>
               </div>
             </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+              </Tabs>
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
 
       <Dialog open={showMonthDetails} onOpenChange={setShowMonthDetails}>
         <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
