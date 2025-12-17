@@ -74,7 +74,7 @@ export default function HabitCard({
   const best = bestStreak || Math.max(currentStreak, 1);
 
   return (
-    <Card className="hover-elevate" data-testid={`card-habit-${id}`}>
+    <Card className="hover-elevate bg-white dark:bg-card" data-testid={`card-habit-${id}`}>
       <CardContent className="p-5 space-y-4">
         <div className="flex items-start justify-between gap-2">
           <h3 className="text-lg font-semibold text-foreground" data-testid={`text-habit-title-${id}`}>
