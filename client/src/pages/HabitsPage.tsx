@@ -184,7 +184,7 @@ export default function HabitsPage() {
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button size="icon" data-testid="button-habits-menu">
+              <Button size="icon" className="rounded-full" data-testid="button-habits-menu">
                 <Plus className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>

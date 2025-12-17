@@ -125,7 +125,7 @@ export default function FocusPage() {
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button size="icon" data-testid="button-focus-menu">
+              <Button size="icon" className="rounded-full" data-testid="button-focus-menu">
                 <Plus className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
