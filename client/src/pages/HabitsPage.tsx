@@ -175,7 +175,7 @@ export default function HabitsPage() {
           </div>
           <Button onClick={() => setShowAddDialog(true)} data-testid="button-add-habit">
             <Plus className="w-4 h-4 mr-2" />
-            New Habit
+            Add Habit
           </Button>
         </div>
 
