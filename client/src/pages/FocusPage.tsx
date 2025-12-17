@@ -1,10 +1,17 @@
 import { useState } from "react";
 import { format, subDays } from "date-fns";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import FocusModeCard from "@/components/FocusModeCard";
 import CreateTimerDialog from "@/components/CreateTimerDialog";
 import FocusInsights from "@/components/FocusInsights";
 import ActiveFocusSession from "@/components/ActiveFocusSession";
-import { Timer, Rocket, Zap, Brain, Coffee } from "lucide-react";
+import { Timer, Rocket, Zap, Brain, Coffee, Plus, TrendingUp } from "lucide-react";
 
 interface CustomTimer {
   id: string;
@@ -25,6 +32,8 @@ interface ActiveSession {
 export default function FocusPage() {
   const [activeSession, setActiveSession] = useState<ActiveSession | null>(null);
   const [customTimers, setCustomTimers] = useState<CustomTimer[]>([]);
+  const [showCreateTimer, setShowCreateTimer] = useState(false);
+  const [showInsights, setShowInsights] = useState(false);
 
   const weekData = [
     { day: "Mon", pomodoro: 3, deepwork: 1, custom: 0 },
@@ -114,7 +123,24 @@ export default function FocusPage() {
             <h1 className="text-2xl font-semibold text-foreground">Focus</h1>
             <p className="text-sm text-muted-foreground">Deep work & productivity</p>
           </div>
-          <CreateTimerDialog onCreateTimer={handleCreateTimer} />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button data-testid="button-focus-menu">
+                <Plus className="w-4 h-4 mr-2" />
+                Options
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setShowCreateTimer(true)} data-testid="menu-new-timer">
+                <Timer className="w-4 h-4 mr-2" />
+                New Timer
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setShowInsights(true)} data-testid="menu-insights">
+                <TrendingUp className="w-4 h-4 mr-2" />
+                Insights
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {activeSession ? (
@@ -155,7 +181,15 @@ export default function FocusPage() {
           </div>
         )}
 
+        <CreateTimerDialog 
+          open={showCreateTimer} 
+          onOpenChange={setShowCreateTimer}
+          onCreateTimer={handleCreateTimer} 
+        />
+        
         <FocusInsights
+          open={showInsights}
+          onOpenChange={setShowInsights}
           todayMinutes={145}
           todaySessions={6}
           weekData={weekData}

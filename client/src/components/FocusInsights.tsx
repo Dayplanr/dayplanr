@@ -1,16 +1,14 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Clock, Target, TrendingUp, Trophy, Calendar, ChevronRight, Plus } from "lucide-react";
-import { format, subDays, startOfMonth, eachDayOfInterval, getDay } from "date-fns";
+import { Clock, Target, TrendingUp, Trophy, Calendar, ChevronRight } from "lucide-react";
+import { format, startOfMonth, eachDayOfInterval, getDay } from "date-fns";
 import {
   PieChart,
   Pie,
@@ -26,6 +24,8 @@ import {
 } from "recharts";
 
 interface FocusInsightsProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   todayMinutes: number;
   todaySessions: number;
   weekData: { day: string; pomodoro: number; deepwork: number; custom: number }[];
@@ -34,13 +34,14 @@ interface FocusInsightsProps {
 }
 
 export default function FocusInsights({
+  open,
+  onOpenChange,
   todayMinutes,
   todaySessions,
   weekData,
   monthData,
   yearData,
 }: FocusInsightsProps) {
-  const [showInsights, setShowInsights] = useState(false);
   const [showMonthDetails, setShowMonthDetails] = useState(false);
   const [activeTab, setActiveTab] = useState("today");
 
@@ -125,18 +126,7 @@ export default function FocusInsights({
 
   return (
     <>
-      <div className="fixed bottom-24 md:bottom-8 right-6 z-40">
-        <Button
-          size="icon"
-          className="w-14 h-14 rounded-full shadow-lg"
-          onClick={() => setShowInsights(true)}
-          data-testid="button-focus-insights"
-        >
-          <Plus className="w-6 h-6" />
-        </Button>
-      </div>
-
-      <Dialog open={showInsights} onOpenChange={setShowInsights}>
+      <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">

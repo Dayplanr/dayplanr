@@ -1,16 +1,15 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Plus, Timer, Rocket, Zap, Brain, Coffee } from "lucide-react";
+import { Timer, Rocket, Zap, Brain, Coffee } from "lucide-react";
 
 interface CustomTimer {
   id: string;
@@ -21,11 +20,12 @@ interface CustomTimer {
 }
 
 interface CreateTimerDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   onCreateTimer: (timer: CustomTimer) => void;
 }
 
-export default function CreateTimerDialog({ onCreateTimer }: CreateTimerDialogProps) {
-  const [open, setOpen] = useState(false);
+export default function CreateTimerDialog({ open, onOpenChange, onCreateTimer }: CreateTimerDialogProps) {
   const [name, setName] = useState("");
   const [duration, setDuration] = useState([30]);
   const [breakDuration, setBreakDuration] = useState([5]);
@@ -39,6 +39,15 @@ export default function CreateTimerDialog({ onCreateTimer }: CreateTimerDialogPr
     { id: "coffee", icon: Coffee, label: "Coffee" },
   ];
 
+  useEffect(() => {
+    if (!open) {
+      setName("");
+      setDuration([30]);
+      setBreakDuration([5]);
+      setSelectedIcon("timer");
+    }
+  }, [open]);
+
   const handleCreate = () => {
     if (!name.trim()) return;
     onCreateTimer({
@@ -48,20 +57,11 @@ export default function CreateTimerDialog({ onCreateTimer }: CreateTimerDialogPr
       breakDuration: breakDuration[0],
       icon: selectedIcon,
     });
-    setName("");
-    setDuration([30]);
-    setBreakDuration([5]);
-    setSelectedIcon("timer");
-    setOpen(false);
+    onOpenChange(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button size="icon" variant="outline" data-testid="button-create-timer">
-          <Plus className="w-4 h-4" />
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Create Custom Timer</DialogTitle>
@@ -79,32 +79,7 @@ export default function CreateTimerDialog({ onCreateTimer }: CreateTimerDialogPr
           </div>
 
           <div className="space-y-2">
-            <Label>Choose Icon</Label>
-            <div className="flex gap-2 flex-wrap">
-              {icons.map(({ id, icon: Icon, label }) => (
-                <button
-                  key={id}
-                  onClick={() => setSelectedIcon(id)}
-                  className={`w-12 h-12 rounded-lg flex items-center justify-center hover-elevate active-elevate-2 ${
-                    selectedIcon === id
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted"
-                  }`}
-                  data-testid={`button-icon-${id}`}
-                >
-                  <Icon className="w-5 h-5" />
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label>Focus Duration</Label>
-              <span className="text-sm font-mono text-muted-foreground">
-                {duration[0]} min
-              </span>
-            </div>
+            <Label>Focus Duration: {duration[0]} minutes</Label>
             <Slider
               value={duration}
               onValueChange={setDuration}
@@ -115,13 +90,8 @@ export default function CreateTimerDialog({ onCreateTimer }: CreateTimerDialogPr
             />
           </div>
 
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label>Break Duration</Label>
-              <span className="text-sm font-mono text-muted-foreground">
-                {breakDuration[0]} min
-              </span>
-            </div>
+          <div className="space-y-2">
+            <Label>Break Duration: {breakDuration[0]} minutes</Label>
             <Slider
               value={breakDuration}
               onValueChange={setBreakDuration}
@@ -132,7 +102,33 @@ export default function CreateTimerDialog({ onCreateTimer }: CreateTimerDialogPr
             />
           </div>
 
-          <Button className="w-full" onClick={handleCreate} data-testid="button-save-timer">
+          <div className="space-y-2">
+            <Label>Icon</Label>
+            <div className="flex gap-2">
+              {icons.map(({ id, icon: Icon, label }) => (
+                <button
+                  key={id}
+                  onClick={() => setSelectedIcon(id)}
+                  className={`p-3 rounded-lg border transition-colors ${
+                    selectedIcon === id
+                      ? "border-primary bg-primary/10"
+                      : "border-border hover-elevate"
+                  }`}
+                  title={label}
+                  data-testid={`button-icon-${id}`}
+                >
+                  <Icon className="w-5 h-5" />
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <Button
+            onClick={handleCreate}
+            className="w-full"
+            disabled={!name.trim()}
+            data-testid="button-create-timer-submit"
+          >
             Create Timer
           </Button>
         </div>
