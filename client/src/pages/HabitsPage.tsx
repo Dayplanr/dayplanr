@@ -173,8 +173,9 @@ export default function HabitsPage() {
             <h1 className="text-2xl font-bold text-foreground">Habits</h1>
             <p className="text-sm text-muted-foreground">Build consistency, one day at a time</p>
           </div>
-          <Button onClick={() => setShowAddDialog(true)} size="icon" data-testid="button-add-habit">
-            <Plus className="w-5 h-5" />
+          <Button onClick={() => setShowAddDialog(true)} data-testid="button-add-habit">
+            <Plus className="w-4 h-4 mr-2" />
+            New Habit
           </Button>
         </div>
 
