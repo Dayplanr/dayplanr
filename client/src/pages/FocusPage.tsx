@@ -182,11 +182,20 @@ export default function FocusPage() {
         />
       </div>
 
-      {/* Floating insights button */}
+      {/* Floating insights button - left side */}
       <button
         onClick={() => setShowInsights(true)}
-        className="fixed bottom-24 md:bottom-6 right-6 w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover-elevate active-elevate-2 z-50"
+        className="fixed bottom-24 md:bottom-6 left-6 w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover-elevate active-elevate-2 z-50"
         data-testid="button-insights-floating"
+      >
+        <Plus className="w-5 h-5" />
+      </button>
+
+      {/* Floating button - right side */}
+      <button
+        onClick={() => setShowCreateTimer(true)}
+        className="fixed bottom-24 md:bottom-6 right-6 w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover-elevate active-elevate-2 z-50"
+        data-testid="button-timer-floating"
       >
         <Plus className="w-5 h-5" />
       </button>
