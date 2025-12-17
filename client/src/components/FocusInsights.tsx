@@ -125,7 +125,7 @@ export default function FocusInsights({
 
   return (
     <>
-      <div className="fixed bottom-24 md:bottom-8 left-1/2 -translate-x-1/2 z-40">
+      <div className="fixed bottom-24 md:bottom-8 right-6 z-40">
         <Button
           size="icon"
           className="w-14 h-14 rounded-full shadow-lg"
