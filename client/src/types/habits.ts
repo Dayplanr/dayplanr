@@ -9,6 +9,7 @@ export interface Habit {
   challengeDays: number;
   challengeCompleted: number;
   streak: number;
+  bestStreak?: number;
   successRate: number;
   weeklyConsistency: number;
   monthlyConsistency: number;

@@ -1,6 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -8,8 +7,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Flame, Clock, MoreVertical, Pencil, Trash2, Calendar, Target, Repeat } from "lucide-react";
-import HeatmapCalendar from "./HeatmapCalendar";
+import { MoreVertical, Pencil, Trash2, Check, Flame, Star } from "lucide-react";
+import { format, subDays } from "date-fns";
 import type { ScheduleType } from "@/types/habits";
 
 interface HabitCardProps {
@@ -21,47 +20,30 @@ interface HabitCardProps {
   challengeDays?: number;
   challengeCompleted?: number;
   streak: number;
+  bestStreak?: number;
   successRate: number;
   weeklyConsistency: number;
   monthlyConsistency: number;
   completedDates: string[];
   hasTimer: boolean;
   onToggleTimer: () => void;
+  onToggleDay?: (date: string) => void;
   onEdit: () => void;
   onDelete: () => void;
   themeColor?: string;
 }
 
-function getScheduleLabel(
-  scheduleType?: ScheduleType,
-  selectedDays?: string[],
-  challengeDays?: number,
-  challengeCompleted?: number
-): { label: string; icon: typeof Calendar } {
+function getScheduleLabel(scheduleType?: ScheduleType): string {
   if (!scheduleType || scheduleType === "everyday") {
-    return { label: "Everyday Habit", icon: Repeat };
+    return "daily";
   }
-  
-  if (scheduleType === "weekdays" && selectedDays?.length) {
-    const dayMap: Record<string, string> = {
-      mon: "Mon",
-      tue: "Tue",
-      wed: "Wed",
-      thu: "Thu",
-      fri: "Fri",
-      sat: "Sat",
-      sun: "Sun",
-    };
-    const dayLabels = selectedDays.map((d) => dayMap[d] || d).join("-");
-    return { label: `Specific Weekdays (${dayLabels})`, icon: Calendar };
+  if (scheduleType === "weekdays") {
+    return "weekdays";
   }
-  
-  if (scheduleType === "challenge" && challengeDays) {
-    const completed = challengeCompleted || 0;
-    return { label: `${completed}/${challengeDays} Challenge`, icon: Target };
+  if (scheduleType === "challenge") {
+    return "challenge";
   }
-  
-  return { label: "Everyday Habit", icon: Repeat };
+  return "daily";
 }
 
 export default function HabitCard({
@@ -69,95 +51,117 @@ export default function HabitCard({
   title,
   category,
   scheduleType,
-  selectedDays,
-  challengeDays,
-  challengeCompleted,
   streak,
-  successRate,
-  weeklyConsistency,
-  monthlyConsistency,
+  bestStreak,
   completedDates,
-  hasTimer,
-  onToggleTimer,
+  onToggleDay,
   onEdit,
   onDelete,
-  themeColor = "hsl(var(--primary))",
 }: HabitCardProps) {
-  const { label: scheduleLabel, icon: ScheduleIcon } = getScheduleLabel(
-    scheduleType,
-    selectedDays,
-    challengeDays,
-    challengeCompleted
-  );
+  const today = new Date();
+  const last7Days = Array.from({ length: 7 }, (_, i) => {
+    const date = subDays(today, 6 - i);
+    return {
+      date,
+      dateStr: format(date, "yyyy-MM-dd"),
+      dayName: format(date, "EEE"),
+      dayNumber: format(date, "d"),
+    };
+  });
+
+  const scheduleLabel = getScheduleLabel(scheduleType);
+  const currentStreak = streak || 0;
+  const best = bestStreak || Math.max(currentStreak, 1);
 
   return (
-    <Card className="hover-elevate" data-testid={`card-habit-${title.toLowerCase().replace(/\s+/g, '-')}`}>
-      <CardHeader>
+    <Card className="hover-elevate" data-testid={`card-habit-${id}`}>
+      <CardContent className="p-5 space-y-4">
         <div className="flex items-start justify-between gap-2">
-          <div className="flex-1 min-w-0">
-            <CardTitle className="text-base truncate">{title}</CardTitle>
-            {category && (
-              <Badge variant="secondary" className="mt-1 text-xs">
-                {category}
-              </Badge>
-            )}
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-muted-foreground" />
-              <Switch checked={hasTimer} onCheckedChange={onToggleTimer} data-testid="switch-timer" />
-            </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8" data-testid={`button-habit-menu-${id}`}>
-                  <MoreVertical className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={onEdit} data-testid={`button-edit-habit-${id}`}>
-                  <Pencil className="w-4 h-4 mr-2" />
-                  Edit
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={onDelete} 
-                  className="text-destructive focus:text-destructive"
-                  data-testid={`button-delete-habit-${id}`}
+          <h3 className="text-lg font-semibold text-foreground" data-testid={`text-habit-title-${id}`}>
+            {title}
+          </h3>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8 -mr-2 -mt-1" data-testid={`button-habit-menu-${id}`}>
+                <MoreVertical className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={onEdit} data-testid={`button-edit-habit-${id}`}>
+                <Pencil className="w-4 h-4 mr-2" />
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={onDelete} 
+                className="text-destructive focus:text-destructive"
+                data-testid={`button-delete-habit-${id}`}
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        <div>
+          <p className="text-xs font-medium text-muted-foreground mb-3 tracking-wide">LAST 7 DAYS</p>
+          <div className="flex items-center justify-between gap-1">
+            {last7Days.map((day) => {
+              const isCompleted = completedDates.includes(day.dateStr);
+              return (
+                <button
+                  key={day.dateStr}
+                  onClick={() => onToggleDay?.(day.dateStr)}
+                  className="flex flex-col items-center gap-1 flex-1"
+                  data-testid={`button-day-${day.dateStr}`}
                 >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  <span className="text-xs text-muted-foreground">{day.dayName}</span>
+                  <div
+                    className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
+                      isCompleted
+                        ? "bg-green-500 text-white"
+                        : "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    {isCompleted ? (
+                      <Check className="w-4 h-4" />
+                    ) : (
+                      day.dayNumber
+                    )}
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Flame className="w-6 h-6 text-orange-500" />
-            <div>
-              <p className="text-2xl font-semibold font-mono">{streak}</p>
-              <p className="text-xs text-muted-foreground">day streak</p>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-orange-100 dark:bg-orange-950/50 rounded-xl p-3">
+            <p className="text-xs text-muted-foreground mb-1">Current</p>
+            <div className="flex items-center gap-2">
+              <span className="text-xl">🔥</span>
+              <span className="text-xl font-bold text-foreground">{currentStreak}d</span>
             </div>
           </div>
-          <div className="flex-1 grid grid-cols-2 gap-2">
-            <div>
-              <p className="text-sm font-semibold">{successRate}%</p>
-              <p className="text-xs text-muted-foreground">Success</p>
-            </div>
-            <div>
-              <p className="text-sm font-semibold">{weeklyConsistency}%</p>
-              <p className="text-xs text-muted-foreground">Weekly</p>
+          <div className="bg-yellow-100 dark:bg-yellow-950/50 rounded-xl p-3">
+            <p className="text-xs text-muted-foreground mb-1">Best</p>
+            <div className="flex items-center gap-2">
+              <span className="text-xl">⭐</span>
+              <span className="text-xl font-bold text-foreground">{best}d</span>
             </div>
           </div>
         </div>
-        
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <ScheduleIcon className="w-3 h-3" />
-          <span data-testid={`text-schedule-${id}`}>{scheduleLabel}</span>
+
+        <div className="flex items-center gap-2">
+          {category && (
+            <Badge variant="secondary" className="text-xs font-normal" data-testid={`badge-category-${id}`}>
+              {category}
+            </Badge>
+          )}
+          <Badge variant="secondary" className="text-xs font-normal" data-testid={`badge-schedule-${id}`}>
+            {scheduleLabel}
+          </Badge>
         </div>
-        
-        <HeatmapCalendar month={new Date()} completedDates={completedDates} themeColor={themeColor} />
       </CardContent>
     </Card>
   );

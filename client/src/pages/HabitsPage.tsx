@@ -12,7 +12,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import HabitCard from "@/components/HabitCard";
-import ChallengeCard from "@/components/ChallengeCard";
 import AddHabitDialog from "@/components/AddHabitDialog";
 import EditHabitDialog from "@/components/EditHabitDialog";
 import HabitInsights from "@/components/HabitInsights";
@@ -27,23 +26,22 @@ export default function HabitsPage() {
   const [habits, setHabits] = useState<Habit[]>([
     {
       id: "1",
-      title: "Morning Meditation",
-      category: "health",
+      title: "Reading books",
+      category: "personal",
       scheduleType: "everyday",
       selectedDays: [],
       challengeDays: 0,
       challengeCompleted: 0,
-      streak: 12,
+      streak: 1,
+      bestStreak: 1,
       successRate: 85,
       weeklyConsistency: 90,
       monthlyConsistency: 78,
       completedDates: [
-        format(new Date(), "yyyy-MM-dd"),
-        format(subDays(new Date(), 1), "yyyy-MM-dd"),
         format(subDays(new Date(), 2), "yyyy-MM-dd"),
-        format(subDays(new Date(), 5), "yyyy-MM-dd"),
+        format(subDays(new Date(), 1), "yyyy-MM-dd"),
       ],
-      hasTimer: true,
+      hasTimer: false,
     },
     {
       id: "2",
@@ -53,53 +51,19 @@ export default function HabitsPage() {
       selectedDays: ["mon", "wed", "fri"],
       challengeDays: 0,
       challengeCompleted: 0,
-      streak: 8,
+      streak: 3,
+      bestStreak: 5,
       successRate: 92,
       weeklyConsistency: 95,
       monthlyConsistency: 88,
       completedDates: [
-        format(new Date(), "yyyy-MM-dd"),
-        format(subDays(new Date(), 1), "yyyy-MM-dd"),
-        format(subDays(new Date(), 3), "yyyy-MM-dd"),
-      ],
-      hasTimer: false,
-    },
-    {
-      id: "3",
-      title: "Reading Challenge",
-      category: "learning",
-      scheduleType: "challenge",
-      selectedDays: [],
-      challengeDays: 30,
-      challengeCompleted: 18,
-      streak: 5,
-      successRate: 60,
-      weeklyConsistency: 71,
-      monthlyConsistency: 60,
-      completedDates: [
-        format(new Date(), "yyyy-MM-dd"),
-        format(subDays(new Date(), 2), "yyyy-MM-dd"),
         format(subDays(new Date(), 4), "yyyy-MM-dd"),
+        format(subDays(new Date(), 2), "yyyy-MM-dd"),
+        format(new Date(), "yyyy-MM-dd"),
       ],
       hasTimer: false,
     },
   ]);
-
-  const challenges = [
-    {
-      id: "1",
-      title: "21-Day Fitness Challenge",
-      daysRemaining: 14,
-      totalDays: 21,
-      progress: 68,
-      participants: [
-        { id: "1", name: "Alice Johnson" },
-        { id: "2", name: "Bob Smith" },
-        { id: "3", name: "Carol White" },
-        { id: "4", name: "David Brown" },
-      ],
-    },
-  ];
 
   const handleToggleTimer = (habitId: string) => {
     setHabits((prev) =>
@@ -107,6 +71,58 @@ export default function HabitsPage() {
         habit.id === habitId ? { ...habit, hasTimer: !habit.hasTimer } : habit
       )
     );
+  };
+
+  const handleToggleDay = (habitId: string, dateStr: string) => {
+    setHabits((prev) =>
+      prev.map((habit) => {
+        if (habit.id !== habitId) return habit;
+        
+        const isCompleted = habit.completedDates.includes(dateStr);
+        let newCompletedDates: string[];
+        
+        if (isCompleted) {
+          newCompletedDates = habit.completedDates.filter((d) => d !== dateStr);
+        } else {
+          newCompletedDates = [...habit.completedDates, dateStr].sort();
+        }
+        
+        const newStreak = calculateStreak(newCompletedDates);
+        const newBestStreak = Math.max(habit.bestStreak || 0, newStreak);
+        
+        return {
+          ...habit,
+          completedDates: newCompletedDates,
+          streak: newStreak,
+          bestStreak: newBestStreak,
+        };
+      })
+    );
+  };
+
+  const calculateStreak = (completedDates: string[]): number => {
+    if (completedDates.length === 0) return 0;
+    
+    const sorted = [...completedDates].sort().reverse();
+    const today = format(new Date(), "yyyy-MM-dd");
+    const yesterday = format(subDays(new Date(), 1), "yyyy-MM-dd");
+    
+    if (sorted[0] !== today && sorted[0] !== yesterday) return 0;
+    
+    let streak = 1;
+    for (let i = 1; i < sorted.length; i++) {
+      const prevDate = new Date(sorted[i - 1]);
+      const currDate = new Date(sorted[i]);
+      const diffDays = Math.floor((prevDate.getTime() - currDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (diffDays === 1) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+    
+    return streak;
   };
 
   const handleAddHabit = (data: HabitFormData) => {
@@ -119,6 +135,7 @@ export default function HabitsPage() {
       challengeDays: data.challengeDays,
       challengeCompleted: 0,
       streak: 0,
+      bestStreak: 0,
       successRate: 0,
       weeklyConsistency: 0,
       monthlyConsistency: 0,
@@ -150,42 +167,41 @@ export default function HabitsPage() {
 
   return (
     <div className="h-full overflow-y-auto pb-20 md:pb-4">
-      <div className="max-w-6xl mx-auto p-4 space-y-6">
+      <div className="max-w-2xl mx-auto p-4 space-y-6">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-semibold text-foreground">Habits</h1>
-            <p className="text-sm text-muted-foreground">Build consistency and track streaks</p>
+            <h1 className="text-2xl font-bold text-foreground">Habits</h1>
+            <p className="text-sm text-muted-foreground">Build consistency, one day at a time</p>
           </div>
-          <Button onClick={() => setShowAddDialog(true)} data-testid="button-add-habit">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Habit
+          <Button onClick={() => setShowAddDialog(true)} size="icon" data-testid="button-add-habit">
+            <Plus className="w-5 h-5" />
           </Button>
         </div>
 
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {habits.map((habit) => (
-              <HabitCard
-                key={habit.id}
-                id={habit.id}
-                title={habit.title}
-                category={habit.category}
-                scheduleType={habit.scheduleType}
-                selectedDays={habit.selectedDays}
-                challengeDays={habit.challengeDays}
-                challengeCompleted={habit.challengeCompleted}
-                streak={habit.streak}
-                successRate={habit.successRate}
-                weeklyConsistency={habit.weeklyConsistency}
-                monthlyConsistency={habit.monthlyConsistency}
-                completedDates={habit.completedDates}
-                hasTimer={habit.hasTimer}
-                onToggleTimer={() => handleToggleTimer(habit.id)}
-                onEdit={() => setEditingHabit(habit)}
-                onDelete={() => setDeletingHabit(habit)}
-              />
-            ))}
-          </div>
+        <div className="space-y-4">
+          {habits.map((habit) => (
+            <HabitCard
+              key={habit.id}
+              id={habit.id}
+              title={habit.title}
+              category={habit.category}
+              scheduleType={habit.scheduleType}
+              selectedDays={habit.selectedDays}
+              challengeDays={habit.challengeDays}
+              challengeCompleted={habit.challengeCompleted}
+              streak={habit.streak}
+              bestStreak={habit.bestStreak}
+              successRate={habit.successRate}
+              weeklyConsistency={habit.weeklyConsistency}
+              monthlyConsistency={habit.monthlyConsistency}
+              completedDates={habit.completedDates}
+              hasTimer={habit.hasTimer}
+              onToggleTimer={() => handleToggleTimer(habit.id)}
+              onToggleDay={(dateStr) => handleToggleDay(habit.id, dateStr)}
+              onEdit={() => setEditingHabit(habit)}
+              onDelete={() => setDeletingHabit(habit)}
+            />
+          ))}
 
           {habits.length === 0 && (
             <div className="text-center py-12">
@@ -194,17 +210,6 @@ export default function HabitsPage() {
                 <Plus className="w-4 h-4 mr-2" />
                 Add Your First Habit
               </Button>
-            </div>
-          )}
-
-          {challenges.length > 0 && (
-            <div>
-              <h2 className="text-lg font-semibold text-foreground mb-4">Shared Challenges</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {challenges.map((challenge) => (
-                  <ChallengeCard key={challenge.id} {...challenge} />
-                ))}
-              </div>
             </div>
           )}
         </div>
