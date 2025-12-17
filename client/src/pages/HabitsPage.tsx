@@ -1,6 +1,12 @@
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, TrendingUp, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,6 +26,7 @@ import type { Habit, HabitFormData } from "@/types/habits";
 
 export default function HabitsPage() {
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showInsights, setShowInsights] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
   const [deletingHabit, setDeletingHabit] = useState<Habit | null>(null);
 
@@ -103,19 +110,21 @@ export default function HabitsPage() {
   const calculateStreak = (completedDates: string[]): number => {
     if (completedDates.length === 0) return 0;
     
-    const sorted = [...completedDates].sort().reverse();
+    const sortedDates = [...completedDates].sort().reverse();
     const today = format(new Date(), "yyyy-MM-dd");
     const yesterday = format(subDays(new Date(), 1), "yyyy-MM-dd");
     
-    if (sorted[0] !== today && sorted[0] !== yesterday) return 0;
+    if (sortedDates[0] !== today && sortedDates[0] !== yesterday) {
+      return 0;
+    }
     
     let streak = 1;
-    for (let i = 1; i < sorted.length; i++) {
-      const prevDate = new Date(sorted[i - 1]);
-      const currDate = new Date(sorted[i]);
-      const diffDays = Math.floor((prevDate.getTime() - currDate.getTime()) / (1000 * 60 * 60 * 24));
+    for (let i = 0; i < sortedDates.length - 1; i++) {
+      const current = new Date(sortedDates[i]);
+      const next = new Date(sortedDates[i + 1]);
+      const diff = (current.getTime() - next.getTime()) / (1000 * 60 * 60 * 24);
       
-      if (diffDays === 1) {
+      if (diff === 1) {
         streak++;
       } else {
         break;
@@ -128,11 +137,11 @@ export default function HabitsPage() {
   const handleAddHabit = (data: HabitFormData) => {
     const newHabit: Habit = {
       id: Date.now().toString(),
-      title: data.name,
+      title: data.title,
       category: data.category,
       scheduleType: data.scheduleType,
-      selectedDays: data.selectedDays,
-      challengeDays: data.challengeDays,
+      selectedDays: data.selectedDays || [],
+      challengeDays: data.challengeDays || 0,
       challengeCompleted: 0,
       streak: 0,
       bestStreak: 0,
@@ -140,16 +149,16 @@ export default function HabitsPage() {
       weeklyConsistency: 0,
       monthlyConsistency: 0,
       completedDates: [],
-      hasTimer: false,
+      hasTimer: data.hasTimer || false,
+      timerDuration: data.timerDuration,
     };
     setHabits((prev) => [...prev, newHabit]);
+    setShowAddDialog(false);
   };
 
   const handleEditHabit = (updatedHabit: Habit) => {
     setHabits((prev) =>
-      prev.map((habit) =>
-        habit.id === updatedHabit.id ? updatedHabit : habit
-      )
+      prev.map((habit) => (habit.id === updatedHabit.id ? updatedHabit : habit))
     );
     setEditingHabit(null);
   };
@@ -173,10 +182,23 @@ export default function HabitsPage() {
             <h1 className="text-2xl font-bold text-foreground">Habits</h1>
             <p className="text-sm text-muted-foreground">Build consistency, one day at a time</p>
           </div>
-          <Button onClick={() => setShowAddDialog(true)} data-testid="button-add-habit">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Habit
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="icon" data-testid="button-habits-menu">
+                <Plus className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setShowInsights(true)} data-testid="menu-habits-insights">
+                <TrendingUp className="w-4 h-4 mr-2" />
+                Insights
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setShowAddDialog(true)} data-testid="menu-add-habit">
+                <Sparkles className="w-4 h-4 mr-2" />
+                Add Habit
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         <div className="space-y-4">
@@ -254,7 +276,11 @@ export default function HabitsPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <HabitInsights habits={habits} />
+      <HabitInsights 
+        habits={habits} 
+        open={showInsights}
+        onOpenChange={setShowInsights}
+      />
     </div>
   );
 }
