@@ -1,17 +1,11 @@
 import { useState } from "react";
 import { format, subDays } from "date-fns";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import FocusModeCard from "@/components/FocusModeCard";
 import CreateTimerDialog from "@/components/CreateTimerDialog";
 import FocusInsights from "@/components/FocusInsights";
 import ActiveFocusSession from "@/components/ActiveFocusSession";
-import { Timer, Rocket, Zap, Brain, Coffee, Plus, TrendingUp } from "lucide-react";
+import { Timer, Rocket, Zap, Brain, Coffee, Plus } from "lucide-react";
 
 interface CustomTimer {
   id: string;
@@ -116,31 +110,21 @@ export default function FocusPage() {
   };
 
   return (
-    <div className="h-full overflow-y-auto pb-20 md:pb-4">
+    <div className="h-full overflow-y-auto pb-20 md:pb-4 relative">
       <div className="max-w-6xl mx-auto p-4 space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-foreground">Focus</h1>
             <p className="text-sm text-muted-foreground">Deep work & productivity</p>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button data-testid="button-focus-menu">
-                <Plus className="w-4 h-4 mr-2" />
-                Options
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setShowCreateTimer(true)} data-testid="menu-new-timer">
-                <Timer className="w-4 h-4 mr-2" />
-                New Timer
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setShowInsights(true)} data-testid="menu-insights">
-                <TrendingUp className="w-4 h-4 mr-2" />
-                Insights
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Button 
+            size="icon" 
+            variant="outline" 
+            onClick={() => setShowCreateTimer(true)}
+            data-testid="button-create-timer"
+          >
+            <Plus className="w-4 h-4" />
+          </Button>
         </div>
 
         {activeSession ? (
@@ -197,6 +181,15 @@ export default function FocusPage() {
           yearData={yearData}
         />
       </div>
+
+      {/* Floating insights button */}
+      <button
+        onClick={() => setShowInsights(true)}
+        className="fixed bottom-24 md:bottom-6 right-6 w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover-elevate active-elevate-2 z-50"
+        data-testid="button-insights-floating"
+      >
+        <Plus className="w-5 h-5" />
+      </button>
     </div>
   );
 }
