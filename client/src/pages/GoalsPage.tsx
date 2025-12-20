@@ -9,13 +9,16 @@ import {
 } from "@/components/ui/dropdown-menu";
 import GoalCard from "@/components/GoalCard";
 import CreateGoalSheet from "@/components/CreateGoalSheet";
+import EditGoalSheet from "@/components/EditGoalSheet";
 import GoalInsights from "@/components/GoalInsights";
 import { format, subDays } from "date-fns";
-import type { Goal, GoalFormData, Milestone } from "@/types/goals";
+import type { Goal, GoalFormData } from "@/types/goals";
 import { calculateGoalProgress } from "@/types/goals";
 
 export default function GoalsPage() {
   const [showCreateGoal, setShowCreateGoal] = useState(false);
+  const [showEditGoal, setShowEditGoal] = useState(false);
+  const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
   const [showInsights, setShowInsights] = useState(false);
 
   const [goals, setGoals] = useState<Goal[]>([
@@ -118,6 +121,32 @@ export default function GoalsPage() {
     setGoals((prev) => [...prev, newGoal]);
   };
 
+  const handleEditGoal = (goal: Goal) => {
+    setEditingGoal(goal);
+    setShowEditGoal(true);
+  };
+
+  const handleUpdateGoal = (goalId: string, data: Partial<Goal>) => {
+    setGoals((prev) =>
+      prev.map((goal) => {
+        if (goal.id !== goalId) return goal;
+        
+        const updatedGoal = { ...goal, ...data };
+        if (data.milestones) {
+          updatedGoal.progress = calculateGoalProgress(data.milestones);
+        }
+        updatedGoal.lastActivityAt = format(new Date(), "yyyy-MM-dd");
+        
+        return updatedGoal;
+      })
+    );
+    setEditingGoal(null);
+  };
+
+  const handleDeleteGoal = (goalId: string) => {
+    setGoals((prev) => prev.filter((goal) => goal.id !== goalId));
+  };
+
   return (
     <div className="h-full overflow-y-auto pb-20 md:pb-4">
       <div className="max-w-6xl mx-auto p-4 space-y-6">
@@ -158,6 +187,8 @@ export default function GoalsPage() {
               challengeDuration={goal.challengeDuration}
               daysWithProgress={goal.daysWithProgress}
               onToggleMilestone={(milestoneId) => handleToggleMilestone(goal.id, milestoneId)}
+              onEdit={() => handleEditGoal(goal)}
+              onDelete={() => handleDeleteGoal(goal.id)}
             />
           ))}
         </div>
@@ -177,6 +208,13 @@ export default function GoalsPage() {
         open={showCreateGoal}
         onOpenChange={setShowCreateGoal}
         onSubmit={handleCreateGoal}
+      />
+
+      <EditGoalSheet
+        open={showEditGoal}
+        onOpenChange={setShowEditGoal}
+        goal={editingGoal}
+        onSubmit={handleUpdateGoal}
       />
 
       <GoalInsights

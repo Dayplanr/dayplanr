@@ -2,7 +2,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Check, Calendar } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Check, Calendar, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import type { Milestone } from "@/types/goals";
 
 interface GoalCardProps {
@@ -15,6 +22,8 @@ interface GoalCardProps {
   challengeDuration?: number;
   daysWithProgress?: number;
   onToggleMilestone: (milestoneId: string) => void;
+  onEdit: () => void;
+  onDelete: () => void;
 }
 
 export default function GoalCard({
@@ -27,6 +36,8 @@ export default function GoalCard({
   challengeDuration = 0,
   daysWithProgress = 0,
   onToggleMilestone,
+  onEdit,
+  onDelete,
 }: GoalCardProps) {
   const getCategoryColor = (cat: string) => {
     const colors: Record<string, string> = {
@@ -47,7 +58,30 @@ export default function GoalCard({
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 space-y-1">
-            <CardTitle className="text-base">{title}</CardTitle>
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle className="text-base">{title}</CardTitle>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 -mr-2 -mt-1" data-testid={`button-goal-menu-${id}`}>
+                    <MoreVertical className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={onEdit} data-testid={`button-edit-goal-${id}`}>
+                    <Pencil className="w-4 h-4 mr-2" />
+                    Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={onDelete} 
+                    className="text-destructive focus:text-destructive"
+                    data-testid={`button-delete-goal-${id}`}
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="secondary" className={getCategoryColor(category)}>
                 {category}
