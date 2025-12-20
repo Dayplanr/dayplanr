@@ -13,6 +13,7 @@ import CreateGoalPage from "@/pages/CreateGoalPage";
 import HabitsPage from "@/pages/HabitsPage";
 import AddHabitPage from "@/pages/AddHabitPage";
 import FocusPage from "@/pages/FocusPage";
+import SettingsPage from "@/pages/SettingsPage";
 
 function Router() {
   return (
@@ -23,6 +24,7 @@ function Router() {
       <Route path="/habits" component={HabitsPage} />
       <Route path="/habits/new" component={AddHabitPage} />
       <Route path="/focus" component={FocusPage} />
+      <Route path="/settings" component={SettingsPage} />
     </Switch>
   );
 }
