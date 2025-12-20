@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -9,12 +9,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Check, Calendar, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { MoreVertical, Pencil, Trash2 } from "lucide-react";
 import type { Milestone } from "@/types/goals";
 
 interface GoalCardProps {
   id: string;
   title: string;
+  purpose?: string;
   category: string;
   progress: number;
   milestones: Milestone[];
@@ -29,6 +30,7 @@ interface GoalCardProps {
 export default function GoalCard({
   id,
   title,
+  purpose,
   category,
   progress,
   milestones,
@@ -39,113 +41,127 @@ export default function GoalCard({
   onEdit,
   onDelete,
 }: GoalCardProps) {
-  const getCategoryColor = (cat: string) => {
-    const colors: Record<string, string> = {
-      Health: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-      Work: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-      Personal: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
-      Finance: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
-      Creativity: "bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400",
-      Education: "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400",
-      Career: "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400",
-      Relationships: "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400",
-    };
-    return colors[cat] || "bg-muted text-muted-foreground";
-  };
-
+  const completedMilestones = milestones.filter(m => m.completed).length;
+  
   return (
-    <Card className="hover-elevate" data-testid={`card-goal-${id}`}>
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex-1 space-y-1">
-            <CardTitle className="text-base">{title}</CardTitle>
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="secondary" className={getCategoryColor(category)}>
-                {category}
-              </Badge>
-              {challengeDuration > 0 && (
-                <Badge variant="outline" className="gap-1">
-                  <Calendar className="w-3 h-3" />
-                  {challengeDuration} day challenge
-                </Badge>
-              )}
+    <Card className="border-0 shadow-sm bg-card" data-testid={`card-goal-${id}`}>
+      <CardContent className="p-5 space-y-4">
+        {/* Header with title and percentage */}
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-2">
+              <h3 className="text-xl font-bold text-foreground" data-testid={`text-title-${id}`}>
+                {title}
+              </h3>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8 shrink-0 -mt-1 -mr-2" 
+                    data-testid={`button-goal-menu-${id}`}
+                  >
+                    <MoreVertical className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={onEdit} data-testid={`button-edit-goal-${id}`}>
+                    <Pencil className="w-4 h-4 mr-2" />
+                    Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={onDelete} 
+                    className="text-destructive focus:text-destructive"
+                    data-testid={`button-delete-goal-${id}`}
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
+            {purpose && (
+              <p className="text-sm text-muted-foreground mt-0.5">{purpose}</p>
+            )}
           </div>
-          <div className="flex items-start gap-1">
-            <div className="text-right">
-              <p className="text-2xl font-bold font-mono" data-testid={`text-progress-${id}`}>
-                {progress}%
-              </p>
-              <p className="text-xs text-muted-foreground">progress</p>
-            </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 -mr-2 -mt-1" data-testid={`button-goal-menu-${id}`}>
-                  <MoreVertical className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={onEdit} data-testid={`button-edit-goal-${id}`}>
-                  <Pencil className="w-4 h-4 mr-2" />
-                  Edit
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={onDelete} 
-                  className="text-destructive focus:text-destructive"
-                  data-testid={`button-delete-goal-${id}`}
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          <span 
+            className="text-3xl font-bold tabular-nums shrink-0" 
+            data-testid={`text-progress-${id}`}
+          >
+            {progress}%
+          </span>
         </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-1">
-          <Progress value={progress} className="h-2" />
-          {challengeDuration > 0 && (
-            <p className="text-xs text-muted-foreground text-right">
-              Day {daysWithProgress} of {challengeDuration}
-            </p>
+
+        {/* Progress bar */}
+        <Progress value={progress} className="h-1.5" />
+
+        {/* Category and challenge badges */}
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge 
+            variant="secondary" 
+            className="bg-muted/60 text-muted-foreground font-normal rounded-full px-3"
+          >
+            {category.toLowerCase()}
+          </Badge>
+          {challengeDuration > 0 ? (
+            <Badge 
+              variant="secondary" 
+              className="bg-muted/60 text-muted-foreground font-normal rounded-full px-3"
+            >
+              {daysWithProgress}/{challengeDuration} days
+            </Badge>
+          ) : (
+            <Badge 
+              variant="secondary" 
+              className="bg-muted/60 text-muted-foreground font-normal rounded-full px-3"
+            >
+              No challenge
+            </Badge>
           )}
         </div>
 
+        {/* Milestones */}
         {milestones.length > 0 && (
-          <div className="space-y-2">
-            <h4 className="text-xs font-medium text-muted-foreground">Milestones</h4>
-            <div className="space-y-1.5">
+          <div className="space-y-3 pt-2">
+            <h4 className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">
+              Milestones
+            </h4>
+            <div className="space-y-2">
               {milestones.map((milestone) => (
                 <div 
                   key={milestone.id} 
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-3"
                 >
                   <Checkbox
                     checked={milestone.completed}
                     onCheckedChange={() => onToggleMilestone(milestone.id)}
+                    className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                     data-testid={`checkbox-milestone-${milestone.id}`}
                   />
                   <span
-                    className={`text-sm flex-1 ${
-                      milestone.completed ? "line-through text-muted-foreground" : "text-foreground"
+                    className={`text-sm ${
+                      milestone.completed 
+                        ? "text-muted-foreground" 
+                        : "text-foreground"
                     }`}
                   >
                     {milestone.title}
                   </span>
-                  {milestone.completed && (
-                    <Check className="w-4 h-4 text-green-500" />
-                  )}
                 </div>
               ))}
             </div>
           </div>
         )}
 
+        {/* Tags (if any) */}
         {tags.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-1.5 pt-1">
             {tags.map((tag) => (
-              <Badge key={tag} variant="outline" className="text-xs">
+              <Badge 
+                key={tag} 
+                variant="outline" 
+                className="text-xs font-normal rounded-full"
+              >
                 {tag}
               </Badge>
             ))}
