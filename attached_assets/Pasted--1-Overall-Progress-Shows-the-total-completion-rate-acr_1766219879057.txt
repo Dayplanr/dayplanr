@@ -1,0 +1,58 @@
+
+1. Overall Progress
+Shows the total completion rate across all active goals.
+Helps users understand whether they are progressing in their long-term vision.
+Example UI text: Overall Goal Progress Track how consistently you’re moving toward your long-term vision.
+Metrics:
+Total goals created
+Goals in progress
+Completed goals
+Average completion percentage
+✅ 2. Milestone Completion Rate
+Every goal has milestones → this insight zeigt, wie gut Nutzer:innen ihre Milestones erledigen.
+Example UI text: Milestone Completion Rate See how effectively you’re completing the steps that lead to your goals.
+Metrics:
+Completed milestones
+Pending milestones
+Best performing goal (based on milestone progress)
+✅ 3. Category Breakdown
+Damit Nutzer sehen, in welchem Lebensbereich sie ihre Ziele verfolgen.
+Example categories:
+Health
+Work
+Personal
+Finance
+Creativity
+Education
+Example UI text: Goal Categories Breakdown Understand where you invest most of your long-term energy.
+Display:  Pie chart (keine Farben vorgegeben)
+✅ 4. Challenge Completion Insight
+Falls ein Goal ein “Challenge” hat (z. B. 30-day challenge):
+Example UI text: Challenge Completion Track your progress through your active challenges.
+Metrics:
+Days completed
+Days left
+Streak for the challenge
+Completion percentage
+✅ 5. Goal Consistency
+Messen, wie oft der User aktiv an einem Goal gearbeitet hat.
+Example UI text: Consistency Score See how steadily you're progressing toward your goals.
+Metrics:
+Days with progress
+Best streak
+Last activity date
+✅ 6. Most Motivating Goal (Based on Completion Speed)
+Ein Insight, das zeigt, welches Goal am schnellsten vorangebracht wird.
+Example UI text: Fastest-Progressing Goal The goal you’re moving toward the quickest.
+✅ 7. Goals at Risk (little or zero progress)
+Damit Nutzer erinnert werden: “Hey, hier passiert gerade nichts.”
+Example UI text: Goals at Risk Goals that haven’t seen progress recently.
+Metrics:
+No progress in the last 7 days
+Low completion (<10%)
+✅ 8. Productivity Score for Goals
+Weil du für Weekly/Monthly/Yearly bei Tasks auch einen Score hast → hier auch.
+Example UI text: Goal Productivity Score A combined score based on your consistency, milestone completion, and progress.
+Format:
+If no progress → 0 (wie du wolltest)
+Else dynamic score 1–100

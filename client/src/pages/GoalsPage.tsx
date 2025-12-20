@@ -1,65 +1,121 @@
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, TrendingUp, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import GoalCard from "@/components/GoalCard";
-import { addDays } from "date-fns";
+import CreateGoalSheet from "@/components/CreateGoalSheet";
+import GoalInsights from "@/components/GoalInsights";
+import { format, subDays } from "date-fns";
+import type { Goal, GoalFormData, Milestone } from "@/types/goals";
+import { calculateGoalProgress } from "@/types/goals";
 
 export default function GoalsPage() {
-  const [goals, setGoals] = useState([
+  const [showCreateGoal, setShowCreateGoal] = useState(false);
+  const [showInsights, setShowInsights] = useState(false);
+
+  const [goals, setGoals] = useState<Goal[]>([
     {
       id: "1",
       title: "Learn React Development",
+      purpose: "Advance my career in web development",
       category: "Career",
-      progress: 65,
-      trend: "up" as const,
-      projectedCompletion: addDays(new Date(), 45),
-      keyTasks: [
-        { id: "t1", title: "Complete course modules", completed: true },
-        { id: "t2", title: "Build practice project", completed: false },
-        { id: "t3", title: "Get certification", completed: false },
+      challengeDuration: 90,
+      milestones: [
+        { id: "m1", title: "Complete course modules", completed: true },
+        { id: "m2", title: "Build practice project", completed: false },
+        { id: "m3", title: "Get certification", completed: false },
       ],
+      tags: ["coding", "career"],
+      progress: 33,
+      createdAt: format(subDays(new Date(), 30), "yyyy-MM-dd"),
+      lastActivityAt: format(subDays(new Date(), 2), "yyyy-MM-dd"),
+      streak: 5,
+      daysWithProgress: 15,
     },
     {
       id: "2",
       title: "Run a Half Marathon",
+      purpose: "Improve my health and endurance",
       category: "Health",
-      progress: 40,
-      trend: "stable" as const,
-      projectedCompletion: addDays(new Date(), 90),
-      keyTasks: [
-        { id: "t4", title: "Run 5km consistently", completed: true },
-        { id: "t5", title: "Increase to 10km", completed: false },
-        { id: "t6", title: "Complete 21km training", completed: false },
+      challengeDuration: 60,
+      milestones: [
+        { id: "m4", title: "Run 5km consistently", completed: true },
+        { id: "m5", title: "Increase to 10km", completed: false },
+        { id: "m6", title: "Complete 21km training", completed: false },
       ],
+      tags: ["fitness", "health"],
+      progress: 33,
+      createdAt: format(subDays(new Date(), 45), "yyyy-MM-dd"),
+      lastActivityAt: format(new Date(), "yyyy-MM-dd"),
+      streak: 3,
+      daysWithProgress: 20,
     },
     {
       id: "3",
       title: "Save for Vacation",
+      purpose: "Take a well-deserved break",
       category: "Finance",
-      progress: 80,
-      trend: "up" as const,
-      projectedCompletion: addDays(new Date(), 30),
-      keyTasks: [
-        { id: "t7", title: "Set monthly budget", completed: true },
-        { id: "t8", title: "Cut unnecessary expenses", completed: true },
-        { id: "t9", title: "Reach savings goal", completed: false },
+      challengeDuration: 0,
+      milestones: [
+        { id: "m7", title: "Set monthly budget", completed: true },
+        { id: "m8", title: "Cut unnecessary expenses", completed: true },
+        { id: "m9", title: "Reach savings goal", completed: false },
       ],
+      tags: ["savings", "travel"],
+      progress: 67,
+      createdAt: format(subDays(new Date(), 60), "yyyy-MM-dd"),
+      lastActivityAt: format(subDays(new Date(), 1), "yyyy-MM-dd"),
+      streak: 8,
+      daysWithProgress: 30,
     },
   ]);
 
-  const handleToggleTask = (goalId: string, taskId: string) => {
+  const handleToggleMilestone = (goalId: string, milestoneId: string) => {
     setGoals((prev) =>
-      prev.map((goal) =>
-        goal.id === goalId
-          ? {
-              ...goal,
-              keyTasks: goal.keyTasks.map((task) =>
-                task.id === taskId ? { ...task, completed: !task.completed } : task
-              ),
-            }
-          : goal
-      )
+      prev.map((goal) => {
+        if (goal.id !== goalId) return goal;
+        
+        const updatedMilestones = goal.milestones.map((m) =>
+          m.id === milestoneId ? { ...m, completed: !m.completed } : m
+        );
+        
+        return {
+          ...goal,
+          milestones: updatedMilestones,
+          progress: calculateGoalProgress(updatedMilestones),
+          lastActivityAt: format(new Date(), "yyyy-MM-dd"),
+        };
+      })
     );
+  };
+
+  const handleCreateGoal = (data: GoalFormData) => {
+    const newGoal: Goal = {
+      id: Date.now().toString(),
+      title: data.title,
+      purpose: data.purpose,
+      category: data.category,
+      challengeDuration: data.challengeDuration,
+      milestones: data.milestones.map((m, i) => ({
+        id: `m-${Date.now()}-${i}`,
+        title: m.title,
+        completed: false,
+      })),
+      tags: data.tags,
+      visionText: data.visionText,
+      progress: 0,
+      createdAt: format(new Date(), "yyyy-MM-dd"),
+      lastActivityAt: format(new Date(), "yyyy-MM-dd"),
+      streak: 0,
+      daysWithProgress: 0,
+    };
+    
+    setGoals((prev) => [...prev, newGoal]);
   };
 
   return (
@@ -70,22 +126,64 @@ export default function GoalsPage() {
             <h1 className="text-2xl font-semibold text-foreground">Goals</h1>
             <p className="text-sm text-muted-foreground">Track your long-term objectives</p>
           </div>
-          <Button data-testid="button-add-goal">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Goal
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="icon" className="rounded-full" data-testid="button-goals-menu">
+                <Plus className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setShowInsights(true)} data-testid="menu-goals-insights">
+                <TrendingUp className="w-4 h-4 mr-2" />
+                Insights
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setShowCreateGoal(true)} data-testid="menu-add-goal">
+                <Target className="w-4 h-4 mr-2" />
+                Add Goal
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {goals.map((goal) => (
             <GoalCard
               key={goal.id}
-              {...goal}
-              onToggleTask={(taskId) => handleToggleTask(goal.id, taskId)}
+              id={goal.id}
+              title={goal.title}
+              category={goal.category}
+              progress={goal.progress}
+              milestones={goal.milestones}
+              tags={goal.tags}
+              challengeDuration={goal.challengeDuration}
+              daysWithProgress={goal.daysWithProgress}
+              onToggleMilestone={(milestoneId) => handleToggleMilestone(goal.id, milestoneId)}
             />
           ))}
         </div>
+
+        {goals.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground mb-4">No goals yet. Start setting your objectives!</p>
+            <Button onClick={() => setShowCreateGoal(true)} data-testid="button-add-first-goal">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Your First Goal
+            </Button>
+          </div>
+        )}
       </div>
+
+      <CreateGoalSheet
+        open={showCreateGoal}
+        onOpenChange={setShowCreateGoal}
+        onSubmit={handleCreateGoal}
+      />
+
+      <GoalInsights
+        goals={goals}
+        open={showInsights}
+        onOpenChange={setShowInsights}
+      />
     </div>
   );
 }
