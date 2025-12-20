@@ -210,7 +210,14 @@ export default function TodayPage() {
                 {task.hasReminder && (
                   <Bell className="w-4 h-4 text-muted-foreground" />
                 )}
-                <Badge variant="outline" className="text-xs font-medium">
+                <Badge 
+                  variant="outline" 
+                  className={`text-xs font-medium ${
+                    task.priority === "high" ? "text-red-500 border-red-500" : 
+                    task.priority === "medium" ? "text-yellow-600 border-yellow-500" : 
+                    "text-green-500 border-green-500"
+                  }`}
+                >
                   {t(task.priority)}
                 </Badge>
               </div>
