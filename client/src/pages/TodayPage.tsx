@@ -172,41 +172,70 @@ export default function TodayPage() {
         <div className="grid grid-cols-2 gap-3">
           <Card className="bg-card">
             <CardContent className="p-4">
-              <div className="p-2.5 rounded-xl bg-orange-500 w-fit mb-3">
-                <TrendingUp className="w-5 h-5 text-white" />
+              <div className="flex items-start justify-between mb-3">
+                <div className="p-2.5 rounded-xl bg-orange-500">
+                  <TrendingUp className="w-5 h-5 text-white" />
+                </div>
+                <div className="w-12 h-12 relative">
+                  <svg className="w-12 h-12 -rotate-90" viewBox="0 0 36 36">
+                    <circle cx="18" cy="18" r="15" fill="none" stroke="currentColor" strokeWidth="3" className="text-muted/30" />
+                    <circle cx="18" cy="18" r="15" fill="none" stroke="currentColor" strokeWidth="3" className="text-orange-500" strokeDasharray={`${progressPercent} 100`} strokeLinecap="round" />
+                  </svg>
+                  <span className="absolute inset-0 flex items-center justify-center text-xs font-bold">{progressPercent}%</span>
+                </div>
               </div>
               <p className="text-xs text-muted-foreground">Daily Progress</p>
               <p className="text-2xl font-bold text-foreground" data-testid="text-daily-progress">
-                {progressPercent}%
+                {completedTasks}/{totalTasks}
               </p>
             </CardContent>
           </Card>
           <Card className="bg-card">
             <CardContent className="p-4">
-              <div className="p-2.5 rounded-xl bg-blue-500 w-fit mb-3">
-                <Clock className="w-5 h-5 text-white" />
+              <div className="flex items-start justify-between mb-3">
+                <div className="p-2.5 rounded-xl bg-blue-500">
+                  <Clock className="w-5 h-5 text-white" />
+                </div>
               </div>
               <p className="text-xs text-muted-foreground">Focus Time</p>
               <p className="text-2xl font-bold text-foreground" data-testid="text-focus-time">
                 {todayFocusMinutes}m
               </p>
+              <div className="mt-2 h-1.5 bg-muted/30 rounded-full overflow-hidden">
+                <div className="h-full bg-blue-500 rounded-full" style={{ width: `${Math.min((todayFocusMinutes / 120) * 100, 100)}%` }} />
+              </div>
             </CardContent>
           </Card>
           <Card className="bg-card">
             <CardContent className="p-4">
-              <div className="p-2.5 rounded-xl bg-emerald-500 w-fit mb-3">
-                <Flame className="w-5 h-5 text-white" />
+              <div className="flex items-start justify-between mb-3">
+                <div className="p-2.5 rounded-xl bg-emerald-500">
+                  <Flame className="w-5 h-5 text-white" />
+                </div>
               </div>
               <p className="text-xs text-muted-foreground">Streak</p>
               <p className="text-2xl font-bold text-foreground" data-testid="text-streak">
-                {currentStreak}d
+                {currentStreak} days
               </p>
+              <div className="mt-2 flex gap-1">
+                {[...Array(7)].map((_, i) => (
+                  <div key={i} className={`h-1.5 flex-1 rounded-full ${i < currentStreak ? 'bg-emerald-500' : 'bg-muted/30'}`} />
+                ))}
+              </div>
             </CardContent>
           </Card>
           <Card className="bg-card">
             <CardContent className="p-4">
-              <div className="p-2.5 rounded-xl bg-violet-500 w-fit mb-3">
-                <CheckCircle2 className="w-5 h-5 text-white" />
+              <div className="flex items-start justify-between mb-3">
+                <div className="p-2.5 rounded-xl bg-violet-500">
+                  <CheckCircle2 className="w-5 h-5 text-white" />
+                </div>
+                <div className="w-12 h-12 relative">
+                  <svg className="w-12 h-12 -rotate-90" viewBox="0 0 36 36">
+                    <circle cx="18" cy="18" r="15" fill="none" stroke="currentColor" strokeWidth="3" className="text-muted/30" />
+                    <circle cx="18" cy="18" r="15" fill="none" stroke="currentColor" strokeWidth="3" className="text-violet-500" strokeDasharray={`${totalHabits > 0 ? (completedHabits / totalHabits) * 100 : 0} 100`} strokeLinecap="round" />
+                  </svg>
+                </div>
               </div>
               <p className="text-xs text-muted-foreground">Habits</p>
               <p className="text-2xl font-bold text-foreground" data-testid="text-habits-progress">
