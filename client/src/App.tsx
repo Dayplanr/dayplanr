@@ -12,6 +12,7 @@ import GoalsPage from "@/pages/GoalsPage";
 import CreateGoalPage from "@/pages/CreateGoalPage";
 import HabitsPage from "@/pages/HabitsPage";
 import AddHabitPage from "@/pages/AddHabitPage";
+import AddTaskPage from "@/pages/AddTaskPage";
 import FocusPage from "@/pages/FocusPage";
 import SettingsPage from "@/pages/SettingsPage";
 
@@ -19,6 +20,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={TodayPage} />
+      <Route path="/tasks/new" component={AddTaskPage} />
       <Route path="/goals" component={GoalsPage} />
       <Route path="/goals/new" component={CreateGoalPage} />
       <Route path="/habits" component={HabitsPage} />

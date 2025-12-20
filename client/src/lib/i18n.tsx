@@ -125,7 +125,23 @@ type TranslationKey =
   | "time"
   | "priority"
   | "period"
-  | "save";
+  | "save"
+  | "newTask"
+  | "taskTitlePlaceholder"
+  | "descriptionOptional"
+  | "descriptionPlaceholder"
+  | "startTimeOptional"
+  | "durationOptional"
+  | "linkToHabitOptional"
+  | "linkToGoalOptional"
+  | "category"
+  | "noGoal"
+  | "none"
+  | "personal"
+  | "work"
+  | "health"
+  | "learning"
+  | "other";
 
 type Translations = Record<TranslationKey, string>;
 
@@ -242,6 +258,22 @@ const translations: Record<Language, Translations> = {
     priority: "Priority",
     period: "Period",
     save: "Save",
+    newTask: "New Task",
+    taskTitlePlaceholder: "What do you need to do?",
+    descriptionOptional: "Description (Optional)",
+    descriptionPlaceholder: "Add more details...",
+    startTimeOptional: "Start Time (Optional)",
+    durationOptional: "Duration (Optional)",
+    linkToHabitOptional: "Link to Habit (Optional)",
+    linkToGoalOptional: "Link to Goal (Optional)",
+    category: "Category",
+    noGoal: "No goal",
+    none: "None",
+    personal: "Personal",
+    work: "Work",
+    health: "Health",
+    learning: "Learning",
+    other: "Other",
   },
   de: {
     today: "Heute",
@@ -355,6 +387,22 @@ const translations: Record<Language, Translations> = {
     priority: "Priorität",
     period: "Zeitraum",
     save: "Speichern",
+    newTask: "Neue Aufgabe",
+    taskTitlePlaceholder: "Was musst du tun?",
+    descriptionOptional: "Beschreibung (Optional)",
+    descriptionPlaceholder: "Mehr Details hinzufügen...",
+    startTimeOptional: "Startzeit (Optional)",
+    durationOptional: "Dauer (Optional)",
+    linkToHabitOptional: "Mit Gewohnheit verknüpfen (Optional)",
+    linkToGoalOptional: "Mit Ziel verknüpfen (Optional)",
+    category: "Kategorie",
+    noGoal: "Kein Ziel",
+    none: "Keine",
+    personal: "Persönlich",
+    work: "Arbeit",
+    health: "Gesundheit",
+    learning: "Lernen",
+    other: "Andere",
   },
   es: {
     today: "Hoy",
@@ -468,6 +516,22 @@ const translations: Record<Language, Translations> = {
     priority: "Prioridad",
     period: "Período",
     save: "Guardar",
+    newTask: "Nueva Tarea",
+    taskTitlePlaceholder: "¿Qué necesitas hacer?",
+    descriptionOptional: "Descripción (Opcional)",
+    descriptionPlaceholder: "Agregar más detalles...",
+    startTimeOptional: "Hora de Inicio (Opcional)",
+    durationOptional: "Duración (Opcional)",
+    linkToHabitOptional: "Vincular a Hábito (Opcional)",
+    linkToGoalOptional: "Vincular a Meta (Opcional)",
+    category: "Categoría",
+    noGoal: "Sin meta",
+    none: "Ninguno",
+    personal: "Personal",
+    work: "Trabajo",
+    health: "Salud",
+    learning: "Aprendizaje",
+    other: "Otro",
   },
   fr: {
     today: "Aujourd'hui",
@@ -581,6 +645,22 @@ const translations: Record<Language, Translations> = {
     priority: "Priorité",
     period: "Période",
     save: "Enregistrer",
+    newTask: "Nouvelle Tâche",
+    taskTitlePlaceholder: "Que devez-vous faire?",
+    descriptionOptional: "Description (Optionnel)",
+    descriptionPlaceholder: "Ajouter plus de détails...",
+    startTimeOptional: "Heure de Début (Optionnel)",
+    durationOptional: "Durée (Optionnel)",
+    linkToHabitOptional: "Lier à une Habitude (Optionnel)",
+    linkToGoalOptional: "Lier à un Objectif (Optionnel)",
+    category: "Catégorie",
+    noGoal: "Aucun objectif",
+    none: "Aucun",
+    personal: "Personnel",
+    work: "Travail",
+    health: "Santé",
+    learning: "Apprentissage",
+    other: "Autre",
   },
   it: {
     today: "Oggi",
@@ -694,6 +774,22 @@ const translations: Record<Language, Translations> = {
     priority: "Priorità",
     period: "Periodo",
     save: "Salva",
+    newTask: "Nuova Attività",
+    taskTitlePlaceholder: "Cosa devi fare?",
+    descriptionOptional: "Descrizione (Opzionale)",
+    descriptionPlaceholder: "Aggiungi più dettagli...",
+    startTimeOptional: "Ora di Inizio (Opzionale)",
+    durationOptional: "Durata (Opzionale)",
+    linkToHabitOptional: "Collega a un'Abitudine (Opzionale)",
+    linkToGoalOptional: "Collega a un Obiettivo (Opzionale)",
+    category: "Categoria",
+    noGoal: "Nessun obiettivo",
+    none: "Nessuno",
+    personal: "Personale",
+    work: "Lavoro",
+    health: "Salute",
+    learning: "Apprendimento",
+    other: "Altro",
   },
   pt: {
     today: "Hoje",
@@ -807,6 +903,22 @@ const translations: Record<Language, Translations> = {
     priority: "Prioridade",
     period: "Período",
     save: "Salvar",
+    newTask: "Nova Tarefa",
+    taskTitlePlaceholder: "O que você precisa fazer?",
+    descriptionOptional: "Descrição (Opcional)",
+    descriptionPlaceholder: "Adicionar mais detalhes...",
+    startTimeOptional: "Hora de Início (Opcional)",
+    durationOptional: "Duração (Opcional)",
+    linkToHabitOptional: "Vincular a Hábito (Opcional)",
+    linkToGoalOptional: "Vincular a Meta (Opcional)",
+    category: "Categoria",
+    noGoal: "Sem meta",
+    none: "Nenhum",
+    personal: "Pessoal",
+    work: "Trabalho",
+    health: "Saúde",
+    learning: "Aprendizado",
+    other: "Outro",
   },
   nl: {
     today: "Vandaag",
@@ -920,6 +1032,22 @@ const translations: Record<Language, Translations> = {
     priority: "Prioriteit",
     period: "Periode",
     save: "Opslaan",
+    newTask: "Nieuwe Taak",
+    taskTitlePlaceholder: "Wat moet je doen?",
+    descriptionOptional: "Beschrijving (Optioneel)",
+    descriptionPlaceholder: "Meer details toevoegen...",
+    startTimeOptional: "Starttijd (Optioneel)",
+    durationOptional: "Duur (Optioneel)",
+    linkToHabitOptional: "Koppelen aan Gewoonte (Optioneel)",
+    linkToGoalOptional: "Koppelen aan Doel (Optioneel)",
+    category: "Categorie",
+    noGoal: "Geen doel",
+    none: "Geen",
+    personal: "Persoonlijk",
+    work: "Werk",
+    health: "Gezondheid",
+    learning: "Leren",
+    other: "Anders",
   },
   pl: {
     today: "Dzisiaj",
@@ -1033,6 +1161,22 @@ const translations: Record<Language, Translations> = {
     priority: "Priorytet",
     period: "Okres",
     save: "Zapisz",
+    newTask: "Nowe Zadanie",
+    taskTitlePlaceholder: "Co musisz zrobić?",
+    descriptionOptional: "Opis (Opcjonalnie)",
+    descriptionPlaceholder: "Dodaj więcej szczegółów...",
+    startTimeOptional: "Czas Rozpoczęcia (Opcjonalnie)",
+    durationOptional: "Czas Trwania (Opcjonalnie)",
+    linkToHabitOptional: "Połącz z Nawykiem (Opcjonalnie)",
+    linkToGoalOptional: "Połącz z Celem (Opcjonalnie)",
+    category: "Kategoria",
+    noGoal: "Brak celu",
+    none: "Brak",
+    personal: "Osobiste",
+    work: "Praca",
+    health: "Zdrowie",
+    learning: "Nauka",
+    other: "Inne",
   },
 };
 

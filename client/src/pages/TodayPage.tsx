@@ -1,25 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import { Plus, TrendingUp, Clock, CheckCircle2, Flame, ChevronUp, ChevronDown, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Collapsible,
   CollapsibleContent,
@@ -67,13 +52,9 @@ const localeMap: Record<string, Locale> = {
 export default function TodayPage() {
   const { toast } = useToast();
   const { t, language } = useTranslation();
+  const [, navigate] = useLocation();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showInsights, setShowInsights] = useState(false);
-  const [showAddTask, setShowAddTask] = useState(false);
-  const [newTaskTitle, setNewTaskTitle] = useState("");
-  const [newTaskTime, setNewTaskTime] = useState("");
-  const [newTaskPriority, setNewTaskPriority] = useState<"high" | "medium" | "low">("medium");
-  const [newTaskPeriod, setNewTaskPeriod] = useState<keyof TaskGroups>("morning");
   const [openSections, setOpenSections] = useState({
     morning: true,
     afternoon: true,
@@ -111,32 +92,50 @@ export default function TodayPage() {
     setOpenSections((prev) => ({ ...prev, [section]: !prev[section] }));
   };
 
-  const handleAddTask = () => {
-    if (!newTaskTitle.trim()) {
-      toast({ title: "Error", description: "Please enter a task title", variant: "destructive" });
-      return;
+  useEffect(() => {
+    const stored = localStorage.getItem("newTask");
+    if (stored) {
+      try {
+        const taskData = JSON.parse(stored);
+        const period = taskData.startTime 
+          ? determinePeriodFromTime(taskData.startTime)
+          : "morning";
+        
+        const newTask: Task = {
+          id: `task-${Date.now()}`,
+          title: taskData.title,
+          time: taskData.startTime ? formatTime(taskData.startTime) : undefined,
+          priority: taskData.priority || "medium",
+          completed: false,
+        };
+        
+        setTasks((prev) => ({
+          ...prev,
+          [period]: [...prev[period], newTask],
+        }));
+        
+        localStorage.removeItem("newTask");
+        toast({ title: t("addTask"), description: "Task added successfully!" });
+      } catch (e) {
+        console.error("Failed to parse new task", e);
+      }
     }
-    
-    const newTask: Task = {
-      id: `task-${Date.now()}`,
-      title: newTaskTitle,
-      time: newTaskTime || undefined,
-      priority: newTaskPriority,
-      completed: false,
-    };
-    
-    setTasks((prev) => ({
-      ...prev,
-      [newTaskPeriod]: [...prev[newTaskPeriod], newTask],
-    }));
-    
-    setNewTaskTitle("");
-    setNewTaskTime("");
-    setNewTaskPriority("medium");
-    setNewTaskPeriod("morning");
-    setShowAddTask(false);
-    
-    toast({ title: t("addTask"), description: "Task added successfully!" });
+  }, []);
+
+  const determinePeriodFromTime = (time: string): keyof TaskGroups => {
+    const hour = parseInt(time.split(":")[0]);
+    if (hour >= 5 && hour < 12) return "morning";
+    if (hour >= 12 && hour < 17) return "afternoon";
+    if (hour >= 17 && hour < 21) return "evening";
+    return "night";
+  };
+
+  const formatTime = (time: string): string => {
+    const [hours, minutes] = time.split(":");
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? "PM" : "AM";
+    const displayHour = hour % 12 || 12;
+    return `${displayHour}:${minutes} ${ampm}`;
   };
 
   const allTasks = Object.values(tasks).flat();
@@ -227,7 +226,7 @@ export default function TodayPage() {
           <Button 
             size="icon" 
             className="rounded-full h-11 w-11" 
-            onClick={() => setShowAddTask(true)}
+            onClick={() => navigate("/tasks/new")}
             data-testid="button-add-task"
           >
             <Plus className="w-5 h-5" />
@@ -303,70 +302,6 @@ export default function TodayPage() {
         habitsCompleted={completedHabits}
         totalHabits={totalHabits}
       />
-
-      <Sheet open={showAddTask} onOpenChange={setShowAddTask}>
-        <SheetContent side="bottom" className="rounded-t-xl">
-          <SheetHeader className="pb-4">
-            <SheetTitle>{t("addTask")}</SheetTitle>
-          </SheetHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="task-title">{t("taskTitle")}</Label>
-              <Input
-                id="task-title"
-                placeholder={t("taskTitle")}
-                value={newTaskTitle}
-                onChange={(e) => setNewTaskTitle(e.target.value)}
-                data-testid="input-task-title"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="task-time">{t("time")}</Label>
-              <Input
-                id="task-time"
-                type="time"
-                value={newTaskTime}
-                onChange={(e) => setNewTaskTime(e.target.value)}
-                data-testid="input-task-time"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label>{t("priority")}</Label>
-              <Select value={newTaskPriority} onValueChange={(v) => setNewTaskPriority(v as "high" | "medium" | "low")}>
-                <SelectTrigger data-testid="select-priority">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="high">{t("high")}</SelectItem>
-                  <SelectItem value="medium">{t("medium")}</SelectItem>
-                  <SelectItem value="low">{t("low")}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>{t("period")}</Label>
-              <Select value={newTaskPeriod} onValueChange={(v) => setNewTaskPeriod(v as keyof TaskGroups)}>
-                <SelectTrigger data-testid="select-period">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="morning">{t("morning")}</SelectItem>
-                  <SelectItem value="afternoon">{t("afternoon")}</SelectItem>
-                  <SelectItem value="evening">{t("evening")}</SelectItem>
-                  <SelectItem value="night">{t("night")}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <Button className="w-full" onClick={handleAddTask} data-testid="button-save-task">
-              {t("save")}
-            </Button>
-          </div>
-        </SheetContent>
-      </Sheet>
     </div>
   );
 }
