@@ -37,6 +37,24 @@ export default function HabitInsights({ habits, open, onOpenChange }: HabitInsig
   const avgDaily = habits.length > 0 ? Math.round(totalCompleted / 7) : 0;
   const bestDay = weeklyData.reduce((best, d) => d.completed > best.completed ? d : best, weeklyData[0]);
 
+  const getMotivationalMessage = () => {
+    if (habits.length === 0) return "Start with one simple habit. Consistency builds character.";
+    if (completionRate >= 90) return "Incredible! You're mastering your habits. Keep it up!";
+    if (completionRate >= 70) return "Strong week! You're building lasting routines.";
+    if (completionRate >= 50) return "You're halfway there. Every check mark is a win!";
+    if (completionRate >= 25) return "Progress over perfection. You're showing up!";
+    return "New week, new opportunities. You've got this!";
+  };
+
+  const getStreakMotivation = () => {
+    const maxStreak = Math.max(...habits.map((h) => h.streak), 0);
+    if (maxStreak >= 30) return "A month-long streak! You're unstoppable.";
+    if (maxStreak >= 14) return "Two weeks strong! Habits are becoming second nature.";
+    if (maxStreak >= 7) return "One week down! You're building real momentum.";
+    if (maxStreak >= 3) return "Three days in a row! Keep the chain going.";
+    return "Start your streak today. Day one is always the hardest.";
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
@@ -48,6 +66,12 @@ export default function HabitInsights({ habits, open, onOpenChange }: HabitInsig
         </DialogHeader>
         
         <div className="space-y-6 py-4">
+          <div className="px-4 py-3 bg-primary/5 border border-primary/20 rounded-lg text-center">
+            <p className="text-sm font-medium text-primary" data-testid="text-motivation-message">
+              {getMotivationalMessage()}
+            </p>
+          </div>
+
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm flex items-center gap-2">
@@ -102,6 +126,7 @@ export default function HabitInsights({ habits, open, onOpenChange }: HabitInsig
                 <TrendingUp className="w-4 h-4" />
                 Streak Stability
               </CardTitle>
+              <p className="text-xs text-primary">{getStreakMotivation()}</p>
             </CardHeader>
             <CardContent>
               <div className="h-32">
