@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Plus, TrendingUp, Clock, CheckCircle2, ListTodo, Flame, ChevronUp, ChevronDown, Globe } from "lucide-react";
+import { Plus, TrendingUp, Clock, CheckCircle2, ListTodo, Flame, ChevronUp, ChevronDown, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
   DropdownMenu,
@@ -17,7 +18,8 @@ import {
 import CalendarScrubber from "@/components/CalendarScrubber";
 import TodayInsights from "@/components/TodayInsights";
 import { useTranslation } from "@/lib/i18n";
-import { format } from "date-fns";
+import { format, type Locale } from "date-fns";
+import { enUS, de, es, fr, it, pt, nl, pl } from "date-fns/locale";
 
 interface Task {
   id: string;
@@ -25,6 +27,7 @@ interface Task {
   time?: string;
   priority: "high" | "medium" | "low";
   completed: boolean;
+  hasReminder?: boolean;
 }
 
 interface TaskGroups {
@@ -34,15 +37,26 @@ interface TaskGroups {
   night: Task[];
 }
 
-const priorityColors = {
+const priorityBorderColors = {
   high: "bg-red-500",
-  medium: "bg-yellow-500",
-  low: "bg-green-500",
+  medium: "bg-amber-500",
+  low: "bg-blue-500",
+};
+
+const localeMap: Record<string, Locale> = {
+  en: enUS,
+  de: de,
+  es: es,
+  fr: fr,
+  it: it,
+  pt: pt,
+  nl: nl,
+  pl: pl,
 };
 
 export default function TodayPage() {
   const { toast } = useToast();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showInsights, setShowInsights] = useState(false);
   const [openSections, setOpenSections] = useState({
@@ -54,11 +68,11 @@ export default function TodayPage() {
 
   const [tasks, setTasks] = useState<TaskGroups>({
     morning: [
-      { id: "m1", title: "Morning workout", time: "7:00 AM", priority: "high", completed: false },
+      { id: "m1", title: "Morning workout", time: "7:00 AM", priority: "high", completed: false, hasReminder: true },
       { id: "m2", title: "Healthy breakfast", time: "8:00 AM", priority: "medium", completed: false },
     ],
     afternoon: [
-      { id: "a1", title: "Team standup meeting", time: "9:30 AM", priority: "high", completed: false },
+      { id: "a1", title: "Team standup meeting", time: "9:30 AM", priority: "high", completed: false, hasReminder: true },
       { id: "a2", title: "Review project proposals", time: "2:00 PM", priority: "medium", completed: false },
     ],
     evening: [
@@ -91,6 +105,10 @@ export default function TodayPage() {
   const totalHabits = 2;
   const completedHabits = 0;
 
+  const baseLanguage = language.split("-")[0];
+  const currentLocale = localeMap[baseLanguage] || localeMap[language] || enUS;
+  const formattedDate = format(selectedDate, "EEEE, MMMM d, yyyy", { locale: currentLocale });
+
   const renderTaskSection = (title: string, period: keyof TaskGroups, periodTasks: Task[]) => (
     <Collapsible 
       key={period}
@@ -107,35 +125,48 @@ export default function TodayPage() {
           )}
         </button>
       </CollapsibleTrigger>
-      <CollapsibleContent className="space-y-2">
+      <CollapsibleContent className="space-y-3">
         {periodTasks.map((task) => (
           <div
             key={task.id}
-            className="flex items-center gap-3 p-4 bg-card rounded-lg border border-border"
+            className="flex overflow-hidden rounded-lg border border-border bg-card"
             data-testid={`task-item-${task.id}`}
           >
-            <button
-              onClick={() => handleToggleTask(period, task.id)}
-              className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
-                task.completed
-                  ? "bg-primary border-primary"
-                  : "border-muted-foreground"
-              }`}
-              data-testid={`button-toggle-task-${task.id}`}
-            >
-              {task.completed && (
-                <CheckCircle2 className="w-4 h-4 text-primary-foreground" />
-              )}
-            </button>
-            <div className="flex-1">
-              <p className={`font-medium ${task.completed ? "line-through text-muted-foreground" : "text-foreground"}`}>
-                {task.title}
-              </p>
-              {task.time && (
-                <p className="text-xs text-muted-foreground">{task.time}</p>
-              )}
+            <div className={`w-1 ${priorityBorderColors[task.priority]}`} />
+            <div className="flex items-center gap-3 flex-1 p-4">
+              <button
+                onClick={() => handleToggleTask(period, task.id)}
+                className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
+                  task.completed
+                    ? "bg-primary border-primary"
+                    : "border-muted-foreground"
+                }`}
+                data-testid={`button-toggle-task-${task.id}`}
+              >
+                {task.completed && (
+                  <CheckCircle2 className="w-4 h-4 text-primary-foreground" />
+                )}
+              </button>
+              <div className="flex-1">
+                <p className={`font-medium ${task.completed ? "line-through text-muted-foreground" : "text-foreground"}`}>
+                  {task.title}
+                </p>
+                {task.time && (
+                  <div className="flex items-center gap-1 mt-0.5">
+                    <Clock className="w-3 h-3 text-muted-foreground" />
+                    <p className="text-xs text-muted-foreground">{task.time}</p>
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                {task.hasReminder && (
+                  <Bell className="w-4 h-4 text-muted-foreground" />
+                )}
+                <Badge variant="outline" className="text-xs font-medium">
+                  {t(task.priority)}
+                </Badge>
+              </div>
             </div>
-            <div className={`w-3 h-3 rounded-full ${priorityColors[task.priority]}`} />
           </div>
         ))}
       </CollapsibleContent>
@@ -146,81 +177,87 @@ export default function TodayPage() {
     <div className="h-full overflow-y-auto pb-20 md:pb-4">
       <div className="max-w-4xl mx-auto p-4 space-y-4">
         <div className="flex items-center justify-between gap-4">
-          <h1 className="text-3xl font-bold text-foreground">{t("today")}</h1>
-          <div className="flex items-center gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button size="icon" className="rounded-full h-11 w-11" data-testid="button-today-menu">
-                  <Plus className="w-5 h-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem 
-                  onClick={() => toast({ title: t("addTask"), description: "Task creation coming soon!" })}
-                  data-testid="menu-add-task"
-                >
-                  <ListTodo className="w-4 h-4 mr-2" />
-                  {t("addTask")}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setShowInsights(true)} data-testid="menu-today-insights">
-                  <TrendingUp className="w-4 h-4 mr-2" />
-                  {t("insights")}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">{t("today")}</h1>
+            <p className="text-muted-foreground capitalize">{formattedDate}</p>
           </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button className="gap-2" data-testid="button-add-task">
+                <Plus className="w-4 h-4" />
+                {t("addTask")}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem 
+                onClick={() => toast({ title: t("addTask"), description: "Task creation coming soon!" })}
+                data-testid="menu-add-task"
+              >
+                <ListTodo className="w-4 h-4 mr-2" />
+                {t("addTask")}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setShowInsights(true)} data-testid="menu-today-insights">
+                <TrendingUp className="w-4 h-4 mr-2" />
+                {t("insights")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         <CalendarScrubber selectedDate={selectedDate} onSelectDate={setSelectedDate} />
 
-        <Card className="bg-card">
-          <CardContent className="p-5">
-            <p className="text-sm text-muted-foreground mb-1">{t("dailyProgress")}</p>
-            <p className="text-5xl font-bold text-foreground" data-testid="text-daily-progress">
-              {progressPercent}%
-            </p>
-            <p className="text-sm text-muted-foreground mt-2">
-              {completedTasks} {t("of")} {totalTasks} {t("tasksComplete")}
-            </p>
-          </CardContent>
-        </Card>
-
         <div className="grid grid-cols-2 gap-3">
           <Card className="bg-card">
             <CardContent className="p-4">
-              <p className="text-sm font-medium text-muted-foreground mb-2">{t("focusTime")}</p>
-              <div className="p-2.5 rounded-xl bg-blue-500 w-fit mb-3">
-                <Clock className="w-5 h-5 text-white" />
-              </div>
-              <p className="text-2xl font-bold text-foreground" data-testid="text-focus-time">
-                {todayFocusMinutes}m
+              <p className="text-sm text-muted-foreground mb-1">{t("dailyProgress")}</p>
+              <p className="text-3xl font-bold text-foreground" data-testid="text-daily-progress">
+                {progressPercent}%
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {completedTasks} {t("of")} {totalTasks} {t("tasksComplete")}
               </p>
             </CardContent>
           </Card>
           <Card className="bg-card">
             <CardContent className="p-4">
-              <p className="text-sm font-medium text-muted-foreground mb-2">{t("streak")}</p>
-              <div className="p-2.5 rounded-xl bg-emerald-500 w-fit mb-3">
-                <Flame className="w-5 h-5 text-white" />
+              <p className="text-sm text-muted-foreground mb-1">{t("focusTime")}</p>
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-lg bg-blue-500">
+                  <Clock className="w-4 h-4 text-white" />
+                </div>
+                <p className="text-3xl font-bold text-foreground" data-testid="text-focus-time">
+                  {todayFocusMinutes}m
+                </p>
               </div>
-              <p className="text-2xl font-bold text-foreground" data-testid="text-streak">
-                {currentStreak}d
-              </p>
+            </CardContent>
+          </Card>
+          <Card className="bg-card">
+            <CardContent className="p-4">
+              <p className="text-sm text-muted-foreground mb-1">{t("streak")}</p>
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-lg bg-emerald-500">
+                  <Flame className="w-4 h-4 text-white" />
+                </div>
+                <p className="text-3xl font-bold text-foreground" data-testid="text-streak">
+                  {currentStreak}d
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-card">
+            <CardContent className="p-4">
+              <p className="text-sm text-muted-foreground mb-1">{t("habits")}</p>
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-lg bg-violet-500">
+                  <CheckCircle2 className="w-4 h-4 text-white" />
+                </div>
+                <p className="text-3xl font-bold text-foreground" data-testid="text-habits-progress">
+                  {completedHabits}/{totalHabits}
+                </p>
+              </div>
             </CardContent>
           </Card>
         </div>
-
-        <Card className="bg-card">
-          <CardContent className="p-4">
-            <p className="text-sm font-medium text-muted-foreground mb-2">{t("habits")}</p>
-            <div className="p-2.5 rounded-xl bg-violet-500 w-fit mb-3">
-              <CheckCircle2 className="w-5 h-5 text-white" />
-            </div>
-            <p className="text-2xl font-bold text-foreground" data-testid="text-habits-progress">
-              {completedHabits}/{totalHabits} {t("complete")}
-            </p>
-          </CardContent>
-        </Card>
 
         {renderTaskSection(t("morning"), "morning", tasks.morning)}
         {renderTaskSection(t("afternoon"), "afternoon", tasks.afternoon)}
