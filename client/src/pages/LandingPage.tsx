@@ -1,22 +1,11 @@
-import { useState } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle2, Target, TrendingUp, Timer, ArrowRight, Calendar, Smartphone, Monitor, Flame } from "lucide-react";
-import { OnboardingModal } from "@/components/OnboardingModal";
 
 export default function LandingPage() {
   const [, navigate] = useLocation();
-  const [showOnboarding, setShowOnboarding] = useState(false);
-
-  const handleLoginClick = () => {
-    setShowOnboarding(true);
-  };
-
-  const handleOnboardingComplete = () => {
-    navigate("/app");
-  };
 
   const features = [
     {
@@ -67,7 +56,7 @@ export default function LandingPage() {
             <span className="text-xl font-bold text-foreground">dayplanr</span>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="ghost" onClick={handleLoginClick} data-testid="button-login-header">
+            <Button variant="ghost" onClick={() => navigate("/auth")} data-testid="button-login-header">
               Login
             </Button>
             <Button onClick={() => navigate("/app")} data-testid="button-get-started-header">
@@ -99,7 +88,7 @@ export default function LandingPage() {
                 track goals, and stay focused. Available in 8 languages.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button variant="outline" size="lg" onClick={handleLoginClick} data-testid="button-login">
+                <Button variant="outline" size="lg" onClick={() => navigate("/auth")} data-testid="button-login">
                   Login
                 </Button>
                 <Button size="lg" onClick={() => navigate("/app")} data-testid="button-start-free">
@@ -329,7 +318,7 @@ export default function LandingPage() {
                 Join thousands of users who have already transformed their daily routines with dayplanr.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button size="lg" variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20" onClick={handleLoginClick} data-testid="button-login-cta">
+                <Button size="lg" variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20" onClick={() => navigate("/auth")} data-testid="button-login-cta">
                   Login
                 </Button>
                 <Button size="lg" className="bg-white text-purple-600 hover:bg-white/90" onClick={() => navigate("/app")} data-testid="button-get-started-cta">
@@ -357,12 +346,6 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
-
-      <OnboardingModal
-        open={showOnboarding}
-        onOpenChange={setShowOnboarding}
-        onComplete={handleOnboardingComplete}
-      />
     </div>
   );
 }

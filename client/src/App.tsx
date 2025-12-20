@@ -8,6 +8,7 @@ import { I18nProvider } from "@/lib/i18n";
 import { AppSidebar } from "@/components/AppSidebar";
 import MobileTabBar from "@/components/MobileTabBar";
 import LandingPage from "@/pages/LandingPage";
+import AuthPage from "@/pages/AuthPage";
 import TodayPage from "@/pages/TodayPage";
 import GoalsPage from "@/pages/GoalsPage";
 import CreateGoalPage from "@/pages/CreateGoalPage";
@@ -61,6 +62,7 @@ function App() {
           ) : (
             <Switch>
               <Route path="/" component={LandingPage} />
+              <Route path="/auth" component={AuthPage} />
             </Switch>
           )}
           <Toaster />
