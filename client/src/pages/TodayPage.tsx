@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Plus, TrendingUp, Clock, CheckCircle2 } from "lucide-react";
+import { Plus, TrendingUp, Clock, CheckCircle2, ListTodo } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,6 +32,7 @@ interface TaskGroups {
 }
 
 export default function TodayPage() {
+  const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showInsights, setShowInsights] = useState(false);
   const [tasks, setTasks] = useState<TaskGroups>({
@@ -83,8 +85,11 @@ export default function TodayPage() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem data-testid="menu-add-task">
-                <Plus className="w-4 h-4 mr-2" />
+              <DropdownMenuItem 
+                onClick={() => toast({ title: "Add Task", description: "Task creation coming soon!" })}
+                data-testid="menu-add-task"
+              >
+                <ListTodo className="w-4 h-4 mr-2" />
                 Add Task
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setShowInsights(true)} data-testid="menu-today-insights">
