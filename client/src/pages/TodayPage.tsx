@@ -253,8 +253,8 @@ export default function TodayPage() {
         <div className="grid grid-cols-2 gap-4">
           <Card className="bg-card shadow-sm">
             <CardContent className="p-4 flex flex-col items-center text-center">
-              <div className="p-3 rounded-xl bg-blue-600 mb-3">
-                <TrendingUp className="w-6 h-6 text-white" />
+              <div className="p-3 rounded-xl bg-blue-100 dark:bg-blue-900/30 mb-3">
+                <TrendingUp className="w-6 h-6 text-black dark:text-white" />
               </div>
               <p className="text-sm text-muted-foreground">{t("dailyProgress")}</p>
               <p className="text-2xl font-bold text-foreground mt-1" data-testid="text-daily-progress">
@@ -267,8 +267,8 @@ export default function TodayPage() {
           </Card>
           <Card className="bg-card shadow-sm">
             <CardContent className="p-4 flex flex-col items-center text-center">
-              <div className="p-3 rounded-xl bg-purple-600 mb-3">
-                <Clock className="w-6 h-6 text-white" />
+              <div className="p-3 rounded-xl bg-purple-100 dark:bg-purple-900/30 mb-3">
+                <Clock className="w-6 h-6 text-black dark:text-white" />
               </div>
               <p className="text-sm text-muted-foreground">{t("focusTime")}</p>
               <p className="text-2xl font-bold text-foreground mt-1" data-testid="text-focus-time">
@@ -278,8 +278,8 @@ export default function TodayPage() {
           </Card>
           <Card className="bg-card shadow-sm">
             <CardContent className="p-4 flex flex-col items-center text-center">
-              <div className="p-3 rounded-xl bg-emerald-600 mb-3">
-                <Flame className="w-6 h-6 text-white" />
+              <div className="p-3 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 mb-3">
+                <Flame className="w-6 h-6 text-black dark:text-white" />
               </div>
               <p className="text-sm text-muted-foreground">{t("streak")}</p>
               <p className="text-2xl font-bold text-foreground mt-1" data-testid="text-streak">
@@ -289,8 +289,8 @@ export default function TodayPage() {
           </Card>
           <Card className="bg-card shadow-sm">
             <CardContent className="p-4 flex flex-col items-center text-center">
-              <div className="p-3 rounded-xl bg-orange-600 mb-3">
-                <CheckCircle2 className="w-6 h-6 text-white" />
+              <div className="p-3 rounded-xl bg-orange-100 dark:bg-orange-900/30 mb-3">
+                <CheckCircle2 className="w-6 h-6 text-black dark:text-white" />
               </div>
               <p className="text-sm text-muted-foreground">{t("habits")}</p>
               <p className="text-2xl font-bold text-foreground mt-1" data-testid="text-habits-progress">
