@@ -135,7 +135,8 @@ type TranslationKey =
   | "work"
   | "health"
   | "learning"
-  | "other";
+  | "other"
+  | "taskDeleted";
 
 type Translations = Record<TranslationKey, string>;
 
@@ -263,6 +264,7 @@ const translations: Record<Language, Translations> = {
     health: "Health",
     learning: "Learning",
     other: "Other",
+    taskDeleted: "Task Deleted",
   },
   de: {
     today: "Heute",
@@ -387,6 +389,7 @@ const translations: Record<Language, Translations> = {
     health: "Gesundheit",
     learning: "Lernen",
     other: "Andere",
+    taskDeleted: "Aufgabe gelöscht",
   },
   es: {
     today: "Hoy",
@@ -511,6 +514,7 @@ const translations: Record<Language, Translations> = {
     health: "Salud",
     learning: "Aprendizaje",
     other: "Otro",
+    taskDeleted: "Tarea eliminada",
   },
   fr: {
     today: "Aujourd'hui",
@@ -635,6 +639,7 @@ const translations: Record<Language, Translations> = {
     health: "Santé",
     learning: "Apprentissage",
     other: "Autre",
+    taskDeleted: "Tâche supprimée",
   },
   it: {
     today: "Oggi",
@@ -759,6 +764,7 @@ const translations: Record<Language, Translations> = {
     health: "Salute",
     learning: "Apprendimento",
     other: "Altro",
+    taskDeleted: "Attività eliminata",
   },
   pt: {
     today: "Hoje",
@@ -883,6 +889,7 @@ const translations: Record<Language, Translations> = {
     health: "Saúde",
     learning: "Aprendizado",
     other: "Outro",
+    taskDeleted: "Tarefa excluída",
   },
   nl: {
     today: "Vandaag",
@@ -1007,6 +1014,7 @@ const translations: Record<Language, Translations> = {
     health: "Gezondheid",
     learning: "Leren",
     other: "Anders",
+    taskDeleted: "Taak verwijderd",
   },
   pl: {
     today: "Dzisiaj",
@@ -1131,6 +1139,7 @@ const translations: Record<Language, Translations> = {
     health: "Zdrowie",
     learning: "Nauka",
     other: "Inne",
+    taskDeleted: "Zadanie usunięte",
   },
 };
 

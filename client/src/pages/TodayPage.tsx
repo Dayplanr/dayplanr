@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { Plus, TrendingUp, Clock, CheckCircle2, Flame, ChevronUp, ChevronDown, Bell, ListTodo } from "lucide-react";
+import { Plus, TrendingUp, Clock, CheckCircle2, Flame, ChevronUp, ChevronDown, Bell, ListTodo, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -157,6 +157,19 @@ export default function TodayPage() {
   const currentLocale = localeMap[baseLanguage] || localeMap[language] || enUS;
   const formattedDate = format(selectedDate, "EEEE, MMMM d, yyyy", { locale: currentLocale });
 
+  const handleDeleteTask = (period: keyof TaskGroups, id: string) => {
+    setTasks((prev) => ({
+      ...prev,
+      [period]: prev[period].filter((task) => task.id !== id),
+    }));
+    toast({ title: t("taskDeleted") || "Task deleted" });
+  };
+
+  const handleEditTask = (period: keyof TaskGroups, task: Task) => {
+    localStorage.setItem("editTask", JSON.stringify({ ...task, period }));
+    navigate("/tasks/new");
+  };
+
   const renderTaskSection = (title: string, period: keyof TaskGroups, periodTasks: Task[]) => (
     <Collapsible 
       key={period}
@@ -220,6 +233,27 @@ export default function TodayPage() {
                 >
                   {t(task.priority)}
                 </Badge>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" data-testid={`button-task-menu-${task.id}`}>
+                      <MoreVertical className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => handleEditTask(period, task)} data-testid={`menu-edit-task-${task.id}`}>
+                      <Pencil className="w-4 h-4 mr-2" />
+                      {t("edit")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => handleDeleteTask(period, task.id)} 
+                      className="text-red-500"
+                      data-testid={`menu-delete-task-${task.id}`}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      {t("delete")}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           </div>
@@ -285,7 +319,7 @@ export default function TodayPage() {
           </Card>
           <Card className="bg-card shadow-sm">
             <CardContent className="p-4 flex flex-col items-center text-center">
-              <div className="p-3 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 mb-3">
+              <div className="p-3 rounded-xl bg-orange-100 dark:bg-orange-900/30 mb-3">
                 <Flame className="w-6 h-6 text-black dark:text-white" />
               </div>
               <p className="text-sm text-muted-foreground">{t("streak")}</p>
@@ -296,7 +330,7 @@ export default function TodayPage() {
           </Card>
           <Card className="bg-card shadow-sm">
             <CardContent className="p-4 flex flex-col items-center text-center">
-              <div className="p-3 rounded-xl bg-orange-100 dark:bg-orange-900/30 mb-3">
+              <div className="p-3 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 mb-3">
                 <CheckCircle2 className="w-6 h-6 text-black dark:text-white" />
               </div>
               <p className="text-sm text-muted-foreground">{t("habits")}</p>
