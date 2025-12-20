@@ -222,7 +222,7 @@ export default function TodayPage() {
           </Card>
           <Card className="bg-card shadow-sm">
             <CardContent className="p-4 flex flex-col items-center text-center">
-              <div className="p-3 rounded-xl bg-violet-400 mb-3">
+              <div className="p-3 rounded-xl bg-purple-500 mb-3">
                 <Clock className="w-6 h-6 text-white" />
               </div>
               <p className="text-sm text-muted-foreground">{t("focusTime")}</p>
@@ -233,7 +233,7 @@ export default function TodayPage() {
           </Card>
           <Card className="bg-card shadow-sm">
             <CardContent className="p-4 flex flex-col items-center text-center">
-              <div className="p-3 rounded-xl bg-green-400 mb-3">
+              <div className="p-3 rounded-xl bg-emerald-500 mb-3">
                 <Flame className="w-6 h-6 text-white" />
               </div>
               <p className="text-sm text-muted-foreground">{t("streak")}</p>
@@ -244,7 +244,7 @@ export default function TodayPage() {
           </Card>
           <Card className="bg-card shadow-sm">
             <CardContent className="p-4 flex flex-col items-center text-center">
-              <div className="p-3 rounded-xl bg-orange-400 mb-3">
+              <div className="p-3 rounded-xl bg-orange-500 mb-3">
                 <CheckCircle2 className="w-6 h-6 text-white" />
               </div>
               <p className="text-sm text-muted-foreground">{t("habits")}</p>
