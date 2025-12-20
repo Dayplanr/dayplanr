@@ -184,10 +184,10 @@ export default function TodayPage() {
         <div className="grid grid-cols-2 gap-3">
           <Card className="bg-card">
             <CardContent className="p-4">
+              <p className="text-sm font-medium text-muted-foreground mb-2">Focus Time</p>
               <div className="p-2.5 rounded-xl bg-blue-500 w-fit mb-3">
                 <Clock className="w-5 h-5 text-white" />
               </div>
-              <p className="text-sm text-muted-foreground">Focus Time</p>
               <p className="text-2xl font-bold text-foreground" data-testid="text-focus-time">
                 {todayFocusMinutes}m
               </p>
@@ -195,10 +195,10 @@ export default function TodayPage() {
           </Card>
           <Card className="bg-card">
             <CardContent className="p-4">
+              <p className="text-sm font-medium text-muted-foreground mb-2">Streak</p>
               <div className="p-2.5 rounded-xl bg-emerald-500 w-fit mb-3">
                 <Flame className="w-5 h-5 text-white" />
               </div>
-              <p className="text-sm text-muted-foreground">Streak</p>
               <p className="text-2xl font-bold text-foreground" data-testid="text-streak">
                 {currentStreak}d
               </p>
@@ -208,10 +208,10 @@ export default function TodayPage() {
 
         <Card className="bg-card">
           <CardContent className="p-4">
+            <p className="text-sm font-medium text-muted-foreground mb-2">Habits</p>
             <div className="p-2.5 rounded-xl bg-violet-500 w-fit mb-3">
               <CheckCircle2 className="w-5 h-5 text-white" />
             </div>
-            <p className="text-sm text-muted-foreground">Habits</p>
             <p className="text-2xl font-bold text-foreground" data-testid="text-habits-progress">
               {completedHabits}/{totalHabits} complete
             </p>
