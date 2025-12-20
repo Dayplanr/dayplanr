@@ -39,8 +39,8 @@ interface TaskGroups {
 
 const priorityBorderColors = {
   high: "bg-red-500",
-  medium: "bg-amber-500",
-  low: "bg-blue-500",
+  medium: "bg-yellow-500",
+  low: "bg-green-500",
 };
 
 const localeMap: Record<string, Locale> = {
@@ -183,9 +183,8 @@ export default function TodayPage() {
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button className="gap-2" data-testid="button-add-task">
-                <Plus className="w-4 h-4" />
-                {t("addTask")}
+              <Button size="icon" className="rounded-full h-11 w-11" data-testid="button-add-task">
+                <Plus className="w-5 h-5" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -206,55 +205,53 @@ export default function TodayPage() {
 
         <CalendarScrubber selectedDate={selectedDate} onSelectDate={setSelectedDate} />
 
-        <div className="grid grid-cols-2 gap-3">
-          <Card className="bg-card">
-            <CardContent className="p-4">
-              <p className="text-sm text-muted-foreground mb-1">{t("dailyProgress")}</p>
-              <p className="text-3xl font-bold text-foreground" data-testid="text-daily-progress">
+        <div className="grid grid-cols-2 gap-4">
+          <Card className="bg-card shadow-sm">
+            <CardContent className="p-4 flex flex-col items-center text-center">
+              <div className="p-3 rounded-xl bg-primary/10 mb-3">
+                <TrendingUp className="w-6 h-6 text-primary" />
+              </div>
+              <p className="text-sm text-muted-foreground">{t("dailyProgress")}</p>
+              <p className="text-2xl font-bold text-foreground mt-1" data-testid="text-daily-progress">
                 {progressPercent}%
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                {completedTasks} {t("of")} {totalTasks} {t("tasksComplete")}
+                {completedTasks} {t("of")} {totalTasks}
               </p>
             </CardContent>
           </Card>
-          <Card className="bg-card">
-            <CardContent className="p-4">
-              <p className="text-sm text-muted-foreground mb-1">{t("focusTime")}</p>
-              <div className="flex items-center gap-2">
-                <div className="p-2 rounded-lg bg-blue-500">
-                  <Clock className="w-4 h-4 text-white" />
-                </div>
-                <p className="text-3xl font-bold text-foreground" data-testid="text-focus-time">
-                  {todayFocusMinutes}m
-                </p>
+          <Card className="bg-card shadow-sm">
+            <CardContent className="p-4 flex flex-col items-center text-center">
+              <div className="p-3 rounded-xl bg-blue-500 mb-3">
+                <Clock className="w-6 h-6 text-white" />
               </div>
+              <p className="text-sm text-muted-foreground">{t("focusTime")}</p>
+              <p className="text-2xl font-bold text-foreground mt-1" data-testid="text-focus-time">
+                {todayFocusMinutes}m
+              </p>
             </CardContent>
           </Card>
-          <Card className="bg-card">
-            <CardContent className="p-4">
-              <p className="text-sm text-muted-foreground mb-1">{t("streak")}</p>
-              <div className="flex items-center gap-2">
-                <div className="p-2 rounded-lg bg-emerald-500">
-                  <Flame className="w-4 h-4 text-white" />
-                </div>
-                <p className="text-3xl font-bold text-foreground" data-testid="text-streak">
-                  {currentStreak}d
-                </p>
+          <Card className="bg-card shadow-sm">
+            <CardContent className="p-4 flex flex-col items-center text-center">
+              <div className="p-3 rounded-xl bg-emerald-500 mb-3">
+                <Flame className="w-6 h-6 text-white" />
               </div>
+              <p className="text-sm text-muted-foreground">{t("streak")}</p>
+              <p className="text-2xl font-bold text-foreground mt-1" data-testid="text-streak">
+                {currentStreak}d
+              </p>
             </CardContent>
           </Card>
-          <Card className="bg-card">
-            <CardContent className="p-4">
-              <p className="text-sm text-muted-foreground mb-1">{t("habits")}</p>
-              <div className="flex items-center gap-2">
-                <div className="p-2 rounded-lg bg-violet-500">
-                  <CheckCircle2 className="w-4 h-4 text-white" />
-                </div>
-                <p className="text-3xl font-bold text-foreground" data-testid="text-habits-progress">
-                  {completedHabits}/{totalHabits}
-                </p>
+          <Card className="bg-card shadow-sm">
+            <CardContent className="p-4 flex flex-col items-center text-center">
+              <div className="p-3 rounded-xl bg-violet-500 mb-3">
+                <CheckCircle2 className="w-6 h-6 text-white" />
               </div>
+              <p className="text-sm text-muted-foreground">{t("habits")}</p>
+              <p className="text-2xl font-bold text-foreground mt-1" data-testid="text-habits-progress">
+                {completedHabits}/{totalHabits}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">{t("complete")}</p>
             </CardContent>
           </Card>
         </div>
