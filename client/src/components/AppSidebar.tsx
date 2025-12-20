@@ -28,7 +28,7 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <div className="px-4 py-6">
-            <h2 className="text-xl font-semibold text-foreground">ProductivePro</h2>
+            <h2 className="text-xl font-bold text-foreground">dayplanr</h2>
           </div>
           <SidebarGroupContent>
             <SidebarMenu>
