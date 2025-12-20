@@ -22,61 +22,123 @@ interface Task {
   id: string;
   title: string;
   time?: string;
-  priority?: "high" | "medium" | "low";
-  hasTimer?: boolean;
-  hasReminder?: boolean;
+  priority: "high" | "medium" | "low";
   completed: boolean;
 }
 
-interface Habit {
-  id: string;
-  name: string;
-  streak: number;
-  completed: boolean;
+interface TaskGroups {
+  morning: Task[];
+  afternoon: Task[];
+  evening: Task[];
+  night: Task[];
 }
+
+const priorityColors = {
+  high: "bg-red-500",
+  medium: "bg-yellow-500",
+  low: "bg-green-500",
+};
 
 export default function TodayPage() {
   const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showInsights, setShowInsights] = useState(false);
-  const [habitsOpen, setHabitsOpen] = useState(true);
-  const [tasksOpen, setTasksOpen] = useState(true);
+  const [openSections, setOpenSections] = useState({
+    morning: true,
+    afternoon: true,
+    evening: true,
+    night: true,
+  });
 
-  const [tasks, setTasks] = useState<Task[]>([
-    { id: "1", title: "Morning workout", time: "7:00 AM", priority: "high", completed: false },
-    { id: "2", title: "Team standup meeting", time: "9:30 AM", priority: "high", completed: false },
-    { id: "3", title: "Review project proposals", time: "2:00 PM", priority: "medium", completed: false },
-    { id: "4", title: "Grocery shopping", time: "6:00 PM", priority: "low", completed: false },
-  ]);
+  const [tasks, setTasks] = useState<TaskGroups>({
+    morning: [
+      { id: "m1", title: "Morning workout", time: "7:00 AM", priority: "high", completed: false },
+      { id: "m2", title: "Healthy breakfast", time: "8:00 AM", priority: "medium", completed: false },
+    ],
+    afternoon: [
+      { id: "a1", title: "Team standup meeting", time: "9:30 AM", priority: "high", completed: false },
+      { id: "a2", title: "Review project proposals", time: "2:00 PM", priority: "medium", completed: false },
+    ],
+    evening: [
+      { id: "e1", title: "Grocery shopping", time: "6:00 PM", priority: "low", completed: false },
+    ],
+    night: [
+      { id: "n1", title: "Reading before bed", time: "10:00 PM", priority: "low", completed: false },
+    ],
+  });
 
-  const [habits, setHabits] = useState<Habit[]>([
-    { id: "h1", name: "Reading books", streak: 2, completed: false },
-    { id: "h2", name: "Meditation", streak: 5, completed: false },
-  ]);
-
-  const handleToggleTask = (id: string) => {
-    setTasks((prev) =>
-      prev.map((task) =>
+  const handleToggleTask = (period: keyof TaskGroups, id: string) => {
+    setTasks((prev) => ({
+      ...prev,
+      [period]: prev[period].map((task) =>
         task.id === id ? { ...task, completed: !task.completed } : task
-      )
-    );
+      ),
+    }));
   };
 
-  const handleToggleHabit = (id: string) => {
-    setHabits((prev) =>
-      prev.map((habit) =>
-        habit.id === id ? { ...habit, completed: !habit.completed } : habit
-      )
-    );
+  const toggleSection = (section: keyof typeof openSections) => {
+    setOpenSections((prev) => ({ ...prev, [section]: !prev[section] }));
   };
 
-  const totalTasks = tasks.length;
-  const completedTasks = tasks.filter((t) => t.completed).length;
+  const allTasks = Object.values(tasks).flat();
+  const totalTasks = allTasks.length;
+  const completedTasks = allTasks.filter((t) => t.completed).length;
   const progressPercent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
   const todayFocusMinutes = 0;
   const currentStreak = 0;
-  const totalHabits = habits.length;
-  const completedHabits = habits.filter((h) => h.completed).length;
+  const totalHabits = 2;
+  const completedHabits = 0;
+
+  const renderTaskSection = (title: string, period: keyof TaskGroups, periodTasks: Task[]) => (
+    <Collapsible 
+      key={period}
+      open={openSections[period]} 
+      onOpenChange={() => toggleSection(period)}
+    >
+      <CollapsibleTrigger asChild>
+        <button className="flex items-center justify-between w-full py-3">
+          <h2 className="text-lg font-semibold text-foreground">{title}</h2>
+          {openSections[period] ? (
+            <ChevronUp className="w-5 h-5 text-muted-foreground" />
+          ) : (
+            <ChevronDown className="w-5 h-5 text-muted-foreground" />
+          )}
+        </button>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="space-y-2">
+        {periodTasks.map((task) => (
+          <div
+            key={task.id}
+            className="flex items-center gap-3 p-4 bg-card rounded-lg border border-border"
+            data-testid={`task-item-${task.id}`}
+          >
+            <button
+              onClick={() => handleToggleTask(period, task.id)}
+              className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
+                task.completed
+                  ? "bg-primary border-primary"
+                  : "border-muted-foreground"
+              }`}
+              data-testid={`button-toggle-task-${task.id}`}
+            >
+              {task.completed && (
+                <CheckCircle2 className="w-4 h-4 text-primary-foreground" />
+              )}
+            </button>
+            <div className="flex-1">
+              <p className={`font-medium ${task.completed ? "line-through text-muted-foreground" : "text-foreground"}`}>
+                {task.title}
+              </p>
+              {task.time && (
+                <p className="text-xs text-muted-foreground">{task.time}</p>
+              )}
+            </div>
+            <div className={`w-3 h-3 rounded-full ${priorityColors[task.priority]}`} />
+          </div>
+        ))}
+      </CollapsibleContent>
+    </Collapsible>
+  );
 
   return (
     <div className="h-full overflow-y-auto pb-20 md:pb-4">
@@ -160,95 +222,10 @@ export default function TodayPage() {
           </CardContent>
         </Card>
 
-        <Collapsible open={habitsOpen} onOpenChange={setHabitsOpen}>
-          <CollapsibleTrigger asChild>
-            <button className="flex items-center justify-between w-full py-3">
-              <h2 className="text-lg font-semibold text-foreground">Daily Habits</h2>
-              {habitsOpen ? (
-                <ChevronUp className="w-5 h-5 text-muted-foreground" />
-              ) : (
-                <ChevronDown className="w-5 h-5 text-muted-foreground" />
-              )}
-            </button>
-          </CollapsibleTrigger>
-          <CollapsibleContent className="space-y-2">
-            {habits.map((habit) => (
-              <div
-                key={habit.id}
-                className="flex items-center justify-between p-4 bg-card rounded-lg border border-border"
-                data-testid={`habit-item-${habit.id}`}
-              >
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => handleToggleHabit(habit.id)}
-                    className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
-                      habit.completed
-                        ? "bg-primary border-primary"
-                        : "border-muted-foreground"
-                    }`}
-                    data-testid={`button-toggle-habit-${habit.id}`}
-                  >
-                    {habit.completed && (
-                      <CheckCircle2 className="w-4 h-4 text-primary-foreground" />
-                    )}
-                  </button>
-                  <div>
-                    <p className={`font-medium ${habit.completed ? "line-through text-muted-foreground" : "text-foreground"}`}>
-                      {habit.name}
-                    </p>
-                    <p className="text-xs text-muted-foreground">{habit.streak} day streak</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </CollapsibleContent>
-        </Collapsible>
-
-        <Collapsible open={tasksOpen} onOpenChange={setTasksOpen}>
-          <CollapsibleTrigger asChild>
-            <button className="flex items-center justify-between w-full py-3">
-              <h2 className="text-lg font-semibold text-foreground">Today's Tasks</h2>
-              {tasksOpen ? (
-                <ChevronUp className="w-5 h-5 text-muted-foreground" />
-              ) : (
-                <ChevronDown className="w-5 h-5 text-muted-foreground" />
-              )}
-            </button>
-          </CollapsibleTrigger>
-          <CollapsibleContent className="space-y-2">
-            {tasks.map((task) => (
-              <div
-                key={task.id}
-                className="flex items-center justify-between p-4 bg-card rounded-lg border border-border"
-                data-testid={`task-item-${task.id}`}
-              >
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => handleToggleTask(task.id)}
-                    className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
-                      task.completed
-                        ? "bg-primary border-primary"
-                        : "border-muted-foreground"
-                    }`}
-                    data-testid={`button-toggle-task-${task.id}`}
-                  >
-                    {task.completed && (
-                      <CheckCircle2 className="w-4 h-4 text-primary-foreground" />
-                    )}
-                  </button>
-                  <div>
-                    <p className={`font-medium ${task.completed ? "line-through text-muted-foreground" : "text-foreground"}`}>
-                      {task.title}
-                    </p>
-                    {task.time && (
-                      <p className="text-xs text-muted-foreground">{task.time}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </CollapsibleContent>
-        </Collapsible>
+        {renderTaskSection("Morning", "morning", tasks.morning)}
+        {renderTaskSection("Afternoon", "afternoon", tasks.afternoon)}
+        {renderTaskSection("Evening", "evening", tasks.evening)}
+        {renderTaskSection("Night", "night", tasks.night)}
 
         <Button
           size="lg"
