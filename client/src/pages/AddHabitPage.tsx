@@ -65,6 +65,8 @@ export default function AddHabitPage() {
     const finalCategory = category === "custom" ? customCategory.trim() : category;
     if (category === "custom" && !customCategory.trim()) return;
     
+    if (scheduleType === "weekdays" && selectedDays.length === 0) return;
+    
     const habitData = {
       name: name.trim(),
       category: finalCategory,
@@ -75,6 +77,11 @@ export default function AddHabitPage() {
     };
     
     localStorage.setItem("newHabit", JSON.stringify(habitData));
+    navigate("/habits");
+  };
+
+  const handleCancel = () => {
+    localStorage.removeItem("newHabit");
     navigate("/habits");
   };
 
@@ -236,7 +243,7 @@ export default function AddHabitPage() {
               <Button 
                 variant="outline" 
                 className="flex-1"
-                onClick={() => navigate("/habits")}
+                onClick={handleCancel}
                 data-testid="button-cancel-habit"
               >
                 Cancel

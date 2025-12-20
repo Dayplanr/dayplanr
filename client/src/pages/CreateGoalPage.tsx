@@ -83,6 +83,11 @@ export default function CreateGoalPage() {
     navigate("/goals");
   };
 
+  const handleCancel = () => {
+    localStorage.removeItem("newGoal");
+    navigate("/goals");
+  };
+
   const isValid = title.trim() && category && (category !== "Custom" || customCategory.trim());
 
   return (
@@ -286,7 +291,7 @@ export default function CreateGoalPage() {
               <Button 
                 variant="outline" 
                 className="flex-1"
-                onClick={() => navigate("/goals")}
+                onClick={handleCancel}
                 data-testid="button-cancel-goal"
               >
                 Cancel

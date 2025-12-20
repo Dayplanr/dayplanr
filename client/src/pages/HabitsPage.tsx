@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import { Plus, TrendingUp, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,14 +19,13 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import HabitCard from "@/components/HabitCard";
-import AddHabitDialog from "@/components/AddHabitDialog";
 import EditHabitDialog from "@/components/EditHabitDialog";
 import HabitInsights from "@/components/HabitInsights";
 import { format, subDays } from "date-fns";
 import type { Habit, HabitFormData } from "@/types/habits";
 
 export default function HabitsPage() {
-  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [, navigate] = useLocation();
   const [showInsights, setShowInsights] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
   const [deletingHabit, setDeletingHabit] = useState<Habit | null>(null);
@@ -71,6 +71,35 @@ export default function HabitsPage() {
       hasTimer: false,
     },
   ]);
+
+  useEffect(() => {
+    const newHabitData = localStorage.getItem("newHabit");
+    if (newHabitData) {
+      try {
+        const data = JSON.parse(newHabitData) as HabitFormData;
+        const newHabit: Habit = {
+          id: Date.now().toString(),
+          title: data.name,
+          category: data.category,
+          scheduleType: data.scheduleType,
+          selectedDays: data.selectedDays || [],
+          challengeDays: data.challengeDays || 0,
+          challengeCompleted: 0,
+          streak: 0,
+          bestStreak: 0,
+          successRate: 0,
+          weeklyConsistency: 0,
+          monthlyConsistency: 0,
+          completedDates: [],
+          hasTimer: false,
+        };
+        setHabits((prev) => [...prev, newHabit]);
+        localStorage.removeItem("newHabit");
+      } catch (e) {
+        localStorage.removeItem("newHabit");
+      }
+    }
+  }, []);
 
   const handleToggleTimer = (habitId: string) => {
     setHabits((prev) =>
@@ -134,28 +163,6 @@ export default function HabitsPage() {
     return streak;
   };
 
-  const handleAddHabit = (data: HabitFormData) => {
-    const newHabit: Habit = {
-      id: Date.now().toString(),
-      title: data.title,
-      category: data.category,
-      scheduleType: data.scheduleType,
-      selectedDays: data.selectedDays || [],
-      challengeDays: data.challengeDays || 0,
-      challengeCompleted: 0,
-      streak: 0,
-      bestStreak: 0,
-      successRate: 0,
-      weeklyConsistency: 0,
-      monthlyConsistency: 0,
-      completedDates: [],
-      hasTimer: data.hasTimer || false,
-      timerDuration: data.timerDuration,
-    };
-    setHabits((prev) => [...prev, newHabit]);
-    setShowAddDialog(false);
-  };
-
   const handleEditHabit = (updatedHabit: Habit) => {
     setHabits((prev) =>
       prev.map((habit) => (habit.id === updatedHabit.id ? updatedHabit : habit))
@@ -193,7 +200,7 @@ export default function HabitsPage() {
                 <TrendingUp className="w-4 h-4 mr-2" />
                 Insights
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setShowAddDialog(true)} data-testid="menu-add-habit">
+              <DropdownMenuItem onClick={() => navigate("/habits/new")} data-testid="menu-add-habit">
                 <Sparkles className="w-4 h-4 mr-2" />
                 Add Habit
               </DropdownMenuItem>
@@ -229,7 +236,7 @@ export default function HabitsPage() {
           {habits.length === 0 && (
             <div className="text-center py-12">
               <p className="text-muted-foreground mb-4">No habits yet. Start building your routine!</p>
-              <Button onClick={() => setShowAddDialog(true)} data-testid="button-add-first-habit">
+              <Button onClick={() => navigate("/habits/new")} data-testid="button-add-first-habit">
                 <Plus className="w-4 h-4 mr-2" />
                 Add Your First Habit
               </Button>
@@ -237,12 +244,6 @@ export default function HabitsPage() {
           )}
         </div>
       </div>
-
-      <AddHabitDialog
-        open={showAddDialog}
-        onOpenChange={setShowAddDialog}
-        onSubmit={handleAddHabit}
-      />
 
       <EditHabitDialog
         habit={editingHabit}

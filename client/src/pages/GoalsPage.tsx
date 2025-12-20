@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import { Plus, TrendingUp, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,7 +9,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import GoalCard from "@/components/GoalCard";
-import CreateGoalSheet from "@/components/CreateGoalSheet";
 import EditGoalSheet from "@/components/EditGoalSheet";
 import GoalInsights from "@/components/GoalInsights";
 import { format, subDays } from "date-fns";
@@ -16,7 +16,7 @@ import type { Goal, GoalFormData } from "@/types/goals";
 import { calculateGoalProgress } from "@/types/goals";
 
 export default function GoalsPage() {
-  const [showCreateGoal, setShowCreateGoal] = useState(false);
+  const [, navigate] = useLocation();
   const [showEditGoal, setShowEditGoal] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
   const [showInsights, setShowInsights] = useState(false);
@@ -78,6 +78,38 @@ export default function GoalsPage() {
     },
   ]);
 
+  useEffect(() => {
+    const newGoalData = localStorage.getItem("newGoal");
+    if (newGoalData) {
+      try {
+        const data = JSON.parse(newGoalData) as GoalFormData;
+        const newGoal: Goal = {
+          id: Date.now().toString(),
+          title: data.title,
+          purpose: data.purpose,
+          category: data.category,
+          challengeDuration: data.challengeDuration,
+          milestones: data.milestones.map((m, i) => ({
+            id: `m-${Date.now()}-${i}`,
+            title: m.title,
+            completed: false,
+          })),
+          tags: data.tags,
+          visionText: data.visionText,
+          progress: 0,
+          createdAt: format(new Date(), "yyyy-MM-dd"),
+          lastActivityAt: format(new Date(), "yyyy-MM-dd"),
+          streak: 0,
+          daysWithProgress: 0,
+        };
+        setGoals((prev) => [...prev, newGoal]);
+        localStorage.removeItem("newGoal");
+      } catch (e) {
+        localStorage.removeItem("newGoal");
+      }
+    }
+  }, []);
+
   const handleToggleMilestone = (goalId: string, milestoneId: string) => {
     setGoals((prev) =>
       prev.map((goal) => {
@@ -95,30 +127,6 @@ export default function GoalsPage() {
         };
       })
     );
-  };
-
-  const handleCreateGoal = (data: GoalFormData) => {
-    const newGoal: Goal = {
-      id: Date.now().toString(),
-      title: data.title,
-      purpose: data.purpose,
-      category: data.category,
-      challengeDuration: data.challengeDuration,
-      milestones: data.milestones.map((m, i) => ({
-        id: `m-${Date.now()}-${i}`,
-        title: m.title,
-        completed: false,
-      })),
-      tags: data.tags,
-      visionText: data.visionText,
-      progress: 0,
-      createdAt: format(new Date(), "yyyy-MM-dd"),
-      lastActivityAt: format(new Date(), "yyyy-MM-dd"),
-      streak: 0,
-      daysWithProgress: 0,
-    };
-    
-    setGoals((prev) => [...prev, newGoal]);
   };
 
   const handleEditGoal = (goal: Goal) => {
@@ -166,7 +174,7 @@ export default function GoalsPage() {
                 <TrendingUp className="w-4 h-4 mr-2" />
                 Insights
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setShowCreateGoal(true)} data-testid="menu-add-goal">
+              <DropdownMenuItem onClick={() => navigate("/goals/new")} data-testid="menu-add-goal">
                 <Target className="w-4 h-4 mr-2" />
                 Add Goal
               </DropdownMenuItem>
@@ -197,19 +205,13 @@ export default function GoalsPage() {
         {goals.length === 0 && (
           <div className="text-center py-12">
             <p className="text-muted-foreground mb-4">No goals yet. Start setting your objectives!</p>
-            <Button onClick={() => setShowCreateGoal(true)} data-testid="button-add-first-goal">
+            <Button onClick={() => navigate("/goals/new")} data-testid="button-add-first-goal">
               <Plus className="w-4 h-4 mr-2" />
               Add Your First Goal
             </Button>
           </div>
         )}
       </div>
-
-      <CreateGoalSheet
-        open={showCreateGoal}
-        onOpenChange={setShowCreateGoal}
-        onSubmit={handleCreateGoal}
-      />
 
       <EditGoalSheet
         open={showEditGoal}
