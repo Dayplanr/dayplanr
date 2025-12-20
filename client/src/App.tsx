@@ -8,7 +8,9 @@ import { AppSidebar } from "@/components/AppSidebar";
 import MobileTabBar from "@/components/MobileTabBar";
 import TodayPage from "@/pages/TodayPage";
 import GoalsPage from "@/pages/GoalsPage";
+import CreateGoalPage from "@/pages/CreateGoalPage";
 import HabitsPage from "@/pages/HabitsPage";
+import AddHabitPage from "@/pages/AddHabitPage";
 import FocusPage from "@/pages/FocusPage";
 
 function Router() {
@@ -16,7 +18,9 @@ function Router() {
     <Switch>
       <Route path="/" component={TodayPage} />
       <Route path="/goals" component={GoalsPage} />
+      <Route path="/goals/new" component={CreateGoalPage} />
       <Route path="/habits" component={HabitsPage} />
+      <Route path="/habits/new" component={AddHabitPage} />
       <Route path="/focus" component={FocusPage} />
     </Switch>
   );
