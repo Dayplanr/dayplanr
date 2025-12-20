@@ -132,7 +132,7 @@ export default function TodayPage() {
             className="flex overflow-hidden rounded-lg border border-border bg-card"
             data-testid={`task-item-${task.id}`}
           >
-            <div className={`w-1 ${priorityBorderColors[task.priority]}`} />
+            <div className={`w-1.5 ${priorityBorderColors[task.priority]}`} />
             <div className="flex items-center gap-3 flex-1 p-4">
               <button
                 onClick={() => handleToggleTask(period, task.id)}
