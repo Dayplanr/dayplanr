@@ -172,7 +172,7 @@ export default function GoalsPage() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => navigate("/goals/new")} data-testid="menu-add-goal">
+              <DropdownMenuItem onClick={() => navigate("/app/goals/new")} data-testid="menu-add-goal">
                 <Target className="w-4 h-4 mr-2" />
                 {t("addGoal")}
               </DropdownMenuItem>
@@ -207,7 +207,7 @@ export default function GoalsPage() {
         {goals.length === 0 && (
           <div className="text-center py-12">
             <p className="text-muted-foreground mb-4">{t("noGoals")}</p>
-            <Button onClick={() => navigate("/goals/new")} data-testid="button-add-first-goal">
+            <Button onClick={() => navigate("/app/goals/new")} data-testid="button-add-first-goal">
               <Plus className="w-4 h-4 mr-2" />
               {t("addGoal")}
             </Button>

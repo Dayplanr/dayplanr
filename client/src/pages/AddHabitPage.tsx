@@ -77,12 +77,12 @@ export default function AddHabitPage() {
     };
     
     localStorage.setItem("newHabit", JSON.stringify(habitData));
-    navigate("/habits");
+    navigate("/app/habits");
   };
 
   const handleCancel = () => {
     localStorage.removeItem("newHabit");
-    navigate("/habits");
+    navigate("/app/habits");
   };
 
   const isValid = name.trim() && 
@@ -103,7 +103,7 @@ export default function AddHabitPage() {
             <Button 
               variant="ghost" 
               size="icon" 
-              onClick={() => navigate("/habits")}
+              onClick={() => navigate("/app/habits")}
               data-testid="button-back-habits"
             >
               <ArrowLeft className="w-5 h-5" />

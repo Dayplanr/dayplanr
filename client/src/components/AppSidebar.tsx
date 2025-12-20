@@ -16,11 +16,11 @@ export function AppSidebar() {
   const { t } = useTranslation();
 
   const items = [
-    { title: t("today"), url: "/", icon: Calendar },
-    { title: t("goals"), url: "/goals", icon: Target },
-    { title: t("habits"), url: "/habits", icon: TrendingUp },
-    { title: t("focus"), url: "/focus", icon: Timer },
-    { title: t("settings"), url: "/settings", icon: Settings },
+    { title: t("today"), url: "/app", icon: Calendar },
+    { title: t("goals"), url: "/app/goals", icon: Target },
+    { title: t("habits"), url: "/app/habits", icon: TrendingUp },
+    { title: t("focus"), url: "/app/focus", icon: Timer },
+    { title: t("settings"), url: "/app/settings", icon: Settings },
   ];
 
   return (

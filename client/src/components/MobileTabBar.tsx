@@ -7,11 +7,11 @@ export default function MobileTabBar() {
   const { t } = useTranslation();
 
   const tabs = [
-    { icon: Calendar, label: t("today"), path: "/" },
-    { icon: Target, label: t("goals"), path: "/goals" },
-    { icon: TrendingUp, label: t("habits"), path: "/habits" },
-    { icon: Timer, label: t("focus"), path: "/focus" },
-    { icon: Settings, label: t("settings"), path: "/settings" },
+    { icon: Calendar, label: t("today"), path: "/app" },
+    { icon: Target, label: t("goals"), path: "/app/goals" },
+    { icon: TrendingUp, label: t("habits"), path: "/app/habits" },
+    { icon: Timer, label: t("focus"), path: "/app/focus" },
+    { icon: Settings, label: t("settings"), path: "/app/settings" },
   ];
 
   return (

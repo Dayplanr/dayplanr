@@ -167,7 +167,7 @@ export default function TodayPage() {
 
   const handleEditTask = (period: keyof TaskGroups, task: Task) => {
     localStorage.setItem("editTask", JSON.stringify({ ...task, period }));
-    navigate("/tasks/new");
+    navigate("/app/tasks/new");
   };
 
   const renderTaskSection = (title: string, period: keyof TaskGroups, periodTasks: Task[]) => (
@@ -277,7 +277,7 @@ export default function TodayPage() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => navigate("/tasks/new")} data-testid="menu-add-task">
+              <DropdownMenuItem onClick={() => navigate("/app/tasks/new")} data-testid="menu-add-task">
                 <ListTodo className="w-4 h-4 mr-2" />
                 {t("addTask")}
               </DropdownMenuItem>

@@ -80,12 +80,12 @@ export default function CreateGoalPage() {
     };
 
     localStorage.setItem("newGoal", JSON.stringify(goalData));
-    navigate("/goals");
+    navigate("/app/goals");
   };
 
   const handleCancel = () => {
     localStorage.removeItem("newGoal");
-    navigate("/goals");
+    navigate("/app/goals");
   };
 
   const isValid = title.trim() && category && (category !== "Custom" || customCategory.trim());
@@ -104,7 +104,7 @@ export default function CreateGoalPage() {
             <Button 
               variant="ghost" 
               size="icon" 
-              onClick={() => navigate("/goals")}
+              onClick={() => navigate("/app/goals")}
               data-testid="button-back-goals"
             >
               <ArrowLeft className="w-5 h-5" />

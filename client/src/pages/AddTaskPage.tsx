@@ -53,7 +53,7 @@ export default function AddTaskPage() {
     };
     
     localStorage.setItem("newTask", JSON.stringify(taskData));
-    navigate("/");
+    navigate("/app");
   };
 
   return (
@@ -70,7 +70,7 @@ export default function AddTaskPage() {
             <Button 
               variant="ghost" 
               size="icon" 
-              onClick={() => navigate("/")}
+              onClick={() => navigate("/app")}
               data-testid="button-back-today"
             >
               <ArrowLeft className="w-5 h-5" />

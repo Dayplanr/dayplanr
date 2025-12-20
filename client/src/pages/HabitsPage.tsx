@@ -198,7 +198,7 @@ export default function HabitsPage() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => navigate("/habits/new")} data-testid="menu-add-habit">
+              <DropdownMenuItem onClick={() => navigate("/app/habits/new")} data-testid="menu-add-habit">
                 <Sparkles className="w-4 h-4 mr-2" />
                 {t("addHabit")}
               </DropdownMenuItem>
@@ -238,7 +238,7 @@ export default function HabitsPage() {
           {habits.length === 0 && (
             <div className="text-center py-12">
               <p className="text-muted-foreground mb-4">{t("noHabits")}</p>
-              <Button onClick={() => navigate("/habits/new")} data-testid="button-add-first-habit">
+              <Button onClick={() => navigate("/app/habits/new")} data-testid="button-add-first-habit">
                 <Plus className="w-4 h-4 mr-2" />
                 {t("addHabit")}
               </Button>
