@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { I18nProvider } from "@/lib/i18n";
 import { AppSidebar } from "@/components/AppSidebar";
 import MobileTabBar from "@/components/MobileTabBar";
 import TodayPage from "@/pages/TodayPage";
@@ -29,20 +30,22 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <SidebarProvider>
-          <div className="flex h-screen w-full">
-            <div className="hidden md:block">
-              <AppSidebar />
+      <I18nProvider>
+        <TooltipProvider>
+          <SidebarProvider>
+            <div className="flex h-screen w-full">
+              <div className="hidden md:block">
+                <AppSidebar />
+              </div>
+              <main className="flex-1 overflow-hidden">
+                <Router />
+              </main>
+              <MobileTabBar />
             </div>
-            <main className="flex-1 overflow-hidden">
-              <Router />
-            </main>
-            <MobileTabBar />
-          </div>
-        </SidebarProvider>
-        <Toaster />
-      </TooltipProvider>
+          </SidebarProvider>
+          <Toaster />
+        </TooltipProvider>
+      </I18nProvider>
     </QueryClientProvider>
   );
 }

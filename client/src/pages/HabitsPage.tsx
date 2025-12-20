@@ -21,11 +21,13 @@ import {
 import HabitCard from "@/components/HabitCard";
 import EditHabitDialog from "@/components/EditHabitDialog";
 import HabitInsights from "@/components/HabitInsights";
+import { useTranslation } from "@/lib/i18n";
 import { format, subDays } from "date-fns";
 import type { Habit, HabitFormData } from "@/types/habits";
 
 export default function HabitsPage() {
   const [, navigate] = useLocation();
+  const { t } = useTranslation();
   const [showInsights, setShowInsights] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
   const [deletingHabit, setDeletingHabit] = useState<Habit | null>(null);
@@ -186,8 +188,8 @@ export default function HabitsPage() {
       <div className="max-w-2xl mx-auto p-4 space-y-6">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Habits</h1>
-            <p className="text-sm text-muted-foreground">Build consistency, one day at a time</p>
+            <h1 className="text-2xl font-bold text-foreground">{t("habits")}</h1>
+            <p className="text-sm text-muted-foreground">{t("habitStreak")}</p>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -198,11 +200,11 @@ export default function HabitsPage() {
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => navigate("/habits/new")} data-testid="menu-add-habit">
                 <Sparkles className="w-4 h-4 mr-2" />
-                Add Habit
+                {t("addHabit")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setShowInsights(true)} data-testid="menu-habits-insights">
                 <TrendingUp className="w-4 h-4 mr-2" />
-                Insights
+                {t("insights")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -235,10 +237,10 @@ export default function HabitsPage() {
 
           {habits.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-muted-foreground mb-4">No habits yet. Start building your routine!</p>
+              <p className="text-muted-foreground mb-4">{t("noHabits")}</p>
               <Button onClick={() => navigate("/habits/new")} data-testid="button-add-first-habit">
                 <Plus className="w-4 h-4 mr-2" />
-                Add Your First Habit
+                {t("addHabit")}
               </Button>
             </div>
           )}
@@ -265,7 +267,7 @@ export default function HabitsPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel data-testid="button-cancel-delete">Cancel</AlertDialogCancel>
+            <AlertDialogCancel data-testid="button-cancel-delete">{t("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={confirmDelete}

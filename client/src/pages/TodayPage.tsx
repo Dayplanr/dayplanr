@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, TrendingUp, Clock, CheckCircle2, ListTodo, Flame, ChevronUp, ChevronDown, Settings } from "lucide-react";
+import { Plus, TrendingUp, Clock, CheckCircle2, ListTodo, Flame, ChevronUp, ChevronDown, PlusCircle, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/collapsible";
 import CalendarScrubber from "@/components/CalendarScrubber";
 import TodayInsights from "@/components/TodayInsights";
+import LanguageSelector from "@/components/LanguageSelector";
+import { useTranslation } from "@/lib/i18n";
 import { format } from "date-fns";
 
 interface Task {
@@ -41,6 +43,7 @@ const priorityColors = {
 
 export default function TodayPage() {
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showInsights, setShowInsights] = useState(false);
   const [openSections, setOpenSections] = useState({
@@ -144,39 +147,44 @@ export default function TodayPage() {
     <div className="h-full overflow-y-auto pb-20 md:pb-4">
       <div className="max-w-4xl mx-auto p-4 space-y-4">
         <div className="flex items-center justify-between gap-4">
-          <h1 className="text-3xl font-bold text-foreground">Today</h1>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button size="icon" variant="ghost" className="rounded-full" data-testid="button-today-menu">
-                <Settings className="w-5 h-5 text-muted-foreground" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem 
-                onClick={() => toast({ title: "Add Task", description: "Task creation coming soon!" })}
-                data-testid="menu-add-task"
-              >
-                <ListTodo className="w-4 h-4 mr-2" />
-                Add Task
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setShowInsights(true)} data-testid="menu-today-insights">
-                <TrendingUp className="w-4 h-4 mr-2" />
-                Insights
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <h1 className="text-3xl font-bold text-foreground">{t("today")}</h1>
+          <div className="flex items-center gap-2">
+            <div className="md:hidden">
+              <LanguageSelector />
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="icon" variant="ghost" className="rounded-full" data-testid="button-today-menu">
+                  <PlusCircle className="w-5 h-5 text-muted-foreground" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem 
+                  onClick={() => toast({ title: t("addTask"), description: "Task creation coming soon!" })}
+                  data-testid="menu-add-task"
+                >
+                  <ListTodo className="w-4 h-4 mr-2" />
+                  {t("addTask")}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setShowInsights(true)} data-testid="menu-today-insights">
+                  <TrendingUp className="w-4 h-4 mr-2" />
+                  {t("insights")}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
 
         <CalendarScrubber selectedDate={selectedDate} onSelectDate={setSelectedDate} />
 
         <Card className="bg-card">
           <CardContent className="p-5">
-            <p className="text-sm text-muted-foreground mb-1">Daily Progress</p>
+            <p className="text-sm text-muted-foreground mb-1">{t("dailyProgress")}</p>
             <p className="text-5xl font-bold text-foreground" data-testid="text-daily-progress">
               {progressPercent}%
             </p>
             <p className="text-sm text-muted-foreground mt-2">
-              {completedTasks} of {totalTasks} tasks complete
+              {completedTasks} {t("of")} {totalTasks} {t("tasksComplete")}
             </p>
           </CardContent>
         </Card>
@@ -184,7 +192,7 @@ export default function TodayPage() {
         <div className="grid grid-cols-2 gap-3">
           <Card className="bg-card">
             <CardContent className="p-4">
-              <p className="text-sm font-medium text-muted-foreground mb-2">Focus Time</p>
+              <p className="text-sm font-medium text-muted-foreground mb-2">{t("focusTime")}</p>
               <div className="p-2.5 rounded-xl bg-blue-500 w-fit mb-3">
                 <Clock className="w-5 h-5 text-white" />
               </div>
@@ -195,7 +203,7 @@ export default function TodayPage() {
           </Card>
           <Card className="bg-card">
             <CardContent className="p-4">
-              <p className="text-sm font-medium text-muted-foreground mb-2">Streak</p>
+              <p className="text-sm font-medium text-muted-foreground mb-2">{t("streak")}</p>
               <div className="p-2.5 rounded-xl bg-emerald-500 w-fit mb-3">
                 <Flame className="w-5 h-5 text-white" />
               </div>
@@ -208,20 +216,20 @@ export default function TodayPage() {
 
         <Card className="bg-card">
           <CardContent className="p-4">
-            <p className="text-sm font-medium text-muted-foreground mb-2">Habits</p>
+            <p className="text-sm font-medium text-muted-foreground mb-2">{t("habits")}</p>
             <div className="p-2.5 rounded-xl bg-violet-500 w-fit mb-3">
               <CheckCircle2 className="w-5 h-5 text-white" />
             </div>
             <p className="text-2xl font-bold text-foreground" data-testid="text-habits-progress">
-              {completedHabits}/{totalHabits} complete
+              {completedHabits}/{totalHabits} {t("complete")}
             </p>
           </CardContent>
         </Card>
 
-        {renderTaskSection("Morning", "morning", tasks.morning)}
-        {renderTaskSection("Afternoon", "afternoon", tasks.afternoon)}
-        {renderTaskSection("Evening", "evening", tasks.evening)}
-        {renderTaskSection("Night", "night", tasks.night)}
+        {renderTaskSection(t("morning"), "morning", tasks.morning)}
+        {renderTaskSection(t("afternoon"), "afternoon", tasks.afternoon)}
+        {renderTaskSection(t("evening"), "evening", tasks.evening)}
+        {renderTaskSection(t("night"), "night", tasks.night)}
 
       </div>
 

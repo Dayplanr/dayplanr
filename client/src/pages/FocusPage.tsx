@@ -11,6 +11,7 @@ import FocusModeCard from "@/components/FocusModeCard";
 import CreateTimerDialog from "@/components/CreateTimerDialog";
 import FocusInsights from "@/components/FocusInsights";
 import ActiveFocusSession from "@/components/ActiveFocusSession";
+import { useTranslation } from "@/lib/i18n";
 import { Timer, Rocket, Zap, Brain, Coffee, Plus, TrendingUp } from "lucide-react";
 
 interface CustomTimer {
@@ -30,6 +31,7 @@ interface ActiveSession {
 }
 
 export default function FocusPage() {
+  const { t } = useTranslation();
   const [activeSession, setActiveSession] = useState<ActiveSession | null>(null);
   const [customTimers, setCustomTimers] = useState<CustomTimer[]>([]);
   const [showCreateTimer, setShowCreateTimer] = useState(false);
@@ -120,8 +122,8 @@ export default function FocusPage() {
       <div className="max-w-6xl mx-auto p-4 space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-foreground">Focus</h1>
-            <p className="text-sm text-muted-foreground">Deep work & productivity</p>
+            <h1 className="text-2xl font-semibold text-foreground">{t("focus")}</h1>
+            <p className="text-sm text-muted-foreground">{t("deepWork")}</p>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -132,11 +134,11 @@ export default function FocusPage() {
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => setShowCreateTimer(true)} data-testid="menu-create-timer">
                 <Timer className="w-4 h-4 mr-2" />
-                Create Timer
+                {t("create")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setShowInsights(true)} data-testid="menu-insights">
                 <TrendingUp className="w-4 h-4 mr-2" />
-                Insights
+                {t("insights")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

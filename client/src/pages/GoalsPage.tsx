@@ -11,12 +11,14 @@ import {
 import GoalCard from "@/components/GoalCard";
 import EditGoalSheet from "@/components/EditGoalSheet";
 import GoalInsights from "@/components/GoalInsights";
+import { useTranslation } from "@/lib/i18n";
 import { format, subDays } from "date-fns";
 import type { Goal, GoalFormData } from "@/types/goals";
 import { calculateGoalProgress } from "@/types/goals";
 
 export default function GoalsPage() {
   const [, navigate] = useLocation();
+  const { t } = useTranslation();
   const [showEditGoal, setShowEditGoal] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
   const [showInsights, setShowInsights] = useState(false);
@@ -160,8 +162,8 @@ export default function GoalsPage() {
       <div className="max-w-6xl mx-auto p-4 space-y-6">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Goals</h1>
-            <p className="text-muted-foreground">Track your long-term vision</p>
+            <h1 className="text-3xl font-bold text-foreground">{t("goals")}</h1>
+            <p className="text-muted-foreground">{t("goalProgress")}</p>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -172,11 +174,11 @@ export default function GoalsPage() {
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => navigate("/goals/new")} data-testid="menu-add-goal">
                 <Target className="w-4 h-4 mr-2" />
-                Add Goal
+                {t("addGoal")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setShowInsights(true)} data-testid="menu-goals-insights">
                 <TrendingUp className="w-4 h-4 mr-2" />
-                Insights
+                {t("insights")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -204,10 +206,10 @@ export default function GoalsPage() {
 
         {goals.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-muted-foreground mb-4">No goals yet. Start setting your objectives!</p>
+            <p className="text-muted-foreground mb-4">{t("noGoals")}</p>
             <Button onClick={() => navigate("/goals/new")} data-testid="button-add-first-goal">
               <Plus className="w-4 h-4 mr-2" />
-              Add Your First Goal
+              {t("addGoal")}
             </Button>
           </div>
         )}

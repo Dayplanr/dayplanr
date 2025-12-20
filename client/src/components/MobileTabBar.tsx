@@ -1,14 +1,16 @@
 import { Calendar, Target, TrendingUp, Timer } from "lucide-react";
 import { Link, useLocation } from "wouter";
+import { useTranslation } from "@/lib/i18n";
 
 export default function MobileTabBar() {
   const [location] = useLocation();
+  const { t } = useTranslation();
 
   const tabs = [
-    { icon: Calendar, label: "Today", path: "/" },
-    { icon: Target, label: "Goals", path: "/goals" },
-    { icon: TrendingUp, label: "Habits", path: "/habits" },
-    { icon: Timer, label: "Focus", path: "/focus" },
+    { icon: Calendar, label: t("today"), path: "/" },
+    { icon: Target, label: t("goals"), path: "/goals" },
+    { icon: TrendingUp, label: t("habits"), path: "/habits" },
+    { icon: Timer, label: t("focus"), path: "/focus" },
   ];
 
   return (
