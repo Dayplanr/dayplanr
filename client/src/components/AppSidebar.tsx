@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/sidebar";
 import { useLocation } from "wouter";
 import { useTranslation } from "@/lib/i18n";
-import LanguageSelector from "@/components/LanguageSelector";
 
 export function AppSidebar() {
   const [location] = useLocation();
@@ -28,9 +27,8 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarContent>
         <SidebarGroup>
-          <div className="flex items-center justify-between px-4 py-6">
+          <div className="px-4 py-6">
             <h2 className="text-xl font-semibold text-foreground">ProductivePro</h2>
-            <LanguageSelector />
           </div>
           <SidebarGroupContent>
             <SidebarMenu>

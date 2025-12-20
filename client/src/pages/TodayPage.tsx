@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/collapsible";
 import CalendarScrubber from "@/components/CalendarScrubber";
 import TodayInsights from "@/components/TodayInsights";
-import LanguageSelector from "@/components/LanguageSelector";
 import { useTranslation } from "@/lib/i18n";
 import { format } from "date-fns";
 
@@ -149,9 +148,6 @@ export default function TodayPage() {
         <div className="flex items-center justify-between gap-4">
           <h1 className="text-3xl font-bold text-foreground">{t("today")}</h1>
           <div className="flex items-center gap-2">
-            <div className="md:hidden">
-              <LanguageSelector />
-            </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button size="icon" className="rounded-full h-11 w-11" data-testid="button-today-menu">
