@@ -170,13 +170,13 @@ export default function GoalsPage() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setShowInsights(true)} data-testid="menu-goals-insights">
-                <TrendingUp className="w-4 h-4 mr-2" />
-                Insights
-              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate("/goals/new")} data-testid="menu-add-goal">
                 <Target className="w-4 h-4 mr-2" />
                 Add Goal
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setShowInsights(true)} data-testid="menu-goals-insights">
+                <TrendingUp className="w-4 h-4 mr-2" />
+                Insights
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

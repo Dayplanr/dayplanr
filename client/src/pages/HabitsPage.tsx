@@ -196,13 +196,13 @@ export default function HabitsPage() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setShowInsights(true)} data-testid="menu-habits-insights">
-                <TrendingUp className="w-4 h-4 mr-2" />
-                Insights
-              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate("/habits/new")} data-testid="menu-add-habit">
                 <Sparkles className="w-4 h-4 mr-2" />
                 Add Habit
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setShowInsights(true)} data-testid="menu-habits-insights">
+                <TrendingUp className="w-4 h-4 mr-2" />
+                Insights
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

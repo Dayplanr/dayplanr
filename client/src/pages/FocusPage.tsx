@@ -130,13 +130,13 @@ export default function FocusPage() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setShowInsights(true)} data-testid="menu-insights">
-                <TrendingUp className="w-4 h-4 mr-2" />
-                Insights
-              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setShowCreateTimer(true)} data-testid="menu-create-timer">
                 <Timer className="w-4 h-4 mr-2" />
                 Create Timer
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setShowInsights(true)} data-testid="menu-insights">
+                <TrendingUp className="w-4 h-4 mr-2" />
+                Insights
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
