@@ -61,7 +61,6 @@ type TranslationKey =
   | "week"
   | "month"
   | "year"
-  | "today"
   | "yesterday"
   | "tomorrow"
   | "thisWeek"
@@ -118,14 +117,9 @@ type TranslationKey =
   | "important"
   | "reminderNote"
   | "deleteAccountConfirm"
-  | "high"
-  | "medium"
-  | "low"
   | "taskTitle"
   | "time"
-  | "priority"
   | "period"
-  | "save"
   | "newTask"
   | "taskTitlePlaceholder"
   | "descriptionOptional"
@@ -250,14 +244,9 @@ const translations: Record<Language, Translations> = {
     important: "Important",
     reminderNote: "Reminders are designed to be supportive and non-intrusive, helping you stay on track without creating pressure.",
     deleteAccountConfirm: "Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently removed.",
-    high: "high",
-    medium: "medium",
-    low: "low",
     taskTitle: "Task Title",
     time: "Time",
-    priority: "Priority",
     period: "Period",
-    save: "Save",
     newTask: "New Task",
     taskTitlePlaceholder: "What do you need to do?",
     descriptionOptional: "Description (Optional)",
@@ -379,14 +368,9 @@ const translations: Record<Language, Translations> = {
     important: "Wichtig",
     reminderNote: "Erinnerungen sind unterstützend und unaufdringlich gestaltet, um Ihnen zu helfen, auf Kurs zu bleiben, ohne Druck zu erzeugen.",
     deleteAccountConfirm: "Sind Sie sicher, dass Sie Ihr Konto löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden und alle Ihre Daten werden dauerhaft gelöscht.",
-    high: "hoch",
-    medium: "mittel",
-    low: "niedrig",
     taskTitle: "Aufgabentitel",
     time: "Zeit",
-    priority: "Priorität",
     period: "Zeitraum",
-    save: "Speichern",
     newTask: "Neue Aufgabe",
     taskTitlePlaceholder: "Was musst du tun?",
     descriptionOptional: "Beschreibung (Optional)",
@@ -508,14 +492,9 @@ const translations: Record<Language, Translations> = {
     important: "Importante",
     reminderNote: "Los recordatorios están diseñados para ser útiles y no intrusivos, ayudándote a mantener el rumbo sin crear presión.",
     deleteAccountConfirm: "¿Estás seguro de que quieres eliminar tu cuenta? Esta acción no se puede deshacer y todos tus datos serán eliminados permanentemente.",
-    high: "alta",
-    medium: "media",
-    low: "baja",
     taskTitle: "Título de la Tarea",
     time: "Hora",
-    priority: "Prioridad",
     period: "Período",
-    save: "Guardar",
     newTask: "Nueva Tarea",
     taskTitlePlaceholder: "¿Qué necesitas hacer?",
     descriptionOptional: "Descripción (Opcional)",
@@ -637,14 +616,9 @@ const translations: Record<Language, Translations> = {
     important: "Important",
     reminderNote: "Les rappels sont conçus pour être utiles et non intrusifs, vous aidant à rester sur la bonne voie sans créer de pression.",
     deleteAccountConfirm: "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible et toutes vos données seront définitivement supprimées.",
-    high: "haute",
-    medium: "moyenne",
-    low: "basse",
     taskTitle: "Titre de la Tâche",
     time: "Heure",
-    priority: "Priorité",
     period: "Période",
-    save: "Enregistrer",
     newTask: "Nouvelle Tâche",
     taskTitlePlaceholder: "Que devez-vous faire?",
     descriptionOptional: "Description (Optionnel)",
@@ -766,14 +740,9 @@ const translations: Record<Language, Translations> = {
     important: "Importante",
     reminderNote: "I promemoria sono progettati per essere di supporto e non invasivi, aiutandoti a rimanere in carreggiata senza creare pressione.",
     deleteAccountConfirm: "Sei sicuro di voler eliminare il tuo account? Questa azione non può essere annullata e tutti i tuoi dati verranno eliminati permanentemente.",
-    high: "alta",
-    medium: "media",
-    low: "bassa",
     taskTitle: "Titolo dell'Attività",
     time: "Ora",
-    priority: "Priorità",
     period: "Periodo",
-    save: "Salva",
     newTask: "Nuova Attività",
     taskTitlePlaceholder: "Cosa devi fare?",
     descriptionOptional: "Descrizione (Opzionale)",
@@ -895,14 +864,9 @@ const translations: Record<Language, Translations> = {
     important: "Importante",
     reminderNote: "Os lembretes são projetados para serem úteis e não intrusivos, ajudando você a manter o foco sem criar pressão.",
     deleteAccountConfirm: "Tem certeza de que deseja excluir sua conta? Esta ação não pode ser desfeita e todos os seus dados serão permanentemente removidos.",
-    high: "alta",
-    medium: "média",
-    low: "baixa",
     taskTitle: "Título da Tarefa",
     time: "Hora",
-    priority: "Prioridade",
     period: "Período",
-    save: "Salvar",
     newTask: "Nova Tarefa",
     taskTitlePlaceholder: "O que você precisa fazer?",
     descriptionOptional: "Descrição (Opcional)",
@@ -1024,14 +988,9 @@ const translations: Record<Language, Translations> = {
     important: "Belangrijk",
     reminderNote: "Herinneringen zijn ontworpen om ondersteunend en niet-opdringerig te zijn, zodat je op koers blijft zonder druk te creëren.",
     deleteAccountConfirm: "Weet je zeker dat je je account wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt en al je gegevens worden permanent verwijderd.",
-    high: "hoog",
-    medium: "gemiddeld",
-    low: "laag",
     taskTitle: "Taaktitel",
     time: "Tijd",
-    priority: "Prioriteit",
     period: "Periode",
-    save: "Opslaan",
     newTask: "Nieuwe Taak",
     taskTitlePlaceholder: "Wat moet je doen?",
     descriptionOptional: "Beschrijving (Optioneel)",
@@ -1153,14 +1112,9 @@ const translations: Record<Language, Translations> = {
     important: "Ważny",
     reminderNote: "Przypomnienia są zaprojektowane tak, aby były wspierające i nieinwazyjne, pomagając Ci pozostać na dobrej drodze bez tworzenia presji.",
     deleteAccountConfirm: "Czy na pewno chcesz usunąć swoje konto? Tej czynności nie można cofnąć, a wszystkie Twoje dane zostaną trwale usunięte.",
-    high: "wysoki",
-    medium: "średni",
-    low: "niski",
     taskTitle: "Tytuł Zadania",
     time: "Czas",
-    priority: "Priorytet",
     period: "Okres",
-    save: "Zapisz",
     newTask: "Nowe Zadanie",
     taskTitlePlaceholder: "Co musisz zrobić?",
     descriptionOptional: "Opis (Opcjonalnie)",
