@@ -39,6 +39,7 @@ export const GOAL_CATEGORIES = [
   "Education",
   "Career",
   "Relationships",
+  "Custom",
 ] as const;
 
 export const CHALLENGE_DURATIONS = [

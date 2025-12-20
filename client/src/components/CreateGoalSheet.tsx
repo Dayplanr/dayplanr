@@ -30,6 +30,7 @@ export default function CreateGoalSheet({ open, onOpenChange, onSubmit }: Create
   const [title, setTitle] = useState("");
   const [purpose, setPurpose] = useState("");
   const [category, setCategory] = useState("");
+  const [customCategory, setCustomCategory] = useState("");
   const [challengeDuration, setChallengeDuration] = useState(0);
   const [customDuration, setCustomDuration] = useState("");
   const [milestones, setMilestones] = useState<string[]>([]);
@@ -69,6 +70,9 @@ export default function CreateGoalSheet({ open, onOpenChange, onSubmit }: Create
 
   const handleSubmit = () => {
     if (!title.trim() || !category) return;
+    
+    const finalCategory = category === "Custom" ? customCategory.trim() : category;
+    if (category === "Custom" && !customCategory.trim()) return;
 
     const finalDuration = challengeDuration === -1 
       ? parseInt(customDuration) || 0 
@@ -77,7 +81,7 @@ export default function CreateGoalSheet({ open, onOpenChange, onSubmit }: Create
     onSubmit({
       title: title.trim(),
       purpose: purpose.trim(),
-      category,
+      category: finalCategory,
       challengeDuration: finalDuration,
       milestones: milestones.map((m) => ({ title: m })),
       tags,
@@ -92,6 +96,7 @@ export default function CreateGoalSheet({ open, onOpenChange, onSubmit }: Create
     setTitle("");
     setPurpose("");
     setCategory("");
+    setCustomCategory("");
     setChallengeDuration(0);
     setCustomDuration("");
     setMilestones([]);
@@ -149,6 +154,15 @@ export default function CreateGoalSheet({ open, onOpenChange, onSubmit }: Create
                 ))}
               </SelectContent>
             </Select>
+            {category === "Custom" && (
+              <Input
+                placeholder="Enter custom category"
+                value={customCategory}
+                onChange={(e) => setCustomCategory(e.target.value)}
+                className="mt-2"
+                data-testid="input-goal-custom-category"
+              />
+            )}
           </div>
 
           <div className="space-y-2">

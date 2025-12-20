@@ -52,6 +52,7 @@ const CATEGORIES = [
   { value: "work", label: "Work" },
   { value: "learning", label: "Learning" },
   { value: "fitness", label: "Fitness" },
+  { value: "custom", label: "Custom" },
 ];
 
 const CHALLENGE_OPTIONS = [
@@ -72,6 +73,7 @@ export default function EditHabitDialog({
 }: EditHabitDialogProps) {
   const [name, setName] = useState("");
   const [category, setCategory] = useState("personal");
+  const [customCategory, setCustomCategory] = useState("");
   const [scheduleType, setScheduleType] = useState<ScheduleType>("everyday");
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [challengeDays, setChallengeDays] = useState(30);
@@ -80,7 +82,15 @@ export default function EditHabitDialog({
   useEffect(() => {
     if (habit) {
       setName(habit.title);
-      setCategory(habit.category || "personal");
+      const knownCategories = CATEGORIES.map(c => c.value).filter(v => v !== "custom");
+      const habitCategory = habit.category || "personal";
+      if (knownCategories.includes(habitCategory)) {
+        setCategory(habitCategory);
+        setCustomCategory("");
+      } else {
+        setCategory("custom");
+        setCustomCategory(habitCategory);
+      }
       setScheduleType(habit.scheduleType || "everyday");
       setSelectedDays(habit.selectedDays || []);
       setChallengeDays(habit.challengeDays || 30);
@@ -98,10 +108,13 @@ export default function EditHabitDialog({
   const handleSave = () => {
     if (!habit || !name.trim()) return;
     
+    const finalCategory = category === "custom" ? customCategory.trim() : category;
+    if (category === "custom" && !customCategory.trim()) return;
+    
     onSave({
       ...habit,
       title: name.trim(),
-      category,
+      category: finalCategory,
       scheduleType,
       selectedDays: scheduleType === "weekdays" ? selectedDays : [],
       challengeDays: scheduleType === "challenge" ? challengeDays : 0,
@@ -117,7 +130,9 @@ export default function EditHabitDialog({
     }
   };
 
-  const isValid = name.trim() && (scheduleType !== "weekdays" || selectedDays.length > 0);
+  const isValid = name.trim() && 
+    (scheduleType !== "weekdays" || selectedDays.length > 0) &&
+    (category !== "custom" || customCategory.trim());
 
   if (!habit) return null;
 
@@ -154,6 +169,15 @@ export default function EditHabitDialog({
                   ))}
                 </SelectContent>
               </Select>
+              {category === "custom" && (
+                <Input
+                  placeholder="Enter custom category"
+                  value={customCategory}
+                  onChange={(e) => setCustomCategory(e.target.value)}
+                  className="mt-2"
+                  data-testid="input-edit-custom-category"
+                />
+              )}
             </div>
 
             <div className="space-y-3">

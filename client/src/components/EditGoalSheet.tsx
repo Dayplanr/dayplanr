@@ -31,6 +31,7 @@ export default function EditGoalSheet({ open, onOpenChange, goal, onSubmit }: Ed
   const [title, setTitle] = useState("");
   const [purpose, setPurpose] = useState("");
   const [category, setCategory] = useState("");
+  const [customCategory, setCustomCategory] = useState("");
   const [challengeDuration, setChallengeDuration] = useState(0);
   const [customDuration, setCustomDuration] = useState("");
   const [milestones, setMilestones] = useState<{ id: string; title: string; completed: boolean }[]>([]);
@@ -43,7 +44,14 @@ export default function EditGoalSheet({ open, onOpenChange, goal, onSubmit }: Ed
     if (goal) {
       setTitle(goal.title);
       setPurpose(goal.purpose);
-      setCategory(goal.category);
+      const knownCategories = GOAL_CATEGORIES.filter(c => c !== "Custom");
+      if (knownCategories.includes(goal.category as any)) {
+        setCategory(goal.category);
+        setCustomCategory("");
+      } else {
+        setCategory("Custom");
+        setCustomCategory(goal.category);
+      }
       const isCustom = !CHALLENGE_DURATIONS.some(d => d.value === goal.challengeDuration && d.value !== -1);
       if (isCustom && goal.challengeDuration > 0) {
         setChallengeDuration(-1);
@@ -93,6 +101,9 @@ export default function EditGoalSheet({ open, onOpenChange, goal, onSubmit }: Ed
 
   const handleSubmit = () => {
     if (!goal || !title.trim() || !category) return;
+    
+    const finalCategory = category === "Custom" ? customCategory.trim() : category;
+    if (category === "Custom" && !customCategory.trim()) return;
 
     const finalDuration = challengeDuration === -1 
       ? parseInt(customDuration) || 0 
@@ -101,7 +112,7 @@ export default function EditGoalSheet({ open, onOpenChange, goal, onSubmit }: Ed
     onSubmit(goal.id, {
       title: title.trim(),
       purpose: purpose.trim(),
-      category,
+      category: finalCategory,
       challengeDuration: finalDuration,
       milestones,
       tags,
@@ -161,6 +172,15 @@ export default function EditGoalSheet({ open, onOpenChange, goal, onSubmit }: Ed
                 ))}
               </SelectContent>
             </Select>
+            {category === "Custom" && (
+              <Input
+                placeholder="Enter custom category"
+                value={customCategory}
+                onChange={(e) => setCustomCategory(e.target.value)}
+                className="mt-2"
+                data-testid="input-edit-goal-custom-category"
+              />
+            )}
           </div>
 
           <div className="space-y-2">
