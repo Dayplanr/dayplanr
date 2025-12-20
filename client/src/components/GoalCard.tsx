@@ -58,30 +58,7 @@ export default function GoalCard({
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 space-y-1">
-            <div className="flex items-center justify-between gap-2">
-              <CardTitle className="text-base">{title}</CardTitle>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 -mr-2 -mt-1" data-testid={`button-goal-menu-${id}`}>
-                    <MoreVertical className="w-4 h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={onEdit} data-testid={`button-edit-goal-${id}`}>
-                    <Pencil className="w-4 h-4 mr-2" />
-                    Edit
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    onClick={onDelete} 
-                    className="text-destructive focus:text-destructive"
-                    data-testid={`button-delete-goal-${id}`}
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Delete
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+            <CardTitle className="text-base">{title}</CardTitle>
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="secondary" className={getCategoryColor(category)}>
                 {category}
@@ -94,11 +71,34 @@ export default function GoalCard({
               )}
             </div>
           </div>
-          <div className="text-right">
-            <p className="text-2xl font-bold font-mono" data-testid={`text-progress-${id}`}>
-              {progress}%
-            </p>
-            <p className="text-xs text-muted-foreground">progress</p>
+          <div className="flex items-start gap-1">
+            <div className="text-right">
+              <p className="text-2xl font-bold font-mono" data-testid={`text-progress-${id}`}>
+                {progress}%
+              </p>
+              <p className="text-xs text-muted-foreground">progress</p>
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8 -mr-2 -mt-1" data-testid={`button-goal-menu-${id}`}>
+                  <MoreVertical className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={onEdit} data-testid={`button-edit-goal-${id}`}>
+                  <Pencil className="w-4 h-4 mr-2" />
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={onDelete} 
+                  className="text-destructive focus:text-destructive"
+                  data-testid={`button-delete-goal-${id}`}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </CardHeader>
