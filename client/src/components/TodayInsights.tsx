@@ -104,15 +104,6 @@ export default function TodayInsights({
     ((yearlyData.reduce((sum, d) => sum + d.focus, 0) / 15000) * 50)
   );
 
-  const getMotivationalMessage = () => {
-    const completionRate = totalTasks > 0 ? (tasksCompleted / totalTasks) * 100 : 0;
-    if (completionRate >= 80) return "Outstanding productivity! You're crushing it today.";
-    if (completionRate >= 50) return "Great progress! Keep the momentum going.";
-    if (completionRate >= 25) return "You're making headway. Every task counts!";
-    if (tasksCompleted > 0) return "You've started strong. Keep pushing!";
-    return "A fresh day awaits. Let's make it count!";
-  };
-
   const renderMonthHeatmap = () => {
     const monthIndex = months.indexOf(selectedMonth);
     const year = new Date().getFullYear();
@@ -168,12 +159,6 @@ export default function TodayInsights({
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          <div className="px-4 py-3 bg-primary/5 border border-primary/20 rounded-lg text-center">
-            <p className="text-sm font-medium text-primary" data-testid="text-motivation-message">
-              {getMotivationalMessage()}
-            </p>
-          </div>
-
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="w-full grid grid-cols-3">
               <TabsTrigger value="weekly" data-testid="tab-weekly">Weekly</TabsTrigger>
@@ -225,9 +210,6 @@ export default function TodayInsights({
                       {weeklyProductivityScore}
                     </p>
                     <p className="text-sm text-muted-foreground">out of 100</p>
-                    <p className="text-xs text-primary mt-2">
-                      {weeklyProductivityScore >= 70 ? "Excellent week! Keep it up." : "Room to grow. Stay focused!"}
-                    </p>
                   </div>
                 </CardContent>
               </Card>
@@ -322,9 +304,6 @@ export default function TodayInsights({
                       {monthlyProductivityScore}
                     </p>
                     <p className="text-sm text-muted-foreground">out of 100</p>
-                    <p className="text-xs text-primary mt-2">
-                      {monthlyProductivityScore >= 70 ? "Strong month! You're on fire." : "Keep building momentum!"}
-                    </p>
                   </div>
                 </CardContent>
               </Card>
@@ -395,9 +374,6 @@ export default function TodayInsights({
                       {yearlyProductivityScore}
                     </p>
                     <p className="text-sm text-muted-foreground">out of 100</p>
-                    <p className="text-xs text-primary mt-2">
-                      {yearlyProductivityScore >= 70 ? "Exceptional year! You're unstoppable." : "Building towards greatness!"}
-                    </p>
                   </div>
                 </CardContent>
               </Card>

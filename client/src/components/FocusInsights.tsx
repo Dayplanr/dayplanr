@@ -45,22 +45,6 @@ export default function FocusInsights({
   const [showMonthDetails, setShowMonthDetails] = useState(false);
   const [activeTab, setActiveTab] = useState("today");
 
-  const getMotivationalMessage = () => {
-    if (todayMinutes >= 120) return "Deep focus achieved! You're in the zone.";
-    if (todayMinutes >= 60) return "An hour of focus! That's real progress.";
-    if (todayMinutes >= 25) return "Great session! Every minute of focus counts.";
-    if (todaySessions > 0) return "You've started! Momentum is building.";
-    return "Ready to focus? Your best work awaits.";
-  };
-
-  const getWeeklyMotivation = () => {
-    const totalWeekMinutes = weekData.reduce((sum, d) => sum + d.pomodoro + d.deepwork + d.custom, 0);
-    if (totalWeekMinutes >= 600) return "Power week! You're crushing your focus goals.";
-    if (totalWeekMinutes >= 300) return "Solid week of deep work. Keep building!";
-    if (totalWeekMinutes >= 120) return "Good progress this week. Every session adds up.";
-    return "This week is full of potential. Let's make it count!";
-  };
-
   const todayPieData = [
     { name: "Pomodoro", value: 65, color: "#8b5cf6" },
     { name: "Deep Work", value: 25, color: "#3b82f6" },
@@ -160,11 +144,6 @@ export default function FocusInsights({
             </TabsList>
 
             <TabsContent value="today" className="space-y-4 mt-4">
-              <div className="px-4 py-3 bg-primary/5 border border-primary/20 rounded-lg text-center">
-                <p className="text-sm font-medium text-primary" data-testid="text-motivation-message">
-                  {getMotivationalMessage()}
-                </p>
-              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 bg-muted/50 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
@@ -219,11 +198,6 @@ export default function FocusInsights({
             </TabsContent>
 
             <TabsContent value="week" className="space-y-4 mt-4">
-              <div className="px-4 py-3 bg-primary/5 border border-primary/20 rounded-lg text-center">
-                <p className="text-sm font-medium text-primary">
-                  {getWeeklyMotivation()}
-                </p>
-              </div>
               <div className="h-48">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={weekData}>

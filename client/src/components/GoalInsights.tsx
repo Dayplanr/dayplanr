@@ -69,23 +69,6 @@ export default function GoalInsights({ goals, open, onOpenChange }: GoalInsights
     return currentRate > bestRate ? current : best;
   }, goals[0]);
 
-  const getMotivationalMessage = () => {
-    if (goals.length === 0) return "Set your first goal and start your journey.";
-    if (completedGoals > 0) return "Amazing work completing goals! Keep the momentum going.";
-    if (overallProgress >= 75) return "You're so close! The finish line is in sight.";
-    if (overallProgress >= 50) return "Halfway there! Your dedication is paying off.";
-    if (overallProgress >= 25) return "Great start! Small steps lead to big achievements.";
-    if (inProgressGoals > 0) return "Every step forward counts. Keep pushing!";
-    return "Your goals await. Today is the perfect day to begin.";
-  };
-
-  const getProductivityMotivation = () => {
-    if (avgProductivityScore >= 80) return "Outstanding! You're operating at peak performance.";
-    if (avgProductivityScore >= 60) return "Solid progress! You're building great momentum.";
-    if (avgProductivityScore >= 40) return "You're making it happen. Stay consistent!";
-    return "Focus on one small win today. It adds up.";
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -97,12 +80,6 @@ export default function GoalInsights({ goals, open, onOpenChange }: GoalInsights
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          <div className="px-4 py-3 bg-primary/5 border border-primary/20 rounded-lg text-center">
-            <p className="text-sm font-medium text-primary" data-testid="text-motivation-message">
-              {getMotivationalMessage()}
-            </p>
-          </div>
-
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm flex items-center gap-2">
@@ -313,7 +290,6 @@ export default function GoalInsights({ goals, open, onOpenChange }: GoalInsights
                     {avgProductivityScore}
                   </p>
                   <p className="text-sm text-muted-foreground">out of 100</p>
-                  <p className="text-xs text-primary mt-2">{getProductivityMotivation()}</p>
                 </div>
               </CardContent>
             </Card>
