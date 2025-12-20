@@ -120,7 +120,12 @@ type TranslationKey =
   | "deleteAccountConfirm"
   | "high"
   | "medium"
-  | "low";
+  | "low"
+  | "taskTitle"
+  | "time"
+  | "priority"
+  | "period"
+  | "save";
 
 type Translations = Record<TranslationKey, string>;
 
@@ -232,6 +237,11 @@ const translations: Record<Language, Translations> = {
     high: "high",
     medium: "medium",
     low: "low",
+    taskTitle: "Task Title",
+    time: "Time",
+    priority: "Priority",
+    period: "Period",
+    save: "Save",
   },
   de: {
     today: "Heute",
@@ -340,6 +350,11 @@ const translations: Record<Language, Translations> = {
     high: "hoch",
     medium: "mittel",
     low: "niedrig",
+    taskTitle: "Aufgabentitel",
+    time: "Zeit",
+    priority: "Priorität",
+    period: "Zeitraum",
+    save: "Speichern",
   },
   es: {
     today: "Hoy",
@@ -448,6 +463,11 @@ const translations: Record<Language, Translations> = {
     high: "alta",
     medium: "media",
     low: "baja",
+    taskTitle: "Título de la Tarea",
+    time: "Hora",
+    priority: "Prioridad",
+    period: "Período",
+    save: "Guardar",
   },
   fr: {
     today: "Aujourd'hui",
@@ -556,6 +576,11 @@ const translations: Record<Language, Translations> = {
     high: "haute",
     medium: "moyenne",
     low: "basse",
+    taskTitle: "Titre de la Tâche",
+    time: "Heure",
+    priority: "Priorité",
+    period: "Période",
+    save: "Enregistrer",
   },
   it: {
     today: "Oggi",
@@ -664,6 +689,11 @@ const translations: Record<Language, Translations> = {
     high: "alta",
     medium: "media",
     low: "bassa",
+    taskTitle: "Titolo dell'Attività",
+    time: "Ora",
+    priority: "Priorità",
+    period: "Periodo",
+    save: "Salva",
   },
   pt: {
     today: "Hoje",
@@ -772,6 +802,11 @@ const translations: Record<Language, Translations> = {
     high: "alta",
     medium: "média",
     low: "baixa",
+    taskTitle: "Título da Tarefa",
+    time: "Hora",
+    priority: "Prioridade",
+    period: "Período",
+    save: "Salvar",
   },
   nl: {
     today: "Vandaag",
@@ -880,6 +915,11 @@ const translations: Record<Language, Translations> = {
     high: "hoog",
     medium: "gemiddeld",
     low: "laag",
+    taskTitle: "Taaktitel",
+    time: "Tijd",
+    priority: "Prioriteit",
+    period: "Periode",
+    save: "Opslaan",
   },
   pl: {
     today: "Dzisiaj",
@@ -988,6 +1028,11 @@ const translations: Record<Language, Translations> = {
     high: "wysoki",
     medium: "średni",
     low: "niski",
+    taskTitle: "Tytuł Zadania",
+    time: "Czas",
+    priority: "Priorytet",
+    period: "Okres",
+    save: "Zapisz",
   },
 };
 
