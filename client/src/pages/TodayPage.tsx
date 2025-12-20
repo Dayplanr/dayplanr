@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, TrendingUp, Clock, CheckCircle2, ListTodo, Flame, ChevronUp, ChevronDown, PlusCircle, Globe } from "lucide-react";
+import { Plus, TrendingUp, Clock, CheckCircle2, ListTodo, Flame, ChevronUp, ChevronDown, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -154,8 +154,8 @@ export default function TodayPage() {
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="icon" variant="ghost" className="rounded-full" data-testid="button-today-menu">
-                  <PlusCircle className="w-5 h-5 text-muted-foreground" />
+                <Button size="icon" className="rounded-full h-11 w-11" data-testid="button-today-menu">
+                  <Plus className="w-5 h-5" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
