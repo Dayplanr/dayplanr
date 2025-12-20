@@ -1,10 +1,16 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { Plus, TrendingUp, Clock, CheckCircle2, Flame, ChevronUp, ChevronDown, Bell } from "lucide-react";
+import { Plus, TrendingUp, Clock, CheckCircle2, Flame, ChevronUp, ChevronDown, Bell, ListTodo } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Collapsible,
   CollapsibleContent,
@@ -223,14 +229,23 @@ export default function TodayPage() {
             <h1 className="text-3xl font-bold text-foreground">{t("today")}</h1>
             <p className="text-muted-foreground capitalize">{formattedDate}</p>
           </div>
-          <Button 
-            size="icon" 
-            className="rounded-full h-11 w-11" 
-            onClick={() => navigate("/tasks/new")}
-            data-testid="button-add-task"
-          >
-            <Plus className="w-5 h-5" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="icon" className="rounded-full h-11 w-11" data-testid="button-add-task">
+                <Plus className="w-5 h-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => navigate("/tasks/new")} data-testid="menu-add-task">
+                <ListTodo className="w-4 h-4 mr-2" />
+                {t("addTask")}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setShowInsights(true)} data-testid="menu-today-insights">
+                <TrendingUp className="w-4 h-4 mr-2" />
+                {t("insights")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         <CalendarScrubber selectedDate={selectedDate} onSelectDate={setSelectedDate} />
@@ -238,8 +253,8 @@ export default function TodayPage() {
         <div className="grid grid-cols-2 gap-4">
           <Card className="bg-card shadow-sm">
             <CardContent className="p-4 flex flex-col items-center text-center">
-              <div className="p-3 rounded-xl bg-primary/10 mb-3">
-                <TrendingUp className="w-6 h-6 text-primary" />
+              <div className="p-3 rounded-xl bg-blue-600 mb-3">
+                <TrendingUp className="w-6 h-6 text-white" />
               </div>
               <p className="text-sm text-muted-foreground">{t("dailyProgress")}</p>
               <p className="text-2xl font-bold text-foreground mt-1" data-testid="text-daily-progress">
@@ -252,7 +267,7 @@ export default function TodayPage() {
           </Card>
           <Card className="bg-card shadow-sm">
             <CardContent className="p-4 flex flex-col items-center text-center">
-              <div className="p-3 rounded-xl bg-purple-500 mb-3">
+              <div className="p-3 rounded-xl bg-purple-600 mb-3">
                 <Clock className="w-6 h-6 text-white" />
               </div>
               <p className="text-sm text-muted-foreground">{t("focusTime")}</p>
@@ -263,7 +278,7 @@ export default function TodayPage() {
           </Card>
           <Card className="bg-card shadow-sm">
             <CardContent className="p-4 flex flex-col items-center text-center">
-              <div className="p-3 rounded-xl bg-emerald-500 mb-3">
+              <div className="p-3 rounded-xl bg-emerald-600 mb-3">
                 <Flame className="w-6 h-6 text-white" />
               </div>
               <p className="text-sm text-muted-foreground">{t("streak")}</p>
@@ -274,7 +289,7 @@ export default function TodayPage() {
           </Card>
           <Card className="bg-card shadow-sm">
             <CardContent className="p-4 flex flex-col items-center text-center">
-              <div className="p-3 rounded-xl bg-orange-500 mb-3">
+              <div className="p-3 rounded-xl bg-orange-600 mb-3">
                 <CheckCircle2 className="w-6 h-6 text-white" />
               </div>
               <p className="text-sm text-muted-foreground">{t("habits")}</p>
