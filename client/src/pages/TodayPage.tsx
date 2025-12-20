@@ -169,19 +169,18 @@ export default function TodayPage() {
 
         <CalendarScrubber selectedDate={selectedDate} onSelectDate={setSelectedDate} />
 
-        <Card className="bg-card">
-          <CardContent className="p-5">
-            <p className="text-sm text-muted-foreground mb-1">Daily Progress</p>
-            <p className="text-5xl font-bold text-foreground" data-testid="text-daily-progress">
-              {progressPercent}%
-            </p>
-            <p className="text-sm text-muted-foreground mt-2">
-              {completedTasks} of {totalTasks} tasks complete
-            </p>
-          </CardContent>
-        </Card>
-
         <div className="grid grid-cols-2 gap-3">
+          <Card className="bg-card">
+            <CardContent className="p-4">
+              <div className="p-2.5 rounded-xl bg-orange-500 w-fit mb-3">
+                <TrendingUp className="w-5 h-5 text-white" />
+              </div>
+              <p className="text-xs text-muted-foreground">Daily Progress</p>
+              <p className="text-2xl font-bold text-foreground" data-testid="text-daily-progress">
+                {progressPercent}%
+              </p>
+            </CardContent>
+          </Card>
           <Card className="bg-card">
             <CardContent className="p-4">
               <div className="p-2.5 rounded-xl bg-blue-500 w-fit mb-3">
@@ -204,37 +203,24 @@ export default function TodayPage() {
               </p>
             </CardContent>
           </Card>
-        </div>
-
-        <Card className="bg-card">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-violet-500 w-fit">
+          <Card className="bg-card">
+            <CardContent className="p-4">
+              <div className="p-2.5 rounded-xl bg-violet-500 w-fit mb-3">
                 <CheckCircle2 className="w-5 h-5 text-white" />
               </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Habits</p>
-                <p className="text-lg font-bold text-foreground" data-testid="text-habits-progress">
-                  {completedHabits}/{totalHabits} complete
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+              <p className="text-xs text-muted-foreground">Habits</p>
+              <p className="text-2xl font-bold text-foreground" data-testid="text-habits-progress">
+                {completedHabits}/{totalHabits}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
 
         {renderTaskSection("Morning", "morning", tasks.morning)}
         {renderTaskSection("Afternoon", "afternoon", tasks.afternoon)}
         {renderTaskSection("Evening", "evening", tasks.evening)}
         {renderTaskSection("Night", "night", tasks.night)}
 
-        <Button
-          size="lg"
-          className="fixed bottom-24 right-4 md:bottom-6 rounded-full w-14 h-14 shadow-lg"
-          data-testid="button-add-floating"
-          onClick={() => toast({ title: "Add Task", description: "Task creation coming soon!" })}
-        >
-          <Plus className="w-6 h-6" />
-        </Button>
       </div>
 
       <TodayInsights
