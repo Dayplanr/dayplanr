@@ -115,25 +115,12 @@ export default function AddTaskPage() {
 
             <div className="space-y-2">
               <Label className="text-primary font-medium">{t("startTimeOptional")}</Label>
-              <div className="grid grid-cols-4 gap-2">
-                {["06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00"].map((time) => {
-                  const hour = parseInt(time.split(":")[0]);
-                  const displayTime = hour > 12 ? `${hour - 12}:00 PM` : hour === 12 ? "12:00 PM" : `${hour}:00 AM`;
-                  return (
-                    <Button
-                      key={time}
-                      type="button"
-                      variant={startTime === time ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setStartTime(startTime === time ? "" : time)}
-                      className="rounded-full text-xs"
-                      data-testid={`button-time-${time.replace(":", "")}`}
-                    >
-                      {displayTime}
-                    </Button>
-                  );
-                })}
-              </div>
+              <Input
+                type="time"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                data-testid="input-start-time"
+              />
             </div>
 
             <div className="space-y-2">
