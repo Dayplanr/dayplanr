@@ -13,6 +13,9 @@ import {
 } from "@/components/ui/select";
 import { ArrowLeft, Repeat } from "lucide-react";
 import type { ScheduleType } from "@/types/habits";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/lib/auth";
+import { useToast } from "@/hooks/use-toast";
 
 const WEEKDAYS = [
   { id: "mon", label: "Mon" },
@@ -50,6 +53,9 @@ export default function AddHabitPage() {
   const [scheduleType, setScheduleType] = useState<ScheduleType>("everyday");
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [challengeDays, setChallengeDays] = useState(30);
+  const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
+  const { toast } = useToast();
 
   const handleDayToggle = (dayId: string) => {
     setSelectedDays((prev) =>
@@ -59,25 +65,50 @@ export default function AddHabitPage() {
     );
   };
 
-  const handleSubmit = () => {
-    if (!name.trim()) return;
-    
-    const finalCategory = category === "custom" ? customCategory.trim() : category;
-    if (category === "custom" && !customCategory.trim()) return;
-    
-    if (scheduleType === "weekdays" && selectedDays.length === 0) return;
-    
-    const habitData = {
-      name: name.trim(),
-      category: finalCategory,
-      scheduleType,
-      selectedDays: scheduleType === "weekdays" ? selectedDays : [],
-      challengeDays: scheduleType === "challenge" ? challengeDays : 0,
-      challengeCompleted: 0,
-    };
-    
-    localStorage.setItem("newHabit", JSON.stringify(habitData));
-    navigate("/app/habits");
+  const handleSubmit = async () => {
+    if (!name.trim() || !user) return;
+    setLoading(true);
+
+    try {
+      const finalCategory = category === "custom" ? customCategory.trim() : category;
+      if (category === "custom" && !customCategory.trim()) return;
+
+      if (scheduleType === "weekdays" && selectedDays.length === 0) return;
+
+      const { error } = await supabase
+        .from("habits")
+        .insert({
+          user_id: user.id,
+          title: name.trim(),
+          category: finalCategory,
+          schedule_type: scheduleType,
+          selected_days: scheduleType === "weekdays" ? selectedDays : [],
+          challenge_days: scheduleType === "challenge" ? challengeDays : 0,
+          challenge_completed: 0,
+          streak: 0,
+          best_streak: 0,
+          success_rate: 0,
+          weekly_consistency: 0,
+          monthly_consistency: 0,
+          completed_dates: [],
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Habit added successfully!",
+      });
+      navigate("/app/habits");
+    } catch (error: any) {
+      toast({
+        title: "Error adding habit",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCancel = () => {
@@ -85,7 +116,7 @@ export default function AddHabitPage() {
     navigate("/app/habits");
   };
 
-  const isValid = name.trim() && 
+  const isValid = name.trim() &&
     (scheduleType !== "weekdays" || selectedDays.length > 0) &&
     (category !== "custom" || customCategory.trim());
 
@@ -100,9 +131,9 @@ export default function AddHabitPage() {
       <div className="h-full overflow-y-auto">
         <div className="max-w-2xl mx-auto p-4 pb-20 md:pb-8">
           <div className="flex items-center gap-3 mb-6">
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => navigate("/app/habits")}
               data-testid="button-back-habits"
             >
@@ -158,25 +189,23 @@ export default function AddHabitPage() {
                 <button
                   type="button"
                   onClick={() => setScheduleType("everyday")}
-                  className={`w-full p-4 rounded-xl border text-left transition-all ${
-                    scheduleType === "everyday"
+                  className={`w-full p-4 rounded-xl border text-left transition-all ${scheduleType === "everyday"
                       ? "border-primary bg-primary/5 shadow-sm"
                       : "border-border hover-elevate"
-                  }`}
+                    }`}
                   data-testid="button-schedule-everyday"
                 >
                   <p className="font-medium">Everyday</p>
                   <p className="text-sm text-muted-foreground mt-0.5">Build a daily habit</p>
                 </button>
-                
+
                 <button
                   type="button"
                   onClick={() => setScheduleType("weekdays")}
-                  className={`w-full p-4 rounded-xl border text-left transition-all ${
-                    scheduleType === "weekdays"
+                  className={`w-full p-4 rounded-xl border text-left transition-all ${scheduleType === "weekdays"
                       ? "border-primary bg-primary/5 shadow-sm"
                       : "border-border hover-elevate"
-                  }`}
+                    }`}
                   data-testid="button-schedule-weekdays"
                 >
                   <p className="font-medium">Specific Weekdays</p>
@@ -190,11 +219,10 @@ export default function AddHabitPage() {
                         key={day.id}
                         type="button"
                         onClick={() => handleDayToggle(day.id)}
-                        className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
-                          selectedDays.includes(day.id)
+                        className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all ${selectedDays.includes(day.id)
                             ? "border-primary bg-primary text-primary-foreground"
                             : "border-border hover-elevate"
-                        }`}
+                          }`}
                         data-testid={`button-day-${day.id}`}
                       >
                         {day.label}
@@ -206,11 +234,10 @@ export default function AddHabitPage() {
                 <button
                   type="button"
                   onClick={() => setScheduleType("challenge")}
-                  className={`w-full p-4 rounded-xl border text-left transition-all ${
-                    scheduleType === "challenge"
+                  className={`w-full p-4 rounded-xl border text-left transition-all ${scheduleType === "challenge"
                       ? "border-primary bg-primary/5 shadow-sm"
                       : "border-border hover-elevate"
-                  }`}
+                    }`}
                   data-testid="button-schedule-challenge"
                 >
                   <p className="font-medium">Challenge Mode</p>
@@ -219,8 +246,8 @@ export default function AddHabitPage() {
 
                 {scheduleType === "challenge" && (
                   <div className="pt-2">
-                    <Select 
-                      value={challengeDays.toString()} 
+                    <Select
+                      value={challengeDays.toString()}
                       onValueChange={(v) => setChallengeDays(parseInt(v))}
                     >
                       <SelectTrigger data-testid="select-challenge-days">
@@ -240,21 +267,21 @@ export default function AddHabitPage() {
             </div>
 
             <div className="flex gap-3 pt-6">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="flex-1"
                 onClick={handleCancel}
                 data-testid="button-cancel-habit"
               >
                 Cancel
               </Button>
-              <Button 
+              <Button
                 className="flex-1"
                 onClick={handleSubmit}
-                disabled={!isValid}
+                disabled={!isValid || loading}
                 data-testid="button-save-habit"
               >
-                Add Habit
+                {loading ? "Adding..." : "Add Habit"}
               </Button>
             </div>
           </div>

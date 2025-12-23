@@ -50,8 +50,8 @@ export default function LandingPage() {
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-              <Calendar className="w-5 h-5 text-white" />
+            <div className="w-12 h-12 rounded-lg flex items-center justify-center">
+              <img src="/src/assets/logo.png" alt="dayplanr logo" className="w-full h-full object-contain" />
             </div>
             <span className="text-xl font-bold text-foreground">dayplanr</span>
           </div>
@@ -84,8 +84,8 @@ export default function LandingPage() {
                 </span>
               </h1>
               <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-                The all-in-one productivity app that helps you manage tasks, build habits, 
-                track goals, and stay focused. Available in 8 languages.
+                The all-in-one productivity app that helps you manage tasks, build habits,
+                track goals, and stay focused.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button variant="outline" size="lg" onClick={() => navigate("/auth")} data-testid="button-login">
@@ -146,56 +146,7 @@ export default function LandingPage() {
                     <span className="font-medium text-foreground">Desktop Web App</span>
                   </div>
                   <CardContent className="p-0">
-                    <div className="bg-card p-4">
-                      <div className="flex gap-4">
-                        <div className="w-48 bg-muted/50 rounded-lg p-3 space-y-2">
-                          <div className="h-6 bg-primary/20 rounded w-20 mb-4" />
-                          <div className="h-8 bg-blue-100 dark:bg-blue-900/30 rounded flex items-center px-2 gap-2">
-                            <Calendar className="w-4 h-4 text-blue-600" />
-                            <span className="text-xs">Today</span>
-                          </div>
-                          <div className="h-8 bg-muted rounded flex items-center px-2 gap-2">
-                            <Target className="w-4 h-4 text-purple-600" />
-                            <span className="text-xs">Goals</span>
-                          </div>
-                          <div className="h-8 bg-muted rounded flex items-center px-2 gap-2">
-                            <TrendingUp className="w-4 h-4 text-emerald-600" />
-                            <span className="text-xs">Habits</span>
-                          </div>
-                          <div className="h-8 bg-muted rounded flex items-center px-2 gap-2">
-                            <Timer className="w-4 h-4 text-orange-600" />
-                            <span className="text-xs">Focus</span>
-                          </div>
-                        </div>
-                        <div className="flex-1 space-y-3">
-                          <div className="flex gap-3">
-                            <div className="flex-1 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 text-center">
-                              <TrendingUp className="w-5 h-5 text-blue-600 mx-auto mb-1" />
-                              <div className="text-lg font-bold">75%</div>
-                              <div className="text-xs text-muted-foreground">Progress</div>
-                            </div>
-                            <div className="flex-1 bg-orange-50 dark:bg-orange-900/20 rounded-lg p-3 text-center">
-                              <Flame className="w-5 h-5 text-orange-600 mx-auto mb-1" />
-                              <div className="text-lg font-bold">5d</div>
-                              <div className="text-xs text-muted-foreground">Streak</div>
-                            </div>
-                          </div>
-                          <div className="space-y-2">
-                            <div className="h-10 bg-card border rounded-lg flex items-center px-3 gap-2">
-                              <div className="w-4 h-4 rounded border-2 border-primary" />
-                              <span className="text-sm">Morning workout</span>
-                              <span className="ml-auto text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded">High</span>
-                            </div>
-                            <div className="h-10 bg-card border rounded-lg flex items-center px-3 gap-2">
-                              <div className="w-4 h-4 rounded border-2 border-primary bg-primary flex items-center justify-center">
-                                <CheckCircle2 className="w-3 h-3 text-white" />
-                              </div>
-                              <span className="text-sm line-through text-muted-foreground">Team meeting</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                    <img src="/src/assets/screenshot-habits.png" alt="dayplanr desktop app showing habits tracking" className="w-full h-auto" />
                   </CardContent>
                 </Card>
               </motion.div>
@@ -207,52 +158,13 @@ export default function LandingPage() {
                 transition={{ duration: 0.5, delay: 0.1 }}
                 className="flex justify-center"
               >
-                <Card className="w-64 overflow-hidden border-2 border-purple-100 dark:border-purple-900/30">
+                <Card className="max-w-[280px] overflow-hidden border-2 border-purple-100 dark:border-purple-900/30">
                   <div className="bg-gradient-to-r from-purple-50 to-orange-50 dark:from-purple-900/20 dark:to-orange-900/20 p-3 flex items-center justify-center gap-2 border-b border-purple-100 dark:border-purple-900/30">
                     <Smartphone className="w-4 h-4 text-purple-600" />
                     <span className="font-medium text-sm text-foreground">Mobile App</span>
                   </div>
                   <CardContent className="p-0">
-                    <div className="bg-card p-3 space-y-3">
-                      <div className="text-center mb-2">
-                        <p className="font-semibold">Today</p>
-                        <p className="text-xs text-muted-foreground">Friday, Dec 20</p>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-2 text-center">
-                          <TrendingUp className="w-4 h-4 text-blue-600 mx-auto" />
-                          <div className="text-sm font-bold">75%</div>
-                        </div>
-                        <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-2 text-center">
-                          <Timer className="w-4 h-4 text-purple-600 mx-auto" />
-                          <div className="text-sm font-bold">45m</div>
-                        </div>
-                        <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-2 text-center">
-                          <Flame className="w-4 h-4 text-orange-600 mx-auto" />
-                          <div className="text-sm font-bold">5d</div>
-                        </div>
-                        <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-2 text-center">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-600 mx-auto" />
-                          <div className="text-sm font-bold">2/4</div>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="h-9 bg-card border rounded-lg flex items-center px-2 gap-2">
-                          <div className="w-1 h-6 bg-red-500 rounded" />
-                          <span className="text-xs flex-1">Morning workout</span>
-                        </div>
-                        <div className="h-9 bg-card border rounded-lg flex items-center px-2 gap-2">
-                          <div className="w-1 h-6 bg-yellow-500 rounded" />
-                          <span className="text-xs flex-1">Team standup</span>
-                        </div>
-                      </div>
-                      <div className="flex justify-around pt-2 border-t">
-                        <Calendar className="w-5 h-5 text-primary" />
-                        <Target className="w-5 h-5 text-muted-foreground" />
-                        <TrendingUp className="w-5 h-5 text-muted-foreground" />
-                        <Timer className="w-5 h-5 text-muted-foreground" />
-                      </div>
-                    </div>
+                    <img src="/src/assets/screenshot-today.png" alt="dayplanr mobile app showing today view" className="w-full h-auto" />
                   </CardContent>
                 </Card>
               </motion.div>
@@ -335,14 +247,11 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-md bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                <Calendar className="w-4 h-4 text-white" />
+              <div className="w-8 h-8 rounded-md flex items-center justify-center">
+                <img src="/src/assets/logo.png" alt="dayplanr logo" className="w-full h-full object-contain" />
               </div>
               <span className="font-bold text-foreground">dayplanr</span>
             </div>
-            <p className="text-sm text-muted-foreground">
-              Available in English, German, Spanish, French, Italian, Portuguese, Dutch, and Polish.
-            </p>
           </div>
         </div>
       </footer>

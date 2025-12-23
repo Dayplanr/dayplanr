@@ -19,7 +19,9 @@ import {
 import CalendarScrubber from "@/components/CalendarScrubber";
 import TodayInsights from "@/components/TodayInsights";
 import { useTranslation } from "@/lib/i18n";
-import { format, type Locale } from "date-fns";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/lib/auth";
+import { format, type Locale, startOfDay, endOfDay } from "date-fns";
 import { enUS, de, es, fr, it, pt, nl, pl } from "date-fns/locale";
 
 interface Task {
@@ -58,6 +60,7 @@ const localeMap: Record<string, Locale> = {
 export default function TodayPage() {
   const { toast } = useToast();
   const { t, language } = useTranslation();
+  const { user } = useAuth();
   const [, navigate] = useLocation();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showInsights, setShowInsights] = useState(false);
@@ -67,29 +70,128 @@ export default function TodayPage() {
     evening: true,
     night: true,
   });
-
-  const [tasks, setTasks] = useState<TaskGroups>({
-    morning: [
-      { id: "m1", title: "Morning workout", time: "7:00 AM", priority: "high", completed: false, hasReminder: true },
-      { id: "m2", title: "Healthy breakfast", time: "8:00 AM", priority: "medium", completed: false },
-    ],
-    afternoon: [
-      { id: "a1", title: "Team standup meeting", time: "9:30 AM", priority: "high", completed: false, hasReminder: true },
-      { id: "a2", title: "Review project proposals", time: "2:00 PM", priority: "medium", completed: false },
-    ],
-    evening: [
-      { id: "e1", title: "Grocery shopping", time: "6:00 PM", priority: "low", completed: false },
-    ],
-    night: [
-      { id: "n1", title: "Reading before bed", time: "10:00 PM", priority: "low", completed: false },
-    ],
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    focusMinutes: 0,
+    completedHabits: 0,
+    totalHabits: 0,
+    streak: 0,
   });
 
-  const handleToggleTask = (period: keyof TaskGroups, id: string) => {
+  const [tasks, setTasks] = useState<TaskGroups>({
+    morning: [],
+    afternoon: [],
+    evening: [],
+    night: [],
+  });
+
+  const fetchTasks = async () => {
+    if (!user) return;
+    setLoading(true);
+
+    // For now, we'll fetch all tasks for the user. 
+    // In a real app we'd filter by the created_at date matching selectedDate.
+    const { data, error } = await supabase
+      .from("tasks")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      toast({
+        title: "Error fetching tasks",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const groups: TaskGroups = {
+      morning: [],
+      afternoon: [],
+      evening: [],
+      night: [],
+    };
+
+    data?.forEach((task: any) => {
+      const period = task.day_period as keyof TaskGroups;
+      if (groups[period]) {
+        groups[period].push({
+          id: task.id,
+          title: task.title,
+          time: task.time,
+          priority: task.priority,
+          completed: task.completed,
+          hasReminder: task.has_reminder,
+        });
+      }
+    });
+
+    setTasks(groups);
+    setLoading(false);
+  };
+
+  const fetchStats = async () => {
+    if (!user) return;
+
+    const today = format(selectedDate, "yyyy-MM-dd");
+
+    // Fetch focus sessions for today
+    const { data: focusData } = await supabase
+      .from("focus_sessions")
+      .select("duration_minutes")
+      .eq("user_id", user.id)
+      .eq("completed", true)
+      .gte("created_at", startOfDay(selectedDate).toISOString())
+      .lte("created_at", endOfDay(selectedDate).toISOString());
+
+    const totalFocus = focusData?.reduce((acc, s) => acc + s.duration_minutes, 0) || 0;
+
+    // Fetch habits
+    const { data: habitData } = await supabase
+      .from("habits")
+      .select("*")
+      .eq("user_id", user.id);
+
+    const habitsCount = habitData?.length || 0;
+    const completedHabitsCount = habitData?.filter(h => h.completed_dates?.includes(today)).length || 0;
+    const maxStreak = habitData?.reduce((acc, h) => Math.max(acc, h.streak || 0), 0) || 0;
+
+    setStats({
+      focusMinutes: totalFocus,
+      completedHabits: completedHabitsCount,
+      totalHabits: habitsCount,
+      streak: maxStreak,
+    });
+  };
+
+  useEffect(() => {
+    fetchTasks();
+    fetchStats();
+  }, [user, selectedDate]);
+
+  const handleToggleTask = async (period: keyof TaskGroups, id: string) => {
+    const task = tasks[period].find(t => t.id === id);
+    if (!task) return;
+
+    const { error } = await supabase
+      .from("tasks")
+      .update({ completed: !task.completed })
+      .eq("id", id);
+
+    if (error) {
+      toast({
+        title: "Error updating task",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setTasks((prev) => ({
       ...prev,
-      [period]: prev[period].map((task) =>
-        task.id === id ? { ...task, completed: !task.completed } : task
+      [period]: prev[period].map((t) =>
+        t.id === id ? { ...t, completed: !t.completed } : t
       ),
     }));
   };
@@ -99,33 +201,7 @@ export default function TodayPage() {
   };
 
   useEffect(() => {
-    const stored = localStorage.getItem("newTask");
-    if (stored) {
-      try {
-        const taskData = JSON.parse(stored);
-        const period = taskData.startTime 
-          ? determinePeriodFromTime(taskData.startTime)
-          : "morning";
-        
-        const newTask: Task = {
-          id: `task-${Date.now()}`,
-          title: taskData.title,
-          time: taskData.startTime ? formatTime(taskData.startTime) : undefined,
-          priority: taskData.priority || "medium",
-          completed: false,
-        };
-        
-        setTasks((prev) => ({
-          ...prev,
-          [period]: [...prev[period], newTask],
-        }));
-        
-        localStorage.removeItem("newTask");
-        toast({ title: t("addTask"), description: "Task added successfully!" });
-      } catch (e) {
-        console.error("Failed to parse new task", e);
-      }
-    }
+    // Legacy localStorage handling removed to prevent duplication now that we use Supabase directly
   }, []);
 
   const determinePeriodFromTime = (time: string): keyof TaskGroups => {
@@ -148,16 +224,30 @@ export default function TodayPage() {
   const totalTasks = allTasks.length;
   const completedTasks = allTasks.filter((t) => t.completed).length;
   const progressPercent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-  const todayFocusMinutes = 0;
-  const currentStreak = 0;
-  const totalHabits = 2;
-  const completedHabits = 0;
+  const todayFocusMinutes = stats.focusMinutes;
+  const currentStreak = stats.streak;
+  const totalHabits = stats.totalHabits;
+  const completedHabits = stats.completedHabits;
 
   const baseLanguage = language.split("-")[0];
   const currentLocale = localeMap[baseLanguage] || localeMap[language] || enUS;
   const formattedDate = format(selectedDate, "EEEE, MMMM d, yyyy", { locale: currentLocale });
 
-  const handleDeleteTask = (period: keyof TaskGroups, id: string) => {
+  const handleDeleteTask = async (period: keyof TaskGroups, id: string) => {
+    const { error } = await supabase
+      .from("tasks")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      toast({
+        title: "Error deleting task",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setTasks((prev) => ({
       ...prev,
       [period]: prev[period].filter((task) => task.id !== id),
@@ -171,9 +261,9 @@ export default function TodayPage() {
   };
 
   const renderTaskSection = (title: string, period: keyof TaskGroups, periodTasks: Task[]) => (
-    <Collapsible 
+    <Collapsible
       key={period}
-      open={openSections[period]} 
+      open={openSections[period]}
       onOpenChange={() => toggleSection(period)}
     >
       <CollapsibleTrigger asChild>
@@ -197,11 +287,10 @@ export default function TodayPage() {
             <div className="flex items-center gap-3 flex-1 p-4">
               <button
                 onClick={() => handleToggleTask(period, task.id)}
-                className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
-                  task.completed
-                    ? "bg-primary border-primary"
-                    : "border-muted-foreground"
-                }`}
+                className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${task.completed
+                  ? "bg-primary border-primary"
+                  : "border-muted-foreground"
+                  }`}
                 data-testid={`button-toggle-task-${task.id}`}
               >
                 {task.completed && (
@@ -223,13 +312,12 @@ export default function TodayPage() {
                 {task.hasReminder && (
                   <Bell className="w-4 h-4 text-muted-foreground" />
                 )}
-                <Badge 
-                  variant="outline" 
-                  className={`text-xs font-medium ${
-                    task.priority === "high" ? "text-red-500 border-red-500" : 
-                    task.priority === "medium" ? "text-yellow-600 border-yellow-500" : 
-                    "text-green-500 border-green-500"
-                  }`}
+                <Badge
+                  variant="outline"
+                  className={`text-xs font-medium ${task.priority === "high" ? "text-red-500 border-red-500" :
+                    task.priority === "medium" ? "text-yellow-600 border-yellow-500" :
+                      "text-green-500 border-green-500"
+                    }`}
                 >
                   {t(task.priority)}
                 </Badge>
@@ -244,8 +332,8 @@ export default function TodayPage() {
                       <Pencil className="w-4 h-4 mr-2" />
                       {t("edit")}
                     </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      onClick={() => handleDeleteTask(period, task.id)} 
+                    <DropdownMenuItem
+                      onClick={() => handleDeleteTask(period, task.id)}
                       className="text-red-500"
                       data-testid={`menu-delete-task-${task.id}`}
                     >

@@ -91,26 +91,29 @@ export function OnboardingModal({ open, onOpenChange, onComplete }: OnboardingMo
               className="flex flex-col"
             >
               <div className={`${step.bgColor} p-8 flex items-center justify-center`}>
-                <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center">
-                  <step.icon className="w-10 h-10 text-white" />
+                <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center overflow-hidden">
+                  {currentStep === 0 ? (
+                    <img src="/src/assets/logo.png" alt="dayplanr logo" className="w-12 h-12 object-contain" />
+                  ) : (
+                    <step.icon className="w-10 h-10 text-white" />
+                  )}
                 </div>
               </div>
               <div className="p-6">
                 <h2 className="text-xl font-bold text-foreground mb-2">{step.title}</h2>
                 <p className="text-muted-foreground mb-6">{step.description}</p>
-                
+
                 <div className="flex items-center justify-between">
                   <div className="flex gap-1.5">
                     {steps.map((_, index) => (
                       <div
                         key={index}
-                        className={`w-2 h-2 rounded-full transition-colors ${
-                          index === currentStep
+                        className={`w-2 h-2 rounded-full transition-colors ${index === currentStep
                             ? "bg-primary"
                             : index < currentStep
-                            ? "bg-primary/50"
-                            : "bg-muted"
-                        }`}
+                              ? "bg-primary/50"
+                              : "bg-muted"
+                          }`}
                       />
                     ))}
                     <div className={`w-2 h-2 rounded-full ${isLanguageStep ? "bg-primary" : "bg-muted"}`} />
@@ -144,17 +147,16 @@ export function OnboardingModal({ open, onOpenChange, onComplete }: OnboardingMo
               <div className="p-6">
                 <h2 className="text-xl font-bold text-foreground mb-2">Choose Your Language</h2>
                 <p className="text-muted-foreground mb-4">Select your preferred language for the app.</p>
-                
+
                 <div className="grid grid-cols-2 gap-2 mb-6">
                   {languages.map((lang) => (
                     <button
                       key={lang.code}
                       onClick={() => setLanguage(lang.code)}
-                      className={`flex items-center gap-2 p-3 rounded-lg border transition-colors ${
-                        language === lang.code
+                      className={`flex items-center gap-2 p-3 rounded-lg border transition-colors ${language === lang.code
                           ? "border-primary bg-primary/10"
                           : "border-border hover:border-primary/50"
-                      }`}
+                        }`}
                       data-testid={`button-language-${lang.code}`}
                     >
                       <span className="text-lg">{lang.flag}</span>
@@ -165,7 +167,7 @@ export function OnboardingModal({ open, onOpenChange, onComplete }: OnboardingMo
                     </button>
                   ))}
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <div className="flex gap-1.5">
                     {steps.map((_, index) => (

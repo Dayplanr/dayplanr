@@ -27,7 +27,8 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarContent>
         <SidebarGroup>
-          <div className="px-4 py-6">
+          <div className="px-4 py-6 flex items-center gap-2">
+            <img src="/src/assets/logo.png" alt="dayplanr logo" className="w-8 h-8 object-contain" />
             <h2 className="text-xl font-bold text-foreground">dayplanr</h2>
           </div>
           <SidebarGroupContent>

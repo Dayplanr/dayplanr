@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format, subDays } from "date-fns";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +13,9 @@ import FocusInsights from "@/components/FocusInsights";
 import ActiveFocusSession from "@/components/ActiveFocusSession";
 import { useTranslation } from "@/lib/i18n";
 import { Timer, Rocket, Zap, Brain, Coffee, Plus, TrendingUp } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/lib/auth";
+import { useToast } from "@/hooks/use-toast";
 
 interface CustomTimer {
   id: string;
@@ -32,10 +35,32 @@ interface ActiveSession {
 
 export default function FocusPage() {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [activeSession, setActiveSession] = useState<ActiveSession | null>(null);
   const [customTimers, setCustomTimers] = useState<CustomTimer[]>([]);
   const [showCreateTimer, setShowCreateTimer] = useState(false);
   const [showInsights, setShowInsights] = useState(false);
+  const [sessionHistory, setSessionHistory] = useState<any[]>([]);
+
+  const fetchSessionHistory = async () => {
+    if (!user) return;
+    const { data, error } = await supabase
+      .from("focus_sessions")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching session history", error);
+      return;
+    }
+    setSessionHistory(data || []);
+  };
+
+  useEffect(() => {
+    fetchSessionHistory();
+  }, [user]);
 
   const weekData = [
     { day: "Mon", pomodoro: 3, deepwork: 1, custom: 0 },
@@ -101,7 +126,33 @@ export default function FocusPage() {
     setCustomTimers((prev) => [...prev, timer]);
   };
 
-  const handleSessionComplete = () => {
+  const handleSessionComplete = async () => {
+    if (activeSession && user) {
+      try {
+        const { error } = await supabase
+          .from("focus_sessions")
+          .insert({
+            user_id: user.id,
+            mode: activeSession.mode,
+            duration_minutes: activeSession.duration,
+            completed: true,
+          });
+
+        if (error) throw error;
+
+        toast({
+          title: "Session complete!",
+          description: `You focused for ${activeSession.duration} minutes.`,
+        });
+        fetchSessionHistory();
+      } catch (error: any) {
+        toast({
+          title: "Error saving session",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
+    }
     setActiveSession(null);
   };
 
@@ -117,6 +168,18 @@ export default function FocusPage() {
     return <IconComponent className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />;
   };
 
+  const todayMinutes = sessionHistory
+    .filter(s => {
+      const today = new Date().toISOString().split('T')[0];
+      return s.created_at.startsWith(today);
+    })
+    .reduce((acc, s) => acc + s.duration_minutes, 0);
+
+  const todaySessions = sessionHistory.filter(s => {
+    const today = new Date().toISOString().split('T')[0];
+    return s.created_at.startsWith(today);
+  }).length;
+
   return (
     <div className="h-full overflow-y-auto pb-20 md:pb-4">
       <div className="max-w-6xl mx-auto p-4 space-y-6">
@@ -127,8 +190,8 @@ export default function FocusPage() {
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button size="icon" className="rounded-full" data-testid="button-focus-menu">
-                <Plus className="w-4 h-4" />
+              <Button size="icon" className="rounded-full h-11 w-11" data-testid="button-focus-menu">
+                <Plus className="w-5 h-5" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -182,17 +245,17 @@ export default function FocusPage() {
           </div>
         )}
 
-        <CreateTimerDialog 
-          open={showCreateTimer} 
+        <CreateTimerDialog
+          open={showCreateTimer}
           onOpenChange={setShowCreateTimer}
-          onCreateTimer={handleCreateTimer} 
+          onCreateTimer={handleCreateTimer}
         />
-        
+
         <FocusInsights
           open={showInsights}
           onOpenChange={setShowInsights}
-          todayMinutes={145}
-          todaySessions={6}
+          todayMinutes={todayMinutes}
+          todaySessions={todaySessions}
           weekData={weekData}
           monthData={monthData}
           yearData={yearData}

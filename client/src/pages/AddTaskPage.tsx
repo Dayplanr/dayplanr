@@ -7,6 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useTranslation } from "@/lib/i18n";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/lib/auth";
+import { useToast } from "@/hooks/use-toast";
 
 const DURATIONS = ["5m", "10m", "15m", "30m", "45m", "60m", "90m"];
 const CATEGORIES = ["Personal", "Work", "Health", "Learning", "Other"];
@@ -15,7 +18,9 @@ const PRIORITIES = ["low", "medium", "high"] as const;
 export default function AddTaskPage() {
   const [, navigate] = useLocation();
   const { t } = useTranslation();
-  
+  const { user } = useAuth();
+  const { toast } = useToast();
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [startTime, setStartTime] = useState("");
@@ -24,6 +29,16 @@ export default function AddTaskPage() {
   const [category, setCategory] = useState("Personal");
   const [priority, setPriority] = useState<typeof PRIORITIES[number]>("medium");
   const [linkedGoal, setLinkedGoal] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const determinePeriodFromTime = (time: string): "morning" | "afternoon" | "evening" | "night" => {
+    if (!time) return "morning";
+    const hour = parseInt(time.split(":")[0]);
+    if (hour >= 5 && hour < 12) return "morning";
+    if (hour >= 12 && hour < 17) return "afternoon";
+    if (hour >= 17 && hour < 21) return "evening";
+    return "night";
+  };
 
   const mockHabits = [
     { id: "none", name: t("none") },
@@ -37,23 +52,48 @@ export default function AddTaskPage() {
     { id: "learn", name: "Learn New Skill" },
   ];
 
-  const handleSubmit = () => {
-    if (!title.trim()) return;
-    
-    const taskData = {
-      title: title.trim(),
-      description: description.trim(),
-      startTime: startTime || undefined,
-      duration: duration || undefined,
-      linkedHabit: linkedHabit !== "none" ? linkedHabit : undefined,
-      category,
-      priority,
-      linkedGoal: linkedGoal !== "none" ? linkedGoal : undefined,
-      completed: false,
-    };
-    
-    localStorage.setItem("newTask", JSON.stringify(taskData));
-    navigate("/app");
+  const handleSubmit = async () => {
+    if (!title.trim() || !user) return;
+    setLoading(true);
+
+    try {
+      const period = determinePeriodFromTime(startTime);
+
+      const { error } = await supabase
+        .from("tasks")
+        .insert({
+          user_id: user.id,
+          title: title.trim(),
+          day_period: period,
+          time: startTime ? formatShortTime(startTime) : undefined,
+          priority: priority,
+          completed: false,
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Task added successfully!",
+      });
+      navigate("/app");
+    } catch (error: any) {
+      toast({
+        title: "Error adding task",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatShortTime = (time: string): string => {
+    const [hours, minutes] = time.split(":");
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? "PM" : "AM";
+    const displayHour = hour % 12 || 12;
+    return `${displayHour}:${minutes} ${ampm}`;
   };
 
   return (
@@ -67,9 +107,9 @@ export default function AddTaskPage() {
       <div className="h-full overflow-y-auto">
         <div className="max-w-2xl mx-auto p-4 pb-20 md:pb-8">
           <div className="flex items-center justify-between mb-6">
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => navigate("/app")}
               data-testid="button-back-today"
             >
@@ -79,14 +119,14 @@ export default function AddTaskPage() {
               <ListTodo className="w-6 h-6 text-primary" />
               <h1 className="text-xl font-bold">{t("newTask")}</h1>
             </div>
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               onClick={handleSubmit}
-              disabled={!title.trim()}
+              disabled={!title.trim() || loading}
               className="text-primary font-semibold"
               data-testid="button-save-task"
             >
-              {t("save")}
+              {loading ? "..." : t("save")}
             </Button>
           </div>
 
@@ -190,13 +230,10 @@ export default function AddTaskPage() {
                     variant={priority === p ? "default" : "outline"}
                     size="sm"
                     onClick={() => setPriority(p)}
-                    className={`rounded-full flex-1 ${
-                      priority === p && p === "medium" ? "bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-500" : ""
-                    } ${
-                      priority === p && p === "high" ? "bg-red-500 hover:bg-red-600 text-white border-red-500" : ""
-                    } ${
-                      priority === p && p === "low" ? "bg-green-500 hover:bg-green-600 text-white border-green-500" : ""
-                    }`}
+                    className={`rounded-full flex-1 ${priority === p && p === "medium" ? "bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-500" : ""
+                      } ${priority === p && p === "high" ? "bg-red-500 hover:bg-red-600 text-white border-red-500" : ""
+                      } ${priority === p && p === "low" ? "bg-green-500 hover:bg-green-600 text-white border-green-500" : ""
+                      }`}
                     data-testid={`button-priority-${p}`}
                   >
                     {t(p)}
@@ -211,7 +248,7 @@ export default function AddTaskPage() {
                 type="button"
                 variant="default"
                 className="w-full rounded-full"
-                onClick={() => {}}
+                onClick={() => { }}
                 data-testid="button-link-goal"
               >
                 {t("noGoal")}

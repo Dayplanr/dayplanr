@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Calendar, ArrowLeft, Mail, Lock, User, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { OnboardingModal } from "@/components/OnboardingModal";
+import { supabase } from "@/lib/supabase";
+import { useToast } from "@/hooks/use-toast";
 
 export default function AuthPage() {
   const [, navigate] = useLocation();
@@ -18,13 +20,44 @@ export default function AuthPage() {
     email: "",
     password: "",
   });
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSignUp) {
-      setShowOnboarding(true);
-    } else {
-      navigate("/app");
+    setLoading(true);
+
+    try {
+      if (isSignUp) {
+        const { error } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            data: {
+              full_name: formData.name,
+            },
+          },
+        });
+
+        if (error) throw error;
+        setShowOnboarding(true);
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+
+        if (error) throw error;
+        navigate("/app");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Authentication Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -54,8 +87,8 @@ export default function AuthPage() {
           className="w-full max-w-md"
         >
           <div className="text-center mb-8">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center mx-auto mb-4">
-              <Calendar className="w-8 h-8 text-white" />
+            <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <img src="/src/assets/logo.png" alt="dayplanr logo" className="w-full h-full object-contain" />
             </div>
             <h1 className="text-2xl font-bold text-foreground">
               {isSignUp ? "Create your account" : "Create an account"}
@@ -153,9 +186,9 @@ export default function AuthPage() {
                     </div>
                   )}
 
-                  <Button type="submit" className="w-full" size="lg" data-testid="button-submit-auth">
-                    {isSignUp ? "Create Account" : "Sign In"}
-                    <ArrowRight className="w-4 h-4 ml-2" />
+                  <Button type="submit" className="w-full" size="lg" disabled={loading} data-testid="button-submit-auth">
+                    {loading ? "Please wait..." : (isSignUp ? "Create Account" : "Sign In")}
+                    {!loading && <ArrowRight className="w-4 h-4 ml-2" />}
                   </Button>
                 </motion.form>
               </AnimatePresence>

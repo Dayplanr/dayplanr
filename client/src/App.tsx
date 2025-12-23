@@ -17,18 +17,45 @@ import AddHabitPage from "@/pages/AddHabitPage";
 import AddTaskPage from "@/pages/AddTaskPage";
 import FocusPage from "@/pages/FocusPage";
 import SettingsPage from "@/pages/SettingsPage";
+import { AuthProvider, useAuth } from "./lib/auth";
+import { Redirect } from "wouter";
+
+function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
+  const { user, loading } = useAuth();
+
+  if (loading) return null;
+  if (!user) return <Redirect to="/auth" />;
+
+  return <Component />;
+}
 
 function AppRouter() {
   return (
     <Switch>
-      <Route path="/app" component={TodayPage} />
-      <Route path="/app/tasks/new" component={AddTaskPage} />
-      <Route path="/app/goals" component={GoalsPage} />
-      <Route path="/app/goals/new" component={CreateGoalPage} />
-      <Route path="/app/habits" component={HabitsPage} />
-      <Route path="/app/habits/new" component={AddHabitPage} />
-      <Route path="/app/focus" component={FocusPage} />
-      <Route path="/app/settings" component={SettingsPage} />
+      <Route path="/app">
+        <ProtectedRoute component={TodayPage} />
+      </Route>
+      <Route path="/app/tasks/new">
+        <ProtectedRoute component={AddTaskPage} />
+      </Route>
+      <Route path="/app/goals">
+        <ProtectedRoute component={GoalsPage} />
+      </Route>
+      <Route path="/app/goals/new">
+        <ProtectedRoute component={CreateGoalPage} />
+      </Route>
+      <Route path="/app/habits">
+        <ProtectedRoute component={HabitsPage} />
+      </Route>
+      <Route path="/app/habits/new">
+        <ProtectedRoute component={AddHabitPage} />
+      </Route>
+      <Route path="/app/focus">
+        <ProtectedRoute component={FocusPage} />
+      </Route>
+      <Route path="/app/settings">
+        <ProtectedRoute component={SettingsPage} />
+      </Route>
     </Switch>
   );
 }
@@ -55,19 +82,21 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <I18nProvider>
-        <TooltipProvider>
-          {isAppRoute ? (
-            <AppLayout />
-          ) : (
-            <Switch>
-              <Route path="/" component={LandingPage} />
-              <Route path="/auth" component={AuthPage} />
-            </Switch>
-          )}
-          <Toaster />
-        </TooltipProvider>
-      </I18nProvider>
+      <AuthProvider>
+        <I18nProvider>
+          <TooltipProvider>
+            {isAppRoute ? (
+              <AppLayout />
+            ) : (
+              <Switch>
+                <Route path="/" component={LandingPage} />
+                <Route path="/auth" component={AuthPage} />
+              </Switch>
+            )}
+            <Toaster />
+          </TooltipProvider>
+        </I18nProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

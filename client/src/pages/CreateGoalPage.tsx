@@ -15,6 +15,9 @@ import {
 } from "@/components/ui/select";
 import { ArrowLeft, Plus, X, Target } from "lucide-react";
 import { GOAL_CATEGORIES, CHALLENGE_DURATIONS } from "@/types/goals";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/lib/auth";
+import { useToast } from "@/hooks/use-toast";
 
 export default function CreateGoalPage() {
   const [, navigate] = useLocation();
@@ -29,6 +32,9 @@ export default function CreateGoalPage() {
   const [tags, setTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState("");
   const [visionText, setVisionText] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
+  const { toast } = useToast();
 
   const handleAddMilestone = () => {
     if (newMilestone.trim()) {
@@ -59,28 +65,62 @@ export default function CreateGoalPage() {
     }
   };
 
-  const handleSubmit = () => {
-    if (!title.trim() || !category) return;
-    
-    const finalCategory = category === "Custom" ? customCategory.trim() : category;
-    if (category === "Custom" && !customCategory.trim()) return;
+  const handleSubmit = async () => {
+    if (!title.trim() || !category || !user) return;
+    setLoading(true);
 
-    const finalDuration = challengeDuration === -1 
-      ? parseInt(customDuration) || 0 
-      : challengeDuration;
+    try {
+      const finalCategory = category === "Custom" ? customCategory.trim() : category;
+      const finalDuration = challengeDuration === -1
+        ? parseInt(customDuration) || 0
+        : challengeDuration;
 
-    const goalData = {
-      title: title.trim(),
-      purpose: purpose.trim(),
-      category: finalCategory,
-      challengeDuration: finalDuration,
-      milestones: milestones.map((m) => ({ title: m })),
-      tags,
-      visionText: visionText.trim() || undefined,
-    };
+      // 1. Insert the goal
+      const { data: goalData, error: goalError } = await supabase
+        .from("goals")
+        .insert({
+          user_id: user.id,
+          title: title.trim(),
+          purpose: purpose.trim(),
+          category: finalCategory,
+          challenge_duration: finalDuration,
+          vision_text: visionText.trim(),
+          progress: 0,
+        })
+        .select()
+        .single();
 
-    localStorage.setItem("newGoal", JSON.stringify(goalData));
-    navigate("/app/goals");
+      if (goalError) throw goalError;
+
+      // 2. Insert milestones if any
+      if (milestones.length > 0) {
+        const { error: milestoneError } = await supabase
+          .from("milestones")
+          .insert(
+            milestones.map((m) => ({
+              goal_id: goalData.id,
+              title: m,
+              completed: false,
+            }))
+          );
+
+        if (milestoneError) throw milestoneError;
+      }
+
+      toast({
+        title: "Success",
+        description: "Goal created successfully!",
+      });
+      navigate("/app/goals");
+    } catch (error: any) {
+      toast({
+        title: "Error creating goal",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCancel = () => {
@@ -101,9 +141,9 @@ export default function CreateGoalPage() {
       <div className="h-full overflow-y-auto">
         <div className="max-w-2xl mx-auto p-4 pb-20 md:pb-8">
           <div className="flex items-center gap-3 mb-6">
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => navigate("/app/goals")}
               data-testid="button-back-goals"
             >
@@ -167,8 +207,8 @@ export default function CreateGoalPage() {
 
             <div className="space-y-2">
               <Label>Challenge Duration (Optional)</Label>
-              <Select 
-                value={challengeDuration.toString()} 
+              <Select
+                value={challengeDuration.toString()}
                 onValueChange={(v) => setChallengeDuration(parseInt(v))}
               >
                 <SelectTrigger data-testid="select-challenge-duration">
@@ -204,9 +244,9 @@ export default function CreateGoalPage() {
                   onKeyDown={(e) => handleKeyDown(e, handleAddMilestone)}
                   data-testid="input-milestone"
                 />
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   size="icon"
                   onClick={handleAddMilestone}
                   data-testid="button-add-milestone"
@@ -217,8 +257,8 @@ export default function CreateGoalPage() {
               {milestones.length > 0 && (
                 <div className="space-y-2 mt-3">
                   {milestones.map((milestone, index) => (
-                    <div 
-                      key={index} 
+                    <div
+                      key={index}
                       className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
                     >
                       <span className="text-sm">{milestone}</span>
@@ -247,9 +287,9 @@ export default function CreateGoalPage() {
                   onKeyDown={(e) => handleKeyDown(e, handleAddTag)}
                   data-testid="input-tag"
                 />
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   size="icon"
                   onClick={handleAddTag}
                   data-testid="button-add-tag"
@@ -288,21 +328,21 @@ export default function CreateGoalPage() {
             </div>
 
             <div className="flex gap-3 pt-4">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="flex-1"
                 onClick={handleCancel}
                 data-testid="button-cancel-goal"
               >
                 Cancel
               </Button>
-              <Button 
+              <Button
                 className="flex-1"
                 onClick={handleSubmit}
-                disabled={!isValid}
+                disabled={!isValid || loading}
                 data-testid="button-save-goal"
               >
-                Create Goal
+                {loading ? "Creating..." : "Create Goal"}
               </Button>
             </div>
           </div>
