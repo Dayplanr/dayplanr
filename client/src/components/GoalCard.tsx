@@ -57,6 +57,7 @@ interface GoalCardProps {
   progress: number;
   milestones: Milestone[];
   tags: string[];
+  visionText?: string;
   challengeDuration?: number;
   daysWithProgress?: number;
   onToggleMilestone: (milestoneId: string) => void;
@@ -72,6 +73,7 @@ export default function GoalCard({
   progress,
   milestones,
   tags,
+  visionText,
   challengeDuration = 0,
   daysWithProgress = 0,
   onToggleMilestone,
@@ -79,18 +81,18 @@ export default function GoalCard({
   onDelete,
 }: GoalCardProps) {
   const completedMilestones = milestones.filter(m => m.completed).length;
-  
+
   return (
     <Card className="border-0 shadow-sm bg-card" data-testid={`card-goal-${id}`}>
       <CardContent className="p-5 space-y-4">
         {/* Header with title, percentage circle, and menu */}
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
-            <h3 className="text-xl font-bold text-foreground" data-testid={`text-title-${id}`}>
+            <h3 className="text-xl font-bold text-foreground line-clamp-2" data-testid={`text-title-${id}`}>
               {title}
             </h3>
             {purpose && (
-              <p className="text-sm text-muted-foreground mt-0.5">{purpose}</p>
+              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{purpose}</p>
             )}
           </div>
           <div className="flex items-center gap-1 shrink-0">
@@ -99,10 +101,10 @@ export default function GoalCard({
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-8 w-8" 
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
                   data-testid={`button-goal-menu-${id}`}
                 >
                   <MoreVertical className="w-4 h-4" />
@@ -113,8 +115,8 @@ export default function GoalCard({
                   <Pencil className="w-4 h-4 mr-2" />
                   Edit
                 </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={onDelete} 
+                <DropdownMenuItem
+                  onClick={onDelete}
                   className="text-destructive focus:text-destructive"
                   data-testid={`button-delete-goal-${id}`}
                 >
@@ -126,24 +128,34 @@ export default function GoalCard({
           </div>
         </div>
 
+        {/* Vision Statement */}
+        {visionText && (
+          <div className="bg-primary/5 border border-primary/10 rounded-xl p-3 my-2">
+            <h4 className="text-[10px] font-bold text-primary uppercase tracking-wider mb-1">Vision Statement</h4>
+            <p className="text-sm italic text-foreground/80 leading-snug">"{visionText}"</p>
+          </div>
+        )}
+
+        {/* Category and challenge badges */}
+
         {/* Category and challenge badges */}
         <div className="flex flex-wrap items-center gap-2">
-          <Badge 
-            variant="secondary" 
+          <Badge
+            variant="secondary"
             className="bg-muted/60 text-muted-foreground font-normal rounded-full px-3"
           >
             {category.toLowerCase()}
           </Badge>
           {challengeDuration > 0 ? (
-            <Badge 
-              variant="secondary" 
+            <Badge
+              variant="secondary"
               className="bg-muted/60 text-muted-foreground font-normal rounded-full px-3"
             >
               {daysWithProgress}/{challengeDuration} days
             </Badge>
           ) : (
-            <Badge 
-              variant="secondary" 
+            <Badge
+              variant="secondary"
               className="bg-muted/60 text-muted-foreground font-normal rounded-full px-3"
             >
               No challenge
@@ -159,8 +171,8 @@ export default function GoalCard({
             </h4>
             <div className="space-y-2">
               {milestones.map((milestone) => (
-                <div 
-                  key={milestone.id} 
+                <div
+                  key={milestone.id}
                   className="flex items-center gap-3"
                 >
                   <Checkbox
@@ -170,11 +182,10 @@ export default function GoalCard({
                     data-testid={`checkbox-milestone-${milestone.id}`}
                   />
                   <span
-                    className={`text-sm ${
-                      milestone.completed 
-                        ? "text-muted-foreground" 
-                        : "text-foreground"
-                    }`}
+                    className={`text-sm ${milestone.completed
+                      ? "text-muted-foreground"
+                      : "text-foreground"
+                      }`}
                   >
                     {milestone.title}
                   </span>
@@ -188,9 +199,9 @@ export default function GoalCard({
         {tags.length > 0 && (
           <div className="flex flex-wrap gap-1.5 pt-1">
             {tags.map((tag) => (
-              <Badge 
-                key={tag} 
-                variant="outline" 
+              <Badge
+                key={tag}
+                variant="outline"
                 className="text-xs font-normal rounded-full"
               >
                 {tag}

@@ -11,21 +11,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Repeat } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, Repeat, X } from "lucide-react";
 import type { ScheduleType } from "@/types/habits";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
-
-const WEEKDAYS = [
-  { id: "mon", label: "Mon" },
-  { id: "tue", label: "Tue" },
-  { id: "wed", label: "Wed" },
-  { id: "thu", label: "Thu" },
-  { id: "fri", label: "Fri" },
-  { id: "sat", label: "Sat" },
-  { id: "sun", label: "Sun" },
-];
 
 const CATEGORIES = [
   { value: "personal", label: "Personal" },
@@ -36,6 +27,8 @@ const CATEGORIES = [
   { value: "custom", label: "Custom" },
 ];
 
+const SUGGESTED_TAGS = ["Personal", "Challenge", "Healthy", "Work", "Productivity"];
+
 const CHALLENGE_OPTIONS = [
   { value: "7", label: "7-Day Challenge" },
   { value: "14", label: "14-Day Challenge" },
@@ -45,11 +38,23 @@ const CHALLENGE_OPTIONS = [
   { value: "90", label: "90-Day Challenge" },
 ];
 
+const WEEKDAYS = [
+  { id: "mon", label: "M" },
+  { id: "tue", label: "T" },
+  { id: "wed", label: "W" },
+  { id: "thu", label: "T" },
+  { id: "fri", label: "F" },
+  { id: "sat", label: "S" },
+  { id: "sun", label: "S" },
+];
+
 export default function AddHabitPage() {
   const [, navigate] = useLocation();
   const [name, setName] = useState("");
   const [category, setCategory] = useState("personal");
   const [customCategory, setCustomCategory] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState("");
   const [scheduleType, setScheduleType] = useState<ScheduleType>("everyday");
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [challengeDays, setChallengeDays] = useState(30);
@@ -65,6 +70,18 @@ export default function AddHabitPage() {
     );
   };
 
+  const handleAddTag = (tag: string) => {
+    const trimmedTag = tag.trim();
+    if (trimmedTag && !tags.includes(trimmedTag)) {
+      setTags([...tags, trimmedTag]);
+    }
+    setTagInput("");
+  };
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    setTags(tags.filter((t) => t !== tagToRemove));
+  };
+
   const handleSubmit = async () => {
     if (!name.trim() || !user) return;
     setLoading(true);
@@ -73,7 +90,13 @@ export default function AddHabitPage() {
       const finalCategory = category === "custom" ? customCategory.trim() : category;
       if (category === "custom" && !customCategory.trim()) return;
 
-      if (scheduleType === "weekdays" && selectedDays.length === 0) return;
+      if (scheduleType === "weekdays" && selectedDays.length === 0) {
+        toast({ title: "Please select at least one day", variant: "destructive" });
+        setLoading(false);
+        return;
+      }
+
+      const selectedChallenge = CHALLENGE_OPTIONS.find(opt => opt.value === String(challengeDays));
 
       const { error } = await supabase
         .from("habits")
@@ -81,9 +104,11 @@ export default function AddHabitPage() {
           user_id: user.id,
           title: name.trim(),
           category: finalCategory,
+          tags: tags,
           schedule_type: scheduleType,
           selected_days: scheduleType === "weekdays" ? selectedDays : [],
           challenge_days: scheduleType === "challenge" ? challengeDays : 0,
+          challenge_type: scheduleType === "challenge" ? selectedChallenge?.label : null,
           challenge_completed: 0,
           streak: 0,
           best_streak: 0,
@@ -112,13 +137,12 @@ export default function AddHabitPage() {
   };
 
   const handleCancel = () => {
-    localStorage.removeItem("newHabit");
     navigate("/app/habits");
   };
 
   const isValid = name.trim() &&
-    (scheduleType !== "weekdays" || selectedDays.length > 0) &&
-    (category !== "custom" || customCategory.trim());
+    (category !== "custom" || customCategory.trim()) &&
+    (scheduleType !== "weekdays" || selectedDays.length > 0);
 
   return (
     <motion.div
@@ -183,19 +207,70 @@ export default function AddHabitPage() {
               )}
             </div>
 
+            <div className="space-y-2">
+              <Label>Tags</Label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {tags.map((tag) => (
+                  <Badge key={tag} variant="secondary" className="gap-1 px-2 py-1">
+                    {tag}
+                    <X
+                      className="w-3 h-3 cursor-pointer hover:text-destructive"
+                      onClick={() => handleRemoveTag(tag)}
+                    />
+                  </Badge>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Add tag..."
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleAddTag(tagInput);
+                    }
+                  }}
+                />
+                <Button variant="outline" onClick={() => handleAddTag(tagInput)}>
+                  Add
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-1 mt-2">
+                {SUGGESTED_TAGS.filter(t => !tags.includes(t)).map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => handleAddTag(tag)}
+                    className="text-[10px] px-2 py-0.5 rounded-full bg-muted hover:bg-muted/80 text-muted-foreground transition-colors"
+                  >
+                    + {tag}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="space-y-4">
-              <Label>Schedule</Label>
+              <div className="flex items-center justify-between">
+                <Label>Schedule</Label>
+                {scheduleType === "weekdays" && (
+                  <span className="text-[10px] text-primary font-bold uppercase tracking-wider">Step 1: Select days</span>
+                )}
+              </div>
               <div className="space-y-3">
                 <button
                   type="button"
                   onClick={() => setScheduleType("everyday")}
                   className={`w-full p-4 rounded-xl border text-left transition-all ${scheduleType === "everyday"
-                      ? "border-primary bg-primary/5 shadow-sm"
-                      : "border-border hover-elevate"
+                    ? "border-primary bg-primary/5 shadow-sm"
+                    : "border-border hover-elevate"
                     }`}
                   data-testid="button-schedule-everyday"
                 >
-                  <p className="font-medium">Everyday</p>
+                  <div className="flex justify-between items-center">
+                    <p className="font-medium">Everyday</p>
+                    {scheduleType === "everyday" && <Badge variant="outline" className="text-[10px] font-normal uppercase tracking-wider">Active</Badge>}
+                  </div>
                   <p className="text-sm text-muted-foreground mt-0.5">Build a daily habit</p>
                 </button>
 
@@ -203,25 +278,28 @@ export default function AddHabitPage() {
                   type="button"
                   onClick={() => setScheduleType("weekdays")}
                   className={`w-full p-4 rounded-xl border text-left transition-all ${scheduleType === "weekdays"
-                      ? "border-primary bg-primary/5 shadow-sm"
-                      : "border-border hover-elevate"
+                    ? "border-primary bg-primary/5 shadow-sm"
+                    : "border-border hover-elevate"
                     }`}
                   data-testid="button-schedule-weekdays"
                 >
-                  <p className="font-medium">Specific Weekdays</p>
-                  <p className="text-sm text-muted-foreground mt-0.5">Choose which days</p>
+                  <div className="flex justify-between items-center">
+                    <p className="font-medium">Specific Weekdays</p>
+                    {scheduleType === "weekdays" && <Badge variant="outline" className="text-[10px] font-normal uppercase tracking-wider">Selected Only</Badge>}
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-0.5">Choose which days to highlight</p>
                 </button>
 
                 {scheduleType === "weekdays" && (
-                  <div className="flex flex-wrap gap-2 pt-2">
+                  <div className="flex justify-between gap-1 py-1">
                     {WEEKDAYS.map((day) => (
                       <button
                         key={day.id}
                         type="button"
                         onClick={() => handleDayToggle(day.id)}
-                        className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all ${selectedDays.includes(day.id)
-                            ? "border-primary bg-primary text-primary-foreground"
-                            : "border-border hover-elevate"
+                        className={`w-9 h-9 rounded-full border text-xs font-bold transition-all flex items-center justify-center ${selectedDays.includes(day.id)
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-border bg-muted/30 text-muted-foreground hover:bg-muted"
                           }`}
                         data-testid={`button-day-${day.id}`}
                       >
@@ -235,12 +313,15 @@ export default function AddHabitPage() {
                   type="button"
                   onClick={() => setScheduleType("challenge")}
                   className={`w-full p-4 rounded-xl border text-left transition-all ${scheduleType === "challenge"
-                      ? "border-primary bg-primary/5 shadow-sm"
-                      : "border-border hover-elevate"
+                    ? "border-primary bg-primary/5 shadow-sm"
+                    : "border-border hover-elevate"
                     }`}
                   data-testid="button-schedule-challenge"
                 >
-                  <p className="font-medium">Challenge Mode</p>
+                  <div className="flex justify-between items-center">
+                    <p className="font-medium">Challenge Mode</p>
+                    {scheduleType === "challenge" && <Badge variant="outline" className="text-[10px] font-normal uppercase tracking-wider">Goal Based</Badge>}
+                  </div>
                   <p className="text-sm text-muted-foreground mt-0.5">Complete a set number of days</p>
                 </button>
 

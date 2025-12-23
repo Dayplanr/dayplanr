@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { Plus, TrendingUp, Clock, CheckCircle2, Flame, ChevronUp, ChevronDown, Bell, ListTodo, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { Plus, TrendingUp, Clock, CheckCircle2, Flame, ChevronUp, ChevronDown, Bell, ListTodo, MoreVertical, Pencil, Trash2, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -21,16 +21,23 @@ import TodayInsights from "@/components/TodayInsights";
 import { useTranslation } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
-import { format, type Locale, startOfDay, endOfDay } from "date-fns";
+import { format, type Locale, startOfDay, endOfDay, subDays } from "date-fns";
 import { enUS, de, es, fr, it, pt, nl, pl } from "date-fns/locale";
+import { isHabitScheduledForDate, type Habit as HabitType } from "@/types/habits";
 
 interface Task {
   id: string;
   title: string;
+  description?: string;
   time?: string;
   priority: "high" | "medium" | "low";
   completed: boolean;
   hasReminder?: boolean;
+  habit_id?: string;
+  goal_id?: string;
+  scheduled_date?: string;
+  duration?: string;
+  category?: string;
 }
 
 interface TaskGroups {
@@ -89,12 +96,13 @@ export default function TodayPage() {
     if (!user) return;
     setLoading(true);
 
-    // For now, we'll fetch all tasks for the user. 
-    // In a real app we'd filter by the created_at date matching selectedDate.
+    const todayStr = format(selectedDate, "yyyy-MM-dd");
+
     const { data, error } = await supabase
       .from("tasks")
       .select("*")
       .eq("user_id", user.id)
+      .eq("scheduled_date", todayStr)
       .order("created_at", { ascending: true });
 
     if (error) {
@@ -119,10 +127,16 @@ export default function TodayPage() {
         groups[period].push({
           id: task.id,
           title: task.title,
+          description: task.description,
           time: task.time,
           priority: task.priority,
           completed: task.completed,
           hasReminder: task.has_reminder,
+          habit_id: task.habit_id,
+          goal_id: task.goal_id,
+          scheduled_date: task.scheduled_date,
+          duration: task.duration,
+          category: task.category,
         });
       }
     });
@@ -139,13 +153,12 @@ export default function TodayPage() {
     // Fetch focus sessions for today
     const { data: focusData } = await supabase
       .from("focus_sessions")
-      .select("duration_minutes")
+      .select("duration")
       .eq("user_id", user.id)
-      .eq("completed", true)
-      .gte("created_at", startOfDay(selectedDate).toISOString())
-      .lte("created_at", endOfDay(selectedDate).toISOString());
+      .gte("completed_at", startOfDay(selectedDate).toISOString())
+      .lte("completed_at", endOfDay(selectedDate).toISOString());
 
-    const totalFocus = focusData?.reduce((acc, s) => acc + s.duration_minutes, 0) || 0;
+    const totalFocus = focusData?.reduce((acc, s) => acc + s.duration, 0) || 0;
 
     // Fetch habits
     const { data: habitData } = await supabase
@@ -154,7 +167,17 @@ export default function TodayPage() {
       .eq("user_id", user.id);
 
     const habitsCount = habitData?.length || 0;
-    const completedHabitsCount = habitData?.filter(h => h.completed_dates?.includes(today)).length || 0;
+
+    const completedHabitsCount = habitData?.filter(h => {
+      const habit: HabitType = {
+        ...h,
+        scheduleType: h.schedule_type,
+        selectedDays: h.selected_days || [],
+        completedDates: h.completed_dates || [],
+      } as any;
+      return isHabitScheduledForDate(habit, selectedDate) && h.completed_dates?.includes(today);
+    }).length || 0;
+
     const maxStreak = habitData?.reduce((acc, h) => Math.max(acc, h.streak || 0), 0) || 0;
 
     setStats({
@@ -174,30 +197,105 @@ export default function TodayPage() {
     const task = tasks[period].find(t => t.id === id);
     if (!task) return;
 
-    const { error } = await supabase
+    const newCompleted = !task.completed;
+
+    const { error: taskError } = await supabase
       .from("tasks")
-      .update({ completed: !task.completed })
+      .update({ completed: newCompleted })
       .eq("id", id);
 
-    if (error) {
+    if (taskError) {
       toast({
         title: "Error updating task",
-        description: error.message,
+        description: taskError.message,
         variant: "destructive",
       });
       return;
     }
 
+    // Sync with linked habit
+    if (task.habit_id) {
+      const today = format(selectedDate, "yyyy-MM-dd");
+
+      // Fetch current habit data
+      const { data: habit } = await supabase
+        .from("habits")
+        .select("completed_dates, streak, best_streak")
+        .eq("id", task.habit_id)
+        .single();
+
+      if (habit) {
+        let updatedDates = habit.completed_dates || [];
+
+        if (newCompleted) {
+          if (!updatedDates.includes(today)) {
+            updatedDates = [...updatedDates, today].sort();
+          }
+        } else {
+          // Check if any other task for this habit is completed today
+          const otherCompleted = Object.values(tasks)
+            .flat()
+            .some(t => t.id !== id && t.habit_id === task.habit_id && t.completed);
+
+          if (!otherCompleted) {
+            updatedDates = updatedDates.filter((d: string) => d !== today);
+          }
+        }
+
+        const newStreak = calculateStreak(updatedDates);
+        const newBestStreak = Math.max(habit.best_streak || 0, newStreak);
+
+        await supabase
+          .from("habits")
+          .update({
+            completed_dates: updatedDates,
+            streak: newStreak,
+            best_streak: newBestStreak
+          })
+          .eq("id", task.habit_id);
+      }
+    }
+
     setTasks((prev) => ({
       ...prev,
       [period]: prev[period].map((t) =>
-        t.id === id ? { ...t, completed: !t.completed } : t
+        t.id === id ? { ...t, completed: newCompleted } : t
       ),
     }));
+
+    // Refresh stats to update habits completed count
+    fetchStats();
   };
 
   const toggleSection = (section: keyof typeof openSections) => {
     setOpenSections((prev) => ({ ...prev, [section]: !prev[section] }));
+  };
+
+  const calculateStreak = (completedDates: string[]): number => {
+    if (completedDates.length === 0) return 0;
+
+    const sortedDates = [...completedDates].sort().reverse();
+    const today = format(new Date(), "yyyy-MM-dd");
+    const yesterday = format(subDays(new Date(), 1), "yyyy-MM-dd");
+
+    if (sortedDates[0] !== today && sortedDates[0] !== yesterday) {
+      return 0;
+    }
+
+    let streak = 1;
+    for (let i = 0; i < sortedDates.length - 1; i++) {
+      const current = new Date(sortedDates[i]);
+      const next = new Date(sortedDates[i + 1]);
+      const diff = Math.round((current.getTime() - next.getTime()) / (1000 * 60 * 60 * 24));
+
+      if (diff === 1) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+
+    return streak;
   };
 
   useEffect(() => {
@@ -234,6 +332,9 @@ export default function TodayPage() {
   const formattedDate = format(selectedDate, "EEEE, MMMM d, yyyy", { locale: currentLocale });
 
   const handleDeleteTask = async (period: keyof TaskGroups, id: string) => {
+    const task = tasks[period].find(t => t.id === id);
+    if (!task) return;
+
     const { error } = await supabase
       .from("tasks")
       .delete()
@@ -248,15 +349,56 @@ export default function TodayPage() {
       return;
     }
 
+    // Sync with linked habit if the deleted task was completed
+    if (task.completed && task.habit_id) {
+      const today = format(selectedDate, "yyyy-MM-dd");
+
+      // Check if any OTHER task for this habit is completed today
+      const otherCompleted = Object.values(tasks)
+        .flat()
+        .some((t: Task) => t.id !== id && t.habit_id === task.habit_id && t.completed);
+
+      if (!otherCompleted) {
+        // Fetch current habit data to get current completed_dates
+        const { data: habit } = await supabase
+          .from("habits")
+          .select("completed_dates, streak, best_streak")
+          .eq("id", task.habit_id)
+          .single();
+
+        if (habit) {
+          const updatedDates = (habit.completed_dates || []).filter((d: string) => d !== today);
+          const newStreak = calculateStreak(updatedDates);
+          const newBestStreak = Math.max(habit.best_streak || 0, newStreak);
+
+          await supabase
+            .from("habits")
+            .update({
+              completed_dates: updatedDates,
+              streak: newStreak,
+              best_streak: newBestStreak
+            })
+            .eq("id", task.habit_id);
+        }
+      }
+    }
+
     setTasks((prev) => ({
       ...prev,
       [period]: prev[period].filter((task) => task.id !== id),
     }));
+
     toast({ title: t("taskDeleted") || "Task deleted" });
+    await fetchStats();
   };
 
   const handleEditTask = (period: keyof TaskGroups, task: Task) => {
     localStorage.setItem("editTask", JSON.stringify({ ...task, period }));
+    navigate("/app/tasks/new");
+  };
+
+  const handleAddTask = () => {
+    localStorage.setItem("selectedTaskDate", format(selectedDate, "yyyy-MM-dd"));
     navigate("/app/tasks/new");
   };
 
@@ -301,12 +443,27 @@ export default function TodayPage() {
                 <p className={`font-medium ${task.completed ? "line-through text-muted-foreground" : "text-foreground"}`}>
                   {task.title}
                 </p>
-                {task.time && (
-                  <div className="flex items-center gap-1 mt-0.5">
-                    <Clock className="w-3 h-3 text-muted-foreground" />
-                    <p className="text-xs text-muted-foreground">{task.time}</p>
-                  </div>
-                )}
+                <div className="flex items-center gap-3 mt-1">
+                  {task.time && (
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-3 h-3 text-muted-foreground" />
+                      <p className="text-xs text-muted-foreground">{task.time}</p>
+                    </div>
+                  )}
+                  {task.duration && (
+                    <Badge variant="secondary" className="text-[10px] h-4 px-1.5 font-medium bg-secondary/30 text-secondary-foreground border-none">
+                      {task.duration}
+                    </Badge>
+                  )}
+                  {task.category && task.category !== "None" && (
+                    <div className="flex items-center gap-1 px-1.5 h-4 rounded-full bg-primary/10 border border-primary/20">
+                      <Tag className="w-2.5 h-2.5 text-primary" />
+                      <span className="text-[10px] font-medium text-primary leading-none capitalize">
+                        {task.category}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 {task.hasReminder && (
@@ -365,7 +522,7 @@ export default function TodayPage() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => navigate("/app/tasks/new")} data-testid="menu-add-task">
+              <DropdownMenuItem onClick={handleAddTask} data-testid="menu-add-task">
                 <ListTodo className="w-4 h-4 mr-2" />
                 {t("addTask")}
               </DropdownMenuItem>

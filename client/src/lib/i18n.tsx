@@ -13,7 +13,7 @@ export const languageNames: Record<Language, string> = {
   pl: "Polski",
 };
 
-type TranslationKey = 
+type TranslationKey =
   | "today"
   | "goals"
   | "habits"
@@ -136,7 +136,8 @@ type TranslationKey =
   | "health"
   | "learning"
   | "other"
-  | "taskDeleted";
+  | "taskDeleted"
+  | "activeGoals";
 
 type Translations = Record<TranslationKey, string>;
 
@@ -265,6 +266,7 @@ const translations: Record<Language, Translations> = {
     learning: "Learning",
     other: "Other",
     taskDeleted: "Task Deleted",
+    activeGoals: "Active Goals",
   },
   de: {
     today: "Heute",
@@ -390,6 +392,7 @@ const translations: Record<Language, Translations> = {
     learning: "Lernen",
     other: "Andere",
     taskDeleted: "Aufgabe gelöscht",
+    activeGoals: "Aktive Ziele",
   },
   es: {
     today: "Hoy",
@@ -515,6 +518,7 @@ const translations: Record<Language, Translations> = {
     learning: "Aprendizaje",
     other: "Otro",
     taskDeleted: "Tarea eliminada",
+    activeGoals: "Metas Activas",
   },
   fr: {
     today: "Aujourd'hui",
@@ -640,6 +644,7 @@ const translations: Record<Language, Translations> = {
     learning: "Apprentissage",
     other: "Autre",
     taskDeleted: "Tâche supprimée",
+    activeGoals: "Objectifs Actifs",
   },
   it: {
     today: "Oggi",
@@ -765,6 +770,7 @@ const translations: Record<Language, Translations> = {
     learning: "Apprendimento",
     other: "Altro",
     taskDeleted: "Attività eliminata",
+    activeGoals: "Obiettivi Attivi",
   },
   pt: {
     today: "Hoje",
@@ -890,6 +896,7 @@ const translations: Record<Language, Translations> = {
     learning: "Aprendizado",
     other: "Outro",
     taskDeleted: "Tarefa excluída",
+    activeGoals: "Metas Ativas",
   },
   nl: {
     today: "Vandaag",
@@ -1015,6 +1022,7 @@ const translations: Record<Language, Translations> = {
     learning: "Leren",
     other: "Anders",
     taskDeleted: "Taak verwijderd",
+    activeGoals: "Actieve Doelen",
   },
   pl: {
     today: "Dzisiaj",
@@ -1140,6 +1148,7 @@ const translations: Record<Language, Translations> = {
     learning: "Nauka",
     other: "Inne",
     taskDeleted: "Zadanie usunięte",
+    activeGoals: "Aktywne Cele",
   },
 };
 

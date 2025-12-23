@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Play, Pause, RotateCcw, X, Timer, Rocket, Zap, Brain, Coffee } from "lucide-react";
@@ -25,6 +25,12 @@ export default function ActiveFocusSession({
   const [timeLeft, setTimeLeft] = useState(totalMinutes * 60);
   const [isRunning, setIsRunning] = useState(false);
   const [isBreak, setIsBreak] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    // Preload notification sound (Soft Bell/Chime)
+    audioRef.current = new Audio("https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3");
+  }, []);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -33,6 +39,12 @@ export default function ActiveFocusSession({
         setTimeLeft((prev) => {
           if (prev <= 1) {
             setIsRunning(false);
+
+            // Play notification sound
+            if (audioRef.current) {
+              audioRef.current.play().catch((e: any) => console.error("Error playing audio", e));
+            }
+
             if (!isBreak && breakMinutes > 0) {
               setIsBreak(true);
               return breakMinutes * 60;

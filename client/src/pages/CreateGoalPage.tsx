@@ -85,6 +85,7 @@ export default function CreateGoalPage() {
           category: finalCategory,
           challenge_duration: finalDuration,
           vision_text: visionText.trim(),
+          tags: tags,
           progress: 0,
         })
         .select()

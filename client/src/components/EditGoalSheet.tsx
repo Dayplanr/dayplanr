@@ -41,7 +41,7 @@ export default function EditGoalSheet({ open, onOpenChange, goal, onSubmit }: Ed
   const [visionText, setVisionText] = useState("");
 
   useEffect(() => {
-    if (goal) {
+    if (goal && open) {
       setTitle(goal.title);
       setPurpose(goal.purpose);
       const knownCategories = GOAL_CATEGORIES.filter(c => c !== "Custom");
@@ -64,14 +64,14 @@ export default function EditGoalSheet({ open, onOpenChange, goal, onSubmit }: Ed
       setTags([...goal.tags]);
       setVisionText(goal.visionText || "");
     }
-  }, [goal]);
+  }, [goal, open]);
 
   const handleAddMilestone = () => {
     if (newMilestone.trim()) {
-      setMilestones([...milestones, { 
-        id: `m-${Date.now()}`, 
-        title: newMilestone.trim(), 
-        completed: false 
+      setMilestones([...milestones, {
+        id: `m-${Date.now()}`,
+        title: newMilestone.trim(),
+        completed: false
       }]);
       setNewMilestone("");
     }
@@ -101,12 +101,12 @@ export default function EditGoalSheet({ open, onOpenChange, goal, onSubmit }: Ed
 
   const handleSubmit = () => {
     if (!goal || !title.trim() || !category) return;
-    
+
     const finalCategory = category === "Custom" ? customCategory.trim() : category;
     if (category === "Custom" && !customCategory.trim()) return;
 
-    const finalDuration = challengeDuration === -1 
-      ? parseInt(customDuration) || 0 
+    const finalDuration = challengeDuration === -1
+      ? parseInt(customDuration) || 0
       : challengeDuration;
 
     onSubmit(goal.id, {
@@ -185,8 +185,8 @@ export default function EditGoalSheet({ open, onOpenChange, goal, onSubmit }: Ed
 
           <div className="space-y-2">
             <Label>Challenge Duration</Label>
-            <Select 
-              value={challengeDuration.toString()} 
+            <Select
+              value={challengeDuration.toString()}
               onValueChange={(v) => setChallengeDuration(parseInt(v))}
             >
               <SelectTrigger data-testid="select-edit-challenge-duration">
@@ -222,9 +222,9 @@ export default function EditGoalSheet({ open, onOpenChange, goal, onSubmit }: Ed
                 onKeyDown={(e) => handleKeyDown(e, handleAddMilestone)}
                 data-testid="input-edit-milestone"
               />
-              <Button 
-                size="icon" 
-                variant="outline" 
+              <Button
+                size="icon"
+                variant="outline"
                 onClick={handleAddMilestone}
                 data-testid="button-edit-add-milestone"
               >
@@ -234,8 +234,8 @@ export default function EditGoalSheet({ open, onOpenChange, goal, onSubmit }: Ed
             {milestones.length > 0 && (
               <div className="space-y-2 mt-2">
                 {milestones.map((milestone, index) => (
-                  <div 
-                    key={milestone.id} 
+                  <div
+                    key={milestone.id}
                     className="flex items-center justify-between p-2 bg-muted/50 rounded-md"
                   >
                     <span className={`text-sm ${milestone.completed ? "line-through text-muted-foreground" : ""}`}>
@@ -264,9 +264,9 @@ export default function EditGoalSheet({ open, onOpenChange, goal, onSubmit }: Ed
                 onKeyDown={(e) => handleKeyDown(e, handleAddTag)}
                 data-testid="input-edit-tag"
               />
-              <Button 
-                size="icon" 
-                variant="outline" 
+              <Button
+                size="icon"
+                variant="outline"
                 onClick={handleAddTag}
                 data-testid="button-edit-add-tag"
               >
@@ -276,9 +276,9 @@ export default function EditGoalSheet({ open, onOpenChange, goal, onSubmit }: Ed
             {tags.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
                 {tags.map((tag) => (
-                  <Badge 
-                    key={tag} 
-                    variant="secondary" 
+                  <Badge
+                    key={tag}
+                    variant="secondary"
                     className="gap-1"
                   >
                     {tag}
@@ -307,8 +307,8 @@ export default function EditGoalSheet({ open, onOpenChange, goal, onSubmit }: Ed
             />
           </div>
 
-          <Button 
-            onClick={handleSubmit} 
+          <Button
+            onClick={handleSubmit}
             className="w-full"
             disabled={!title.trim() || !category}
             data-testid="button-update-goal"

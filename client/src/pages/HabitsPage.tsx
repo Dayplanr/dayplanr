@@ -57,9 +57,11 @@ export default function HabitsPage() {
         id: h.id,
         title: h.title,
         category: h.category,
+        tags: h.tags || [],
         scheduleType: h.schedule_type,
         selectedDays: h.selected_days || [],
         challengeDays: h.challenge_days || 0,
+        challengeType: h.challenge_type,
         challengeCompleted: h.challenge_completed || 0,
         streak: h.streak || 0,
         bestStreak: h.best_streak || 0,
@@ -169,12 +171,35 @@ export default function HabitsPage() {
     return streak;
   };
 
-  const handleEditHabit = (updatedHabit: Habit) => {
-    // This would need Supabase update too
-    setHabits((prev) =>
-      prev.map((habit) => (habit.id === updatedHabit.id ? updatedHabit : habit))
-    );
-    setEditingHabit(null);
+  const handleEditHabit = async (updatedHabit: Habit) => {
+    try {
+      const { error } = await supabase
+        .from("habits")
+        .update({
+          title: updatedHabit.title,
+          category: updatedHabit.category,
+          tags: updatedHabit.tags,
+          schedule_type: updatedHabit.scheduleType,
+          selected_days: updatedHabit.selectedDays,
+          challenge_days: updatedHabit.challengeDays,
+          challenge_type: updatedHabit.challengeType,
+        })
+        .eq("id", updatedHabit.id);
+
+      if (error) throw error;
+
+      setHabits((prev) =>
+        prev.map((habit) => (habit.id === updatedHabit.id ? updatedHabit : habit))
+      );
+      setEditingHabit(null);
+      toast({ title: "Habit updated" });
+    } catch (error: any) {
+      toast({
+        title: "Error updating habit",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   const handleDeleteHabit = async (habitId: string) => {
@@ -238,9 +263,11 @@ export default function HabitsPage() {
               id={habit.id}
               title={habit.title}
               category={habit.category}
+              tags={habit.tags}
               scheduleType={habit.scheduleType}
               selectedDays={habit.selectedDays}
               challengeDays={habit.challengeDays}
+              challengeType={habit.challengeType}
               challengeCompleted={habit.challengeCompleted}
               streak={habit.streak}
               bestStreak={habit.bestStreak}

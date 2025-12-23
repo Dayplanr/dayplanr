@@ -4,9 +4,11 @@ export interface Habit {
   id: string;
   title: string;
   category: string;
+  tags: string[];
   scheduleType: ScheduleType;
   selectedDays: string[];
   challengeDays: number;
+  challengeType?: string;
   challengeCompleted: number;
   streak: number;
   bestStreak?: number;
@@ -20,45 +22,53 @@ export interface Habit {
 export interface HabitFormData {
   name: string;
   category: string;
+  tags: string[];
   scheduleType: ScheduleType;
   selectedDays: string[];
   challengeDays: number;
+  challengeType?: string;
   challengeCompleted: number;
 }
 
 const DAY_MAP: Record<number, string> = { 0: "sun", 1: "mon", 2: "tue", 3: "wed", 4: "thu", 5: "fri", 6: "sat" };
 
-function isHabitScheduledForDate(habit: Habit, date: Date): boolean {
+export function isHabitScheduledForDate(habit: Habit, date: Date): boolean {
   if (!habit.scheduleType || habit.scheduleType === "everyday") {
     return true;
   }
-  
+
   if (habit.scheduleType === "weekdays") {
     const dayOfWeek = date.getDay();
+    // Revert to using selectedDays from habit record
     return habit.selectedDays?.includes(DAY_MAP[dayOfWeek]) || false;
   }
-  
+
   if (habit.scheduleType === "challenge") {
     return true;
   }
-  
+
   return true;
+}
+
+export function isHabitCompletedOnDate(habit: Habit, date: Date): boolean {
+  const dateStr = date.toISOString().split("T")[0];
+  return habit.completedDates?.includes(dateStr) || false;
 }
 
 export function computeWeeklyData(habits: Habit[] = []): { day: string; completed: number; total: number }[] {
   const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const today = new Date();
   const safeHabits = habits || [];
-  
+
   return Array.from({ length: 7 }, (_, i) => {
     const date = new Date(today);
     date.setDate(today.getDate() - (6 - i));
     const dateStr = date.toISOString().split("T")[0];
     const dayName = dayNames[date.getDay()];
-    
+
     let completed = 0;
     let total = 0;
-    
+
     safeHabits.forEach((habit) => {
       if (isHabitScheduledForDate(habit, date)) {
         total++;
@@ -67,7 +77,7 @@ export function computeWeeklyData(habits: Habit[] = []): { day: string; complete
         }
       }
     });
-    
+
     return { day: dayName, completed, total };
   });
 }
@@ -75,15 +85,15 @@ export function computeWeeklyData(habits: Habit[] = []): { day: string; complete
 export function computeConsistencyData(habits: Habit[] = [], days: number = 14): { date: string; rate: number }[] {
   const today = new Date();
   const safeHabits = habits || [];
-  
+
   return Array.from({ length: days }, (_, i) => {
     const date = new Date(today);
     date.setDate(today.getDate() - (days - 1 - i));
     const dateStr = date.toISOString().split("T")[0];
-    
+
     let completed = 0;
     let total = 0;
-    
+
     safeHabits.forEach((habit) => {
       if (isHabitScheduledForDate(habit, date)) {
         total++;
@@ -92,7 +102,7 @@ export function computeConsistencyData(habits: Habit[] = [], days: number = 14):
         }
       }
     });
-    
+
     const rate = total > 0 ? Math.round((completed / total) * 100) : 0;
     return { date: dateStr, rate };
   });

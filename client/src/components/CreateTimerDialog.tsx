@@ -22,10 +22,11 @@ interface CustomTimer {
 interface CreateTimerDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreateTimer: (timer: CustomTimer) => void;
+  onCreateTimer: (timer: any) => void;
+  initialData?: CustomTimer | null;
 }
 
-export default function CreateTimerDialog({ open, onOpenChange, onCreateTimer }: CreateTimerDialogProps) {
+export default function CreateTimerDialog({ open, onOpenChange, onCreateTimer, initialData }: CreateTimerDialogProps) {
   const [name, setName] = useState("");
   const [duration, setDuration] = useState([30]);
   const [breakDuration, setBreakDuration] = useState([5]);
@@ -40,18 +41,25 @@ export default function CreateTimerDialog({ open, onOpenChange, onCreateTimer }:
   ];
 
   useEffect(() => {
-    if (!open) {
-      setName("");
-      setDuration([30]);
-      setBreakDuration([5]);
-      setSelectedIcon("timer");
+    if (open) {
+      if (initialData) {
+        setName(initialData.name);
+        setDuration([initialData.duration]);
+        setBreakDuration([initialData.breakDuration]);
+        setSelectedIcon(initialData.icon);
+      } else {
+        setName("");
+        setDuration([30]);
+        setBreakDuration([5]);
+        setSelectedIcon("timer");
+      }
     }
-  }, [open]);
+  }, [open, initialData]);
 
   const handleCreate = () => {
     if (!name.trim()) return;
     onCreateTimer({
-      id: Date.now().toString(),
+      ...(initialData ? { id: initialData.id } : {}),
       name: name.trim(),
       duration: duration[0],
       breakDuration: breakDuration[0],
@@ -64,7 +72,7 @@ export default function CreateTimerDialog({ open, onOpenChange, onCreateTimer }:
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Create Custom Timer</DialogTitle>
+          <DialogTitle>{initialData ? "Edit Custom Timer" : "Create Custom Timer"}</DialogTitle>
         </DialogHeader>
         <div className="space-y-6 py-4">
           <div className="space-y-2">
@@ -109,11 +117,10 @@ export default function CreateTimerDialog({ open, onOpenChange, onCreateTimer }:
                 <button
                   key={id}
                   onClick={() => setSelectedIcon(id)}
-                  className={`p-3 rounded-lg border transition-colors ${
-                    selectedIcon === id
-                      ? "border-primary bg-primary/10"
-                      : "border-border hover-elevate"
-                  }`}
+                  className={`p-3 rounded-lg border transition-colors ${selectedIcon === id
+                    ? "border-primary bg-primary/10"
+                    : "border-border hover-elevate"
+                    }`}
                   title={label}
                   data-testid={`button-icon-${id}`}
                 >
@@ -129,7 +136,7 @@ export default function CreateTimerDialog({ open, onOpenChange, onCreateTimer }:
             disabled={!name.trim()}
             data-testid="button-create-timer-submit"
           >
-            Create Timer
+            {initialData ? "Save Changes" : "Create Timer"}
           </Button>
         </div>
       </DialogContent>

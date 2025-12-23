@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
+import { format } from "date-fns";
 import { motion } from "framer-motion";
 import { ArrowLeft, ListTodo } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,15 +22,94 @@ export default function AddTaskPage() {
   const { user } = useAuth();
   const { toast } = useToast();
 
+  const [editTaskId, setEditTaskId] = useState<string | null>(null);
+  const [originalCompleted, setOriginalCompleted] = useState(false);
+  const [scheduledDate, setScheduledDate] = useState<string>(format(new Date(), "yyyy-MM-dd"));
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [startTime, setStartTime] = useState("");
   const [duration, setDuration] = useState<string | null>(null);
+  const [customDuration, setCustomDuration] = useState("");
+  const [isCustomDuration, setIsCustomDuration] = useState(false);
   const [linkedHabit, setLinkedHabit] = useState<string | null>("none");
   const [category, setCategory] = useState("Personal");
   const [priority, setPriority] = useState<typeof PRIORITIES[number]>("medium");
-  const [linkedGoal, setLinkedGoal] = useState<string | null>(null);
+  const [linkedGoal, setLinkedGoal] = useState<string | null>("none");
   const [loading, setLoading] = useState(false);
+  const [habits, setHabits] = useState<any[]>([]);
+  const [goals, setGoals] = useState<any[]>([]);
+
+  useEffect(() => {
+    // Check for task to edit or a pre-selected date
+    const editDataRaw = localStorage.getItem("editTask");
+    const preSelectedDate = localStorage.getItem("selectedTaskDate");
+
+    if (preSelectedDate) {
+      setScheduledDate(preSelectedDate);
+      localStorage.removeItem("selectedTaskDate");
+    }
+
+    if (editDataRaw) {
+      try {
+        const editData = JSON.parse(editDataRaw);
+        setTitle(editData.title || "");
+        setDescription(editData.description || "");
+        if (editData.scheduled_date) {
+          setScheduledDate(editData.scheduled_date);
+        }
+        if (editData.time) {
+          // Convert "12:30 PM" back to "24h format" for input type="time"
+          const parts = editData.time.split(" ");
+          if (parts.length === 2) {
+            const [time, ampm] = parts;
+            let [hours, minutes] = time.split(":").map(Number);
+            if (ampm === "PM" && hours < 12) hours += 12;
+            if (ampm === "AM" && hours === 12) hours = 0;
+            setStartTime(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`);
+          }
+        }
+        // Handle duration parsing
+        const rawDuration = editData.duration;
+        if (rawDuration) {
+          if (DURATIONS.includes(rawDuration)) {
+            setDuration(rawDuration);
+            setIsCustomDuration(false);
+          } else {
+            setIsCustomDuration(true);
+            setCustomDuration(rawDuration.replace("m", ""));
+            setDuration(null);
+          }
+        }
+
+        // Handle category parsing
+        const rawCategory = editData.category;
+        if (rawCategory && CATEGORIES.includes(rawCategory)) {
+          setCategory(rawCategory);
+        }
+
+        setEditTaskId(editData.id);
+        setOriginalCompleted(editData.completed || false);
+        setPriority(editData.priority || "medium");
+        setLinkedHabit(editData.habit_id || "none");
+        setLinkedGoal(editData.goal_id || "none");
+        localStorage.removeItem("editTask");
+      } catch (e) {
+        console.error("Error parsing edit task data", e);
+      }
+    }
+
+    if (user) {
+      const fetchData = async () => {
+        const [{ data: habitsData }, { data: goalsData }] = await Promise.all([
+          supabase.from("habits").select("id, title").eq("user_id", user.id),
+          supabase.from("goals").select("id, title").eq("user_id", user.id).neq("progress", 100)
+        ]);
+        setHabits([{ id: "none", title: t("none") }, ...(habitsData || [])]);
+        setGoals([{ id: "none", title: t("noGoal") }, ...(goalsData || [])]);
+      };
+      fetchData();
+    }
+  }, [user]);
 
   const determinePeriodFromTime = (time: string): "morning" | "afternoon" | "evening" | "night" => {
     if (!time) return "morning";
@@ -40,46 +120,51 @@ export default function AddTaskPage() {
     return "night";
   };
 
-  const mockHabits = [
-    { id: "none", name: t("none") },
-    { id: "reading", name: "Reading books" },
-    { id: "exercise", name: "Exercise" },
-  ];
-
-  const mockGoals = [
-    { id: "none", name: t("noGoal") },
-    { id: "fitness", name: "Get Fit" },
-    { id: "learn", name: "Learn New Skill" },
-  ];
-
   const handleSubmit = async () => {
     if (!title.trim() || !user) return;
     setLoading(true);
 
     try {
       const period = determinePeriodFromTime(startTime);
+      const finalDuration = isCustomDuration ? (customDuration ? `${customDuration}m` : null) : duration;
 
-      const { error } = await supabase
-        .from("tasks")
-        .insert({
-          user_id: user.id,
-          title: title.trim(),
-          day_period: period,
-          time: startTime ? formatShortTime(startTime) : undefined,
-          priority: priority,
-          completed: false,
-        });
+      const taskData = {
+        user_id: user.id,
+        title: title.trim(),
+        description: description.trim(),
+        day_period: period,
+        time: startTime ? formatShortTime(startTime) : null,
+        priority: priority,
+        completed: editTaskId ? originalCompleted : false,
+        habit_id: linkedHabit === "none" ? null : linkedHabit,
+        goal_id: linkedGoal === "none" ? null : linkedGoal,
+        scheduled_date: scheduledDate,
+        duration: finalDuration,
+        category: category,
+      };
+
+      let error;
+      if (editTaskId) {
+        ({ error } = await supabase
+          .from("tasks")
+          .update(taskData)
+          .eq("id", editTaskId));
+      } else {
+        ({ error } = await supabase
+          .from("tasks")
+          .insert(taskData));
+      }
 
       if (error) throw error;
 
       toast({
-        title: "Success",
-        description: "Task added successfully!",
+        title: t("today"),
+        description: editTaskId ? "Task updated successfully!" : "Task added successfully!",
       });
       navigate("/app");
     } catch (error: any) {
       toast({
-        title: "Error adding task",
+        title: editTaskId ? "Error updating task" : "Error adding task",
         description: error.message,
         variant: "destructive",
       });
@@ -117,7 +202,7 @@ export default function AddTaskPage() {
             </Button>
             <div className="flex items-center gap-2">
               <ListTodo className="w-6 h-6 text-primary" />
-              <h1 className="text-xl font-bold">{t("newTask")}</h1>
+              <h1 className="text-xl font-bold">{editTaskId ? "Edit Task" : t("newTask")}</h1>
             </div>
             <Button
               variant="ghost"
@@ -170,22 +255,47 @@ export default function AddTaskPage() {
                   <Button
                     key={d}
                     type="button"
-                    variant={duration === d ? "default" : "outline"}
+                    variant={!isCustomDuration && duration === d ? "default" : "outline"}
                     size="sm"
-                    onClick={() => setDuration(duration === d ? null : d)}
+                    onClick={() => {
+                      setDuration(duration === d ? null : d);
+                      setIsCustomDuration(false);
+                    }}
                     className="rounded-full"
                     data-testid={`button-duration-${d}`}
                   >
                     {d}
                   </Button>
                 ))}
+                <Button
+                  type="button"
+                  variant={isCustomDuration ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setIsCustomDuration(!isCustomDuration)}
+                  className="rounded-full"
+                  data-testid="button-duration-custom"
+                >
+                  {t("custom" as any) || "Custom"}
+                </Button>
               </div>
+              {isCustomDuration && (
+                <div className="flex items-center gap-2 mt-2 max-w-[150px]">
+                  <Input
+                    type="number"
+                    placeholder="Enter"
+                    value={customDuration}
+                    onChange={(e) => setCustomDuration(e.target.value)}
+                    className="h-8"
+                  />
+                  <span className="text-sm text-muted-foreground font-medium">mins</span>
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
               <Label className="text-primary font-medium">{t("linkToHabitOptional")}</Label>
               <div className="flex flex-wrap gap-2">
-                {mockHabits.map((habit) => (
+                {habits.map((habit) => (
                   <Button
                     key={habit.id}
                     type="button"
@@ -195,7 +305,7 @@ export default function AddTaskPage() {
                     className="rounded-full"
                     data-testid={`button-habit-${habit.id}`}
                   >
-                    {habit.name}
+                    {habit.title || habit.name}
                   </Button>
                 ))}
               </div>
@@ -210,7 +320,9 @@ export default function AddTaskPage() {
                     type="button"
                     variant={category === cat ? "default" : "outline"}
                     size="sm"
-                    onClick={() => setCategory(cat)}
+                    onClick={() => {
+                      setCategory(cat);
+                    }}
                     className="rounded-full"
                     data-testid={`button-category-${cat.toLowerCase()}`}
                   >
@@ -244,15 +356,21 @@ export default function AddTaskPage() {
 
             <div className="space-y-2">
               <Label className="text-primary font-medium">{t("linkToGoalOptional")}</Label>
-              <Button
-                type="button"
-                variant="default"
-                className="w-full rounded-full"
-                onClick={() => { }}
-                data-testid="button-link-goal"
-              >
-                {t("noGoal")}
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                {goals.map((goal) => (
+                  <Button
+                    key={goal.id}
+                    type="button"
+                    variant={linkedGoal === goal.id ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setLinkedGoal(goal.id)}
+                    className="rounded-full"
+                    data-testid={`button-goal-${goal.id}`}
+                  >
+                    {goal.title || goal.name}
+                  </Button>
+                ))}
+              </div>
             </div>
           </div>
         </div>

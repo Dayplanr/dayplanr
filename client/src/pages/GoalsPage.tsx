@@ -64,7 +64,7 @@ export default function GoalsPage() {
           title: m.title,
           completed: m.completed,
         })),
-        tags: [],
+        tags: g.tags || [],
       })) || [];
 
       setGoals(formattedGoals);
@@ -80,7 +80,9 @@ export default function GoalsPage() {
   };
 
   useEffect(() => {
-    fetchGoals();
+    if (user) {
+      fetchGoals();
+    }
   }, [user]);
 
   const handleToggleMilestone = async (goalId: string, milestoneId: string) => {
@@ -134,9 +136,72 @@ export default function GoalsPage() {
   };
 
   const handleUpdateGoal = async (goalId: string, data: Partial<Goal>) => {
-    // This is a partial update, would need to handle Supabase update here
-    // For now, let's keep it simple or implement as needed
-    setEditingGoal(null);
+    if (!user) return;
+
+    try {
+      // 1. Update main goal data
+      const { error: goalError } = await supabase
+        .from("goals")
+        .update({
+          title: data.title,
+          purpose: data.purpose,
+          category: data.category,
+          challenge_duration: data.challengeDuration,
+          vision_text: data.visionText,
+          tags: data.tags,
+          last_activity_at: new Date().toISOString(),
+        })
+        .eq("id", goalId);
+
+      if (goalError) throw goalError;
+
+      // 2. Handle milestones (this is more complex - for simplicity, let's update titles and ignore deletions for now, 
+      // or implement a full sync if needed. Here we assume milestones in 'data' are the current ones)
+      if (data.milestones) {
+        // Find existing milestones to determine what to update vs insert
+        const { data: existingMilestones } = await supabase
+          .from("milestones")
+          .select("id")
+          .eq("goal_id", goalId);
+
+        const existingIds = existingMilestones?.map(m => m.id) || [];
+        const currentIds = data.milestones.map(m => m.id).filter(id => !id.startsWith('m-')); // temporary IDs start with 'm-'
+
+        // Delete removed milestones
+        const toDelete = existingIds.filter(id => !currentIds.includes(id));
+        if (toDelete.length > 0) {
+          await supabase.from("milestones").delete().in("id", toDelete);
+        }
+
+        // Upsert milestones
+        for (const m of data.milestones) {
+          if (m.id.startsWith('m-')) {
+            // New milestone
+            await supabase.from("milestones").insert({
+              goal_id: goalId,
+              title: m.title,
+              completed: m.completed,
+            });
+          } else {
+            // Existing milestone
+            await supabase.from("milestones")
+              .update({ title: m.title, completed: m.completed })
+              .eq("id", m.id);
+          }
+        }
+      }
+
+      toast({ title: "Goal updated successfully" });
+      fetchGoals(); // Refresh to get correct IDs and data
+    } catch (error: any) {
+      toast({
+        title: "Error updating goal",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setEditingGoal(null);
+    }
   };
 
   const handleDeleteGoal = async (goalId: string) => {
@@ -194,6 +259,7 @@ export default function GoalsPage() {
               title={goal.title}
               purpose={goal.purpose}
               category={goal.category}
+              visionText={goal.visionText}
               progress={goal.progress}
               milestones={goal.milestones}
               tags={goal.tags}

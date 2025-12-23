@@ -42,6 +42,7 @@ export default function FocusPage() {
   const [showCreateTimer, setShowCreateTimer] = useState(false);
   const [showInsights, setShowInsights] = useState(false);
   const [sessionHistory, setSessionHistory] = useState<any[]>([]);
+  const [editingTimer, setEditingTimer] = useState<CustomTimer | null>(null);
 
   const fetchSessionHistory = async () => {
     if (!user) return;
@@ -49,7 +50,7 @@ export default function FocusPage() {
       .from("focus_sessions")
       .select("*")
       .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
+      .order("completed_at", { ascending: false });
 
     if (error) {
       console.error("Error fetching session history", error);
@@ -58,8 +59,26 @@ export default function FocusPage() {
     setSessionHistory(data || []);
   };
 
+  const fetchCustomTimers = async () => {
+    if (!user) return;
+    const { data, error } = await supabase
+      .from("custom_timers")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      console.error("Error fetching custom timers", error);
+      return;
+    }
+    setCustomTimers(data || []);
+  };
+
   useEffect(() => {
-    fetchSessionHistory();
+    if (user) {
+      fetchSessionHistory();
+      fetchCustomTimers();
+    }
   }, [user]);
 
   const weekData = [
@@ -122,8 +141,65 @@ export default function FocusPage() {
     });
   };
 
-  const handleCreateTimer = (timer: CustomTimer) => {
-    setCustomTimers((prev) => [...prev, timer]);
+  const handleCreateTimer = async (timerData: Omit<CustomTimer, "id">) => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from("custom_timers")
+        .insert({
+          user_id: user.id,
+          name: timerData.name,
+          duration: timerData.duration,
+          break_duration: timerData.breakDuration,
+          icon: timerData.icon,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      setCustomTimers((prev) => [...prev, data]);
+      toast({ title: "Timer created!" });
+    } catch (error: any) {
+      toast({ title: "Error creating timer", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const handleUpdateTimer = async (timer: CustomTimer) => {
+    if (!user) return;
+    try {
+      const { error } = await supabase
+        .from("custom_timers")
+        .update({
+          name: timer.name,
+          duration: timer.duration,
+          break_duration: timer.breakDuration,
+          icon: timer.icon,
+        })
+        .eq("id", timer.id);
+
+      if (error) throw error;
+      setCustomTimers((prev) => prev.map(t => t.id === timer.id ? timer : t));
+      toast({ title: "Timer updated!" });
+    } catch (error: any) {
+      toast({ title: "Error updating timer", description: error.message, variant: "destructive" });
+    }
+    setEditingTimer(null);
+  };
+
+  const handleDeleteTimer = async (id: string) => {
+    if (!user) return;
+    try {
+      const { error } = await supabase
+        .from("custom_timers")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+      setCustomTimers((prev) => prev.filter(t => t.id !== id));
+      toast({ title: "Timer deleted!" });
+    } catch (error: any) {
+      toast({ title: "Error deleting timer", description: error.message, variant: "destructive" });
+    }
   };
 
   const handleSessionComplete = async () => {
@@ -134,8 +210,10 @@ export default function FocusPage() {
           .insert({
             user_id: user.id,
             mode: activeSession.mode,
-            duration_minutes: activeSession.duration,
-            completed: true,
+            title: activeSession.title,
+            duration: activeSession.duration,
+            break_duration: activeSession.breakDuration,
+            icon: activeSession.icon,
           });
 
         if (error) throw error;
@@ -171,13 +249,13 @@ export default function FocusPage() {
   const todayMinutes = sessionHistory
     .filter(s => {
       const today = new Date().toISOString().split('T')[0];
-      return s.created_at.startsWith(today);
+      return s.completed_at?.startsWith(today);
     })
-    .reduce((acc, s) => acc + s.duration_minutes, 0);
+    .reduce((acc, s) => acc + (s.duration || 0), 0);
 
   const todaySessions = sessionHistory.filter(s => {
     const today = new Date().toISOString().split('T')[0];
-    return s.created_at.startsWith(today);
+    return s.completed_at?.startsWith(today);
   }).length;
 
   return (
@@ -238,6 +316,11 @@ export default function FocusPage() {
                 title={timer.name}
                 description={`${timer.duration} min${timer.breakDuration > 0 ? ` · ${timer.breakDuration} min break` : ""}`}
                 onStart={() => handleStartCustomTimer(timer)}
+                onEdit={() => {
+                  setEditingTimer(timer);
+                  setShowCreateTimer(true);
+                }}
+                onDelete={() => handleDeleteTimer(timer.id)}
                 customIcon={getCustomTimerIcon(timer.icon)}
                 customColor="bg-emerald-100 dark:bg-emerald-900/30"
               />
@@ -247,8 +330,12 @@ export default function FocusPage() {
 
         <CreateTimerDialog
           open={showCreateTimer}
-          onOpenChange={setShowCreateTimer}
-          onCreateTimer={handleCreateTimer}
+          onOpenChange={(open) => {
+            setShowCreateTimer(open);
+            if (!open) setEditingTimer(null);
+          }}
+          onCreateTimer={editingTimer ? handleUpdateTimer : handleCreateTimer}
+          initialData={editingTimer}
         />
 
         <FocusInsights
