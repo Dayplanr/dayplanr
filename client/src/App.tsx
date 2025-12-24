@@ -4,7 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { I18nProvider } from "@/lib/i18n";
+import { LanguageProvider } from "@/lib/i18n";
 import { AppSidebar } from "@/components/AppSidebar";
 import MobileTabBar from "@/components/MobileTabBar";
 import LandingPage from "@/pages/LandingPage";
@@ -83,7 +83,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <I18nProvider>
+        <LanguageProvider>
           <TooltipProvider>
             {isAppRoute ? (
               <AppLayout />
@@ -95,7 +95,7 @@ function App() {
             )}
             <Toaster />
           </TooltipProvider>
-        </I18nProvider>
+        </LanguageProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

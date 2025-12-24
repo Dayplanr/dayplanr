@@ -1,4 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { supabase } from "./supabase";
+import { useAuth } from "./auth";
 
 export type Language = "en" | "de" | "es" | "fr" | "it" | "pt" | "nl" | "pl";
 
@@ -141,6 +143,14 @@ type TranslationKey =
 
 type Translations = Record<TranslationKey, string>;
 
+interface LanguageContextType {
+  language: Language;
+  setLanguage: (lang: Language) => void;
+  t: (key: TranslationKey) => string;
+}
+
+const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+
 const translations: Record<Language, Translations> = {
   en: {
     today: "Today",
@@ -247,7 +257,7 @@ const translations: Record<Language, Translations> = {
     reminderNote: "Reminders are designed to be supportive and non-intrusive, helping you stay on track without creating pressure.",
     deleteAccountConfirm: "Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently removed.",
     taskTitle: "Task Title",
-    time: "Time",
+    time: "Hora",
     period: "Period",
     newTask: "New Task",
     taskTitlePlaceholder: "What do you need to do?",
@@ -807,7 +817,7 @@ const translations: Record<Language, Translations> = {
     medium: "Média",
     low: "Baixa",
     startFocus: "Iniciar Foco",
-    pauseFocus: "Pausar",
+    pauseFocus: "Pausa",
     resumeFocus: "Retomar",
     stopFocus: "Parar",
     focusSession: "Sessão de Foco",
@@ -857,25 +867,25 @@ const translations: Record<Language, Translations> = {
     themeColor: "Cor do Tema",
     appIcon: "Ícone do App",
     general: "Geral",
-    haptics: "Hápticos",
+    haptics: "Feedback Aptico",
     logOut: "Sair",
-    reminderSettings: "Configurações de Lembretes",
+    reminderSettings: "Configurações de Lembrete",
     reminderDescription: "Personalize lembretes inteligentes para apoiar seu planejamento diário, hábitos e metas.",
-    reminderCategories: "Categorias de Lembretes",
+    reminderCategories: "Categorias de Lembrete",
     taskReminders: "Lembretes de Tarefas",
     habitReminders: "Lembretes de Hábitos",
     focusReminders: "Lembretes de Foco",
     incompleteNudges: "Avisos de Tarefas Incompletas",
-    timing: "Horário",
-    atTime: "No horário agendado",
+    timing: "Tempo",
+    atTime: "Na hora marcada",
     minutesBefore10: "10 minutos antes",
     minutesBefore30: "30 minutos antes",
     hourBefore: "1 hora antes",
     notificationStyle: "Estilo de Notificação",
     gentle: "Suave",
     important: "Importante",
-    reminderNote: "Os lembretes são projetados para serem úteis e não intrusivos, ajudando você a manter o foco sem criar pressão.",
-    deleteAccountConfirm: "Tem certeza de que deseja excluir sua conta? Esta ação não pode ser desfeita e todos os seus dados serão permanentemente removidos.",
+    reminderNote: "Os lembretes são projetados para apoiar e não serem intrusivos, ajudando você a manter o ritmo sem criar pressão.",
+    deleteAccountConfirm: "Tem certeza que deseja excluir sua conta? Esta ação não pode ser desfeita e todos os seus dados serão removidos permanentemente.",
     taskTitle: "Título da Tarefa",
     time: "Hora",
     period: "Período",
@@ -932,13 +942,13 @@ const translations: Record<Language, Translations> = {
     high: "Hoog",
     medium: "Gemiddeld",
     low: "Laag",
-    startFocus: "Focus Starten",
-    pauseFocus: "Pauzeren",
+    startFocus: "Start Focus",
+    pauseFocus: "Pauze",
     resumeFocus: "Hervatten",
     stopFocus: "Stoppen",
     focusSession: "Focussessie",
     breakTime: "Pauze",
-    deepWork: "Diep Werk",
+    deepWork: "Deep Work",
     pomodoro: "Pomodoro",
     minutes: "minuten",
     hours: "uren",
@@ -951,15 +961,15 @@ const translations: Record<Language, Translations> = {
     thisWeek: "Deze Week",
     thisMonth: "Deze Maand",
     completed: "Voltooid",
-    inProgress: "Bezig",
-    notStarted: "Niet Begonnen",
-    overdue: "Te Laat",
-    onTrack: "Op Schema",
-    habitStreak: "Gewoonte Reeks",
+    inProgress: "In Uitvoering",
+    notStarted: "Niet Gestart",
+    overdue: "Te laat",
+    onTrack: "Op Koers",
+    habitStreak: "Gewoontereeks",
     currentStreak: "Huidige Reeks",
     longestStreak: "Langste Reeks",
     completionRate: "Voltooiingspercentage",
-    goalProgress: "Doel Voortgang",
+    goalProgress: "Doelvoortgang",
     addGoal: "Doel Toevoegen",
     addHabit: "Gewoonte Toevoegen",
     noTasks: "Geen taken",
@@ -969,7 +979,7 @@ const translations: Record<Language, Translations> = {
     goodMorning: "Goedemorgen",
     goodAfternoon: "Goedemiddag",
     goodEvening: "Goedenavond",
-    of: "van",
+    of: "van de",
     account: "Account",
     profile: "Profiel",
     personalData: "Persoonlijke Gegevens",
@@ -977,42 +987,42 @@ const translations: Record<Language, Translations> = {
     deleteAccount: "Account Verwijderen",
     connections: "Verbindingen",
     appleHealth: "Apple Health",
-    calendar: "Kalender",
+    calendar: "Agenda",
     notifications: "Meldingen",
-    appearance: "Weergave",
+    appearance: "Uiterlijk",
     themeColor: "Themakleur",
     appIcon: "App-icoon",
     general: "Algemeen",
-    haptics: "Haptische Feedback",
+    haptics: "Haptiek",
     logOut: "Uitloggen",
     reminderSettings: "Herinneringsinstellingen",
-    reminderDescription: "Pas slimme herinneringen aan om je dagelijkse planning, gewoontes en doelen te ondersteunen.",
+    reminderDescription: "Personaliseer slimme herinneringen om je dagelijkse planning, gewoontes en doelen te ondersteunen.",
     reminderCategories: "Herinneringscategorieën",
     taskReminders: "Taakherinneringen",
     habitReminders: "Gewoonteherinneringen",
     focusReminders: "Focusherinneringen",
-    incompleteNudges: "Onvoltooide Taak Nudges",
+    incompleteNudges: "Meldingen Onvoltooide Taken",
     timing: "Timing",
-    atTime: "Op gepland tijdstip",
-    minutesBefore10: "10 minuten eerder",
-    minutesBefore30: "30 minuten eerder",
-    hourBefore: "1 uur eerder",
-    notificationStyle: "Meldingsstijl",
+    atTime: "Op geplande tijd",
+    minutesBefore10: "10 minuten van tevoren",
+    minutesBefore30: "30 minuten van tevoren",
+    hourBefore: "1 uur van tevoren",
+    notificationStyle: "Meldingstijl",
     gentle: "Zacht",
     important: "Belangrijk",
-    reminderNote: "Herinneringen zijn ontworpen om ondersteunend en niet-opdringerig te zijn, zodat je op koers blijft zonder druk te creëren.",
-    deleteAccountConfirm: "Weet je zeker dat je je account wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt en al je gegevens worden permanent verwijderd.",
+    reminderNote: "Herinneringen zijn ontworpen om ondersteunend en niet-storend te zijn, zodat je op koers blijft zonder druk.",
+    deleteAccountConfirm: "Weet je zeker dat je je account wilt verwijderen? Dit kan niet ongedaan worden gemaakt en al je gegevens worden permanent verwijderd.",
     taskTitle: "Taaktitel",
     time: "Tijd",
     period: "Periode",
     newTask: "Nieuwe Taak",
     taskTitlePlaceholder: "Wat moet je doen?",
     descriptionOptional: "Beschrijving (Optioneel)",
-    descriptionPlaceholder: "Meer details toevoegen...",
+    descriptionPlaceholder: "Voeg details toe...",
     startTimeOptional: "Starttijd (Optioneel)",
     durationOptional: "Duur (Optioneel)",
-    linkToHabitOptional: "Koppelen aan Gewoonte (Optioneel)",
-    linkToGoalOptional: "Koppelen aan Doel (Optioneel)",
+    linkToHabitOptional: "Link naar Gewoonte (Optioneel)",
+    linkToGoalOptional: "Link naar Doel (Optioneel)",
     category: "Categorie",
     noGoal: "Geen doel",
     none: "Geen",
@@ -1020,20 +1030,20 @@ const translations: Record<Language, Translations> = {
     work: "Werk",
     health: "Gezondheid",
     learning: "Leren",
-    other: "Anders",
-    taskDeleted: "Taak verwijderd",
+    other: "Overig",
+    taskDeleted: "Taak Verwijderd",
     activeGoals: "Actieve Doelen",
   },
   pl: {
     today: "Dzisiaj",
     goals: "Cele",
     habits: "Nawyki",
-    focus: "Skupienie",
+    focus: "Focus",
     dailyProgress: "Dzienny Postęp",
     tasksComplete: "zadań ukończonych",
-    focusTime: "Czas Skupienia",
+    focusTime: "Czas Focusu",
     streak: "Seria",
-    complete: "ukończono",
+    complete: "ukończone",
     morning: "Rano",
     afternoon: "Popołudnie",
     evening: "Wieczór",
@@ -1045,7 +1055,7 @@ const translations: Record<Language, Translations> = {
     theme: "Motyw",
     dark: "Ciemny",
     light: "Jasny",
-    system: "System",
+    system: "Systemowy",
     cancel: "Anuluj",
     save: "Zapisz",
     delete: "Usuń",
@@ -1058,13 +1068,13 @@ const translations: Record<Language, Translations> = {
     high: "Wysoki",
     medium: "Średni",
     low: "Niski",
-    startFocus: "Rozpocznij Skupienie",
+    startFocus: "Rozpocznij Focus",
     pauseFocus: "Pauza",
     resumeFocus: "Wznów",
     stopFocus: "Zatrzymaj",
-    focusSession: "Sesja Skupienia",
-    breakTime: "Przerwa",
-    deepWork: "Głęboka Praca",
+    focusSession: "Sesja Focusu",
+    breakTime: "Czas przerwy",
+    deepWork: "Praca Głęboka",
     pomodoro: "Pomodoro",
     minutes: "minut",
     hours: "godzin",
@@ -1079,12 +1089,12 @@ const translations: Record<Language, Translations> = {
     completed: "Ukończone",
     inProgress: "W Trakcie",
     notStarted: "Nie Rozpoczęte",
-    overdue: "Przeterminowane",
-    onTrack: "Na Dobrej Drodze",
+    overdue: "Zaległe",
+    onTrack: "Zgodnie z Planem",
     habitStreak: "Seria Nawyków",
-    currentStreak: "Obecna Seria",
+    currentStreak: "Aktualna Seria",
     longestStreak: "Najdłuższa Seria",
-    completionRate: "Procent Ukończenia",
+    completionRate: "Wskaźnik Ukończenia",
     goalProgress: "Postęp Celu",
     addGoal: "Dodaj Cel",
     addHabit: "Dodaj Nawyk",
@@ -1110,32 +1120,32 @@ const translations: Record<Language, Translations> = {
     appIcon: "Ikona Aplikacji",
     general: "Ogólne",
     haptics: "Haptyka",
-    logOut: "Wyloguj się",
+    logOut: "Wyloguj Się",
     reminderSettings: "Ustawienia Przypomnień",
-    reminderDescription: "Dostosuj inteligentne przypomnienia, aby wspierać codzienne planowanie, nawyki i cele.",
+    reminderDescription: "Spersonalizuj inteligentne przypomnienia, aby wspierać codzienne planowanie, nawyki i cele.",
     reminderCategories: "Kategorie Przypomnień",
     taskReminders: "Przypomnienia o Zadaniach",
     habitReminders: "Przypomnienia o Nawykach",
-    focusReminders: "Przypomnienia o Skupieniu",
-    incompleteNudges: "Powiadomienia o Niedokończonych Zadaniach",
+    focusReminders: "Przypomnienia Focusu",
+    incompleteNudges: "Powiadomienia o Niezakończonych Zadaniach",
     timing: "Czas",
     atTime: "O zaplanowanej godzinie",
     minutesBefore10: "10 minut wcześniej",
     minutesBefore30: "30 minut wcześniej",
-    hourBefore: "1 godzinę wcześniej",
+    hourBefore: "1 godzina wcześniej",
     notificationStyle: "Styl Powiadomień",
     gentle: "Delikatny",
     important: "Ważny",
-    reminderNote: "Przypomnienia są zaprojektowane tak, aby były wspierające i nieinwazyjne, pomagając Ci pozostać na dobrej drodze bez tworzenia presji.",
-    deleteAccountConfirm: "Czy na pewno chcesz usunąć swoje konto? Tej czynności nie można cofnąć, a wszystkie Twoje dane zostaną trwale usunięte.",
+    reminderNote: "Przypomnienia są zaprojektowane tak, aby wspierać i nie przeszkadzać, pomagając Ci trzymać się planu bez poczucia presji.",
+    deleteAccountConfirm: "Czy na pewno chcesz usunąć konto? Tej akcji nie można cofnąć, a wszystkie Twoje dane zostaną trwale usunięte.",
     taskTitle: "Tytuł Zadania",
-    time: "Czas",
-    period: "Okres",
+    time: "Godzina",
+    period: "Pora",
     newTask: "Nowe Zadanie",
-    taskTitlePlaceholder: "Co musisz zrobić?",
+    taskTitlePlaceholder: "Co masz do zrobienia?",
     descriptionOptional: "Opis (Opcjonalnie)",
     descriptionPlaceholder: "Dodaj więcej szczegółów...",
-    startTimeOptional: "Czas Rozpoczęcia (Opcjonalnie)",
+    startTimeOptional: "Godzina Rozpoczęcia (Opcjonalnie)",
     durationOptional: "Czas Trwania (Opcjonalnie)",
     linkToHabitOptional: "Połącz z Nawykiem (Opcjonalnie)",
     linkToGoalOptional: "Połącz z Celem (Opcjonalnie)",
@@ -1152,45 +1162,67 @@ const translations: Record<Language, Translations> = {
   },
 };
 
-interface I18nContextType {
-  language: Language;
-  setLanguage: (lang: Language) => void;
-  t: (key: TranslationKey) => string;
-}
+export function LanguageProvider({ children }: { children: ReactNode }) {
+  const [language, setLanguageState] = useState<Language>("en");
+  const { user } = useAuth();
 
-const I18nContext = createContext<I18nContextType | undefined>(undefined);
+  useEffect(() => {
+    // Load persisted language from Supabase or localStorage
+    const loadSettings = async () => {
+      if (user) {
+        const { data, error } = await supabase
+          .from("user_settings")
+          .select("language")
+          .eq("user_id", user.id)
+          .single();
 
-export function I18nProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguageState] = useState<Language>(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("app-language") as Language;
-      if (stored && translations[stored]) return stored;
-      const browserLang = navigator.language.split("-")[0] as Language;
-      if (translations[browserLang]) return browserLang;
-    }
-    return "en";
-  });
+        if (data?.language && (data.language in languageNames)) {
+          setLanguageState(data.language as Language);
+          localStorage.setItem("language", data.language);
+        }
+      } else {
+        const saved = localStorage.getItem("language");
+        if (saved && (saved in languageNames)) {
+          setLanguageState(saved as Language);
+        }
+      }
+    };
 
-  const setLanguage = (lang: Language) => {
+    loadSettings();
+  }, [user]);
+
+  const setLanguage = async (lang: Language) => {
     setLanguageState(lang);
-    localStorage.setItem("app-language", lang);
+    localStorage.setItem("language", lang);
+
+    if (user) {
+      await supabase
+        .from("user_settings")
+        .update({ language: lang })
+        .eq("user_id", user.id);
+    }
   };
 
   const t = (key: TranslationKey): string => {
-    return translations[language][key] || translations.en[key] || key;
+    const translation = translations[language][key];
+    if (!translation) {
+      console.warn(`Missing translation for key: ${key} in language: ${language}`);
+      return translations.en[key] || key;
+    }
+    return translation;
   };
 
   return (
-    <I18nContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={{ language, setLanguage, t }}>
       {children}
-    </I18nContext.Provider>
+    </LanguageContext.Provider>
   );
 }
 
 export function useTranslation() {
-  const context = useContext(I18nContext);
+  const context = useContext(LanguageContext);
   if (!context) {
-    throw new Error("useTranslation must be used within an I18nProvider");
+    throw new Error("useTranslation must be used within a LanguageProvider");
   }
   return context;
 }
