@@ -24,10 +24,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   User,
-  Shield,
   Trash2,
-  Heart,
-  Calendar,
   Bell,
   Palette,
   Moon,
@@ -44,13 +41,11 @@ import {
 
 export default function SettingsPage() {
   const { t } = useTranslation();
-  
+
   const [darkMode, setDarkMode] = useState(false);
   const [haptics, setHaptics] = useState(true);
-  const [appleHealthConnected, setAppleHealthConnected] = useState(false);
-  const [calendarConnected, setCalendarConnected] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  
+
   const [taskReminders, setTaskReminders] = useState(true);
   const [habitReminders, setHabitReminders] = useState(true);
   const [focusReminders, setFocusReminders] = useState(true);
@@ -83,22 +78,6 @@ export default function SettingsPage() {
               <div className="flex items-center gap-3">
                 <User className="w-5 h-5 text-muted-foreground" />
                 <span className="text-foreground">{t("profile")}</span>
-              </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            </button>
-            <Separator />
-            <button className="w-full flex items-center justify-between px-4 py-3 hover-elevate" data-testid="button-personal-data">
-              <div className="flex items-center gap-3">
-                <User className="w-5 h-5 text-muted-foreground" />
-                <span className="text-foreground">{t("personalData")}</span>
-              </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            </button>
-            <Separator />
-            <button className="w-full flex items-center justify-between px-4 py-3 hover-elevate" data-testid="button-privacy">
-              <div className="flex items-center gap-3">
-                <Shield className="w-5 h-5 text-muted-foreground" />
-                <span className="text-foreground">{t("privacy")}</span>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </button>
@@ -138,35 +117,11 @@ export default function SettingsPage() {
           <CardContent className="space-y-1 p-0">
             <div className="flex items-center justify-between px-4 py-3">
               <div className="flex items-center gap-3">
-                <Heart className="w-5 h-5 text-red-500" />
-                <span className="text-foreground">{t("appleHealth")}</span>
-              </div>
-              <Switch 
-                checked={appleHealthConnected} 
-                onCheckedChange={setAppleHealthConnected}
-                data-testid="switch-apple-health"
-              />
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between px-4 py-3">
-              <div className="flex items-center gap-3">
-                <Calendar className="w-5 h-5 text-blue-500" />
-                <span className="text-foreground">{t("calendar")}</span>
-              </div>
-              <Switch 
-                checked={calendarConnected} 
-                onCheckedChange={setCalendarConnected}
-                data-testid="switch-calendar"
-              />
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between px-4 py-3">
-              <div className="flex items-center gap-3">
                 <Bell className="w-5 h-5 text-amber-500" />
                 <span className="text-foreground">{t("notifications")}</span>
               </div>
-              <Switch 
-                checked={notificationsEnabled} 
+              <Switch
+                checked={notificationsEnabled}
                 onCheckedChange={setNotificationsEnabled}
                 data-testid="switch-notifications"
               />
@@ -195,8 +150,8 @@ export default function SettingsPage() {
                 <Moon className="w-5 h-5 text-indigo-500" />
                 <span className="text-foreground">{t("dark")}</span>
               </div>
-              <Switch 
-                checked={darkMode} 
+              <Switch
+                checked={darkMode}
                 onCheckedChange={handleDarkModeToggle}
                 data-testid="switch-dark-mode"
               />
@@ -230,8 +185,8 @@ export default function SettingsPage() {
                 <Vibrate className="w-5 h-5 text-orange-500" />
                 <span className="text-foreground">{t("haptics")}</span>
               </div>
-              <Switch 
-                checked={haptics} 
+              <Switch
+                checked={haptics}
                 onCheckedChange={setHaptics}
                 data-testid="switch-haptics"
               />
@@ -247,7 +202,7 @@ export default function SettingsPage() {
             <p className="text-sm text-muted-foreground">
               {t("reminderDescription")}
             </p>
-            
+
             <div className="space-y-3">
               <p className="text-sm font-medium text-foreground">{t("reminderCategories")}</p>
               <div className="flex items-center justify-between">
@@ -255,8 +210,8 @@ export default function SettingsPage() {
                   <ListTodo className="w-4 h-4 text-blue-500" />
                   <span className="text-sm text-foreground">{t("taskReminders")}</span>
                 </div>
-                <Switch 
-                  checked={taskReminders} 
+                <Switch
+                  checked={taskReminders}
                   onCheckedChange={setTaskReminders}
                   data-testid="switch-task-reminders"
                 />
@@ -266,8 +221,8 @@ export default function SettingsPage() {
                   <Sparkles className="w-4 h-4 text-violet-500" />
                   <span className="text-sm text-foreground">{t("habitReminders")}</span>
                 </div>
-                <Switch 
-                  checked={habitReminders} 
+                <Switch
+                  checked={habitReminders}
                   onCheckedChange={setHabitReminders}
                   data-testid="switch-habit-reminders"
                 />
@@ -277,8 +232,8 @@ export default function SettingsPage() {
                   <Timer className="w-4 h-4 text-emerald-500" />
                   <span className="text-sm text-foreground">{t("focusReminders")}</span>
                 </div>
-                <Switch 
-                  checked={focusReminders} 
+                <Switch
+                  checked={focusReminders}
                   onCheckedChange={setFocusReminders}
                   data-testid="switch-focus-reminders"
                 />
@@ -288,8 +243,8 @@ export default function SettingsPage() {
                   <Clock className="w-4 h-4 text-amber-500" />
                   <span className="text-sm text-foreground">{t("incompleteNudges")}</span>
                 </div>
-                <Switch 
-                  checked={incompleteNudges} 
+                <Switch
+                  checked={incompleteNudges}
                   onCheckedChange={setIncompleteNudges}
                   data-testid="switch-incomplete-nudges"
                 />
