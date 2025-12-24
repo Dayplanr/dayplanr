@@ -56,9 +56,26 @@ import {
 } from "@/components/ui/dialog";
 
 export default function SettingsPage() {
+  const { t } = useTranslation();
   const { user, signOut } = useAuth();
   const { darkMode, setDarkMode, themeColor, setThemeColor } = useTheme();
   const { toast } = useToast();
+
+  const [haptics, setHaptics] = useState(true);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [taskReminders, setTaskReminders] = useState(true);
+  const [habitReminders, setHabitReminders] = useState(true);
+  const [focusReminders, setFocusReminders] = useState(true);
+  const [reminderTiming, setReminderTiming] = useState("30min");
+  const [reminderStyle, setReminderStyle] = useState("gentle");
+  const [incompleteNudges, setIncompleteNudges] = useState(true);
+
+  const [displayName, setDisplayName] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const themeColors = [
     { name: "Violet", value: "#8b5cf6" },
@@ -120,67 +137,46 @@ export default function SettingsPage() {
     }
   };
 
-  const handleDarkModeToggle = (enabled: boolean) => {
-    setDarkMode(enabled);
-  };
-
-  const handleThemeColorChange = (color: string) => {
-    setThemeColor(color);
-  };
-
   const handleUpdateProfile = async () => {
-    try {
-      const { error } = await supabase.auth.updateUser({
-        data: { full_name: displayName }
-      });
-      if (error) throw error;
-      toast({
-        title: "Profile Updated",
-        description: "Your changes have been saved.",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update profile.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleUpdatePassword = async () => {
-    if (!newPassword) {
-      toast({
-        title: "Error",
-        description: "Please enter a new password.",
-        variant: "destructive",
-      });
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      toast({
-        title: "Error",
-        description: "Passwords do not match.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsUpdatingPassword(true);
     try {
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword
-      });
-      if (error) throw error;
+      // 1. Update Display Name if changed
+      const currentFullName = user?.user_metadata?.full_name || "";
+      if (displayName !== currentFullName) {
+        const { error: profileError } = await supabase.auth.updateUser({
+          data: { full_name: displayName }
+        });
+        if (profileError) throw profileError;
+      }
+
+      // 2. Update Password if provided
+      if (newPassword) {
+        if (newPassword !== confirmPassword) {
+          toast({
+            title: "Error",
+            description: "Passwords do not match.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        const { error: passwordError } = await supabase.auth.updateUser({
+          password: newPassword
+        });
+        if (passwordError) throw passwordError;
+
+        setNewPassword("");
+        setConfirmPassword("");
+      }
+
       toast({
-        title: "Password Updated",
-        description: "Your password has been successfully changed.",
+        title: "Profile Updated",
+        description: "Your changes have been saved successfully.",
       });
-      setNewPassword("");
-      setConfirmPassword("");
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to update password.",
+        description: error.message || "Failed to update profile.",
         variant: "destructive",
       });
     } finally {
@@ -291,18 +287,12 @@ export default function SettingsPage() {
                         placeholder="••••••••"
                       />
                     </div>
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={handleUpdatePassword}
-                      disabled={isUpdatingPassword}
-                    >
-                      {isUpdatingPassword ? "Updating..." : "Update Password"}
-                    </Button>
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button onClick={handleUpdateProfile}>Save Profile</Button>
+                  <Button onClick={handleUpdateProfile} disabled={isUpdatingPassword}>
+                    {isUpdatingPassword ? "Saving..." : "Save Profile"}
+                  </Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
@@ -388,7 +378,7 @@ export default function SettingsPage() {
                   {themeColors.map((color) => (
                     <button
                       key={color.value}
-                      onClick={() => handleThemeColorChange(color.value)}
+                      onClick={() => setThemeColor(color.value)}
                       className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all ${themeColor === color.value ? "border-primary bg-primary/10" : "border-transparent hover:bg-accent"
                         }`}
                     >
@@ -411,18 +401,10 @@ export default function SettingsPage() {
               </div>
               <Switch
                 checked={darkMode}
-                onCheckedChange={handleDarkModeToggle}
+                onCheckedChange={setDarkMode}
                 data-testid="switch-dark-mode"
               />
             </div>
-            <Separator />
-            <button className="w-full flex items-center justify-between px-4 py-3 hover-elevate" data-testid="button-app-icon">
-              <div className="flex items-center gap-3">
-                <Smartphone className="w-5 h-5 text-emerald-500" />
-                <span className="text-foreground">{t("appIcon")}</span>
-              </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            </button>
           </CardContent>
         </Card>
 
@@ -586,6 +568,6 @@ export default function SettingsPage() {
         </Card>
 
       </div>
-    </div>
+    </div >
   );
 }
