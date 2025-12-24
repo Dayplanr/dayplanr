@@ -79,11 +79,19 @@ export default function SettingsPage() {
 
   const themeColors = [
     { name: "Violet", value: "#8b5cf6" },
-    { name: "Blue", value: "#3b82f6" },
-    { name: "Emerald", value: "#10b981" },
-    { name: "Rose", value: "#f43f5e" },
-    { name: "Orange", value: "#f59e0b" },
     { name: "Indigo", value: "#6366f1" },
+    { name: "Blue", value: "#3b82f6" },
+    { name: "Sky", value: "#0ea5e9" },
+    { name: "Cyan", value: "#06b6d4" },
+    { name: "Teal", value: "#14b8a6" },
+    { name: "Emerald", value: "#10b981" },
+    { name: "Green", value: "#22c55e" },
+    { name: "Amber", value: "#f59e0b" },
+    { name: "Orange", value: "#f97316" },
+    { name: "Rose", value: "#f43f5e" },
+    { name: "Pink", value: "#ec4899" },
+    { name: "Fuchsia", value: "#d946ef" },
+    { name: "Slate", value: "#64748b" },
   ];
 
   useEffect(() => {
@@ -123,8 +131,7 @@ export default function SettingsPage() {
     try {
       const { error } = await supabase
         .from("user_settings")
-        .update({ [key]: value })
-        .eq("user_id", user.id);
+        .upsert({ user_id: user.id, [key]: value }, { onConflict: 'user_id' });
 
       if (error) throw error;
     } catch (error) {
@@ -374,20 +381,19 @@ export default function SettingsPage() {
                   <DialogTitle>{t("themeColor")}</DialogTitle>
                   <DialogDescription>Choose a primary color for your workspace.</DialogDescription>
                 </DialogHeader>
-                <div className="grid grid-cols-3 gap-4 py-4">
+                <div className="grid grid-cols-4 gap-3 py-4">
                   {themeColors.map((color) => (
                     <button
                       key={color.value}
                       onClick={() => setThemeColor(color.value)}
-                      className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all ${themeColor === color.value ? "border-primary bg-primary/10" : "border-transparent hover:bg-accent"
+                      className={`flex flex-col items-center gap-1.5 p-2 rounded-lg border-2 transition-all ${themeColor === color.value ? "border-primary bg-primary/10" : "border-transparent hover:bg-accent"
                         }`}
                     >
                       <div
-                        className="w-10 h-10 rounded-full shadow-sm"
+                        className="w-8 h-8 rounded-full shadow-sm ring-1 ring-black/5"
                         style={{ backgroundColor: color.value }}
                       />
-                      <span className="text-xs font-medium">{color.name}</span>
-                      {themeColor === color.value && <Check className="w-3 h-3 text-primary" />}
+                      <span className="text-[10px] font-medium truncate w-full text-center">{color.name}</span>
                     </button>
                   ))}
                 </div>

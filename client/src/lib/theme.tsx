@@ -65,8 +65,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         if (user) {
             await supabase
                 .from("user_settings")
-                .update({ dark_mode: enabled })
-                .eq("user_id", user.id);
+                .upsert({ user_id: user.id, dark_mode: enabled }, { onConflict: 'user_id' });
         }
     };
 
@@ -78,8 +77,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         if (user) {
             await supabase
                 .from("user_settings")
-                .update({ theme_color: color })
-                .eq("user_id", user.id);
+                .upsert({ user_id: user.id, theme_color: color }, { onConflict: 'user_id' });
         }
     };
 
