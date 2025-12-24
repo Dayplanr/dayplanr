@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { LanguageProvider } from "@/lib/i18n";
+import { ThemeProvider } from "@/lib/theme";
 import { AppSidebar } from "@/components/AppSidebar";
 import MobileTabBar from "@/components/MobileTabBar";
 import LandingPage from "@/pages/LandingPage";
@@ -83,19 +84,21 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <LanguageProvider>
-          <TooltipProvider>
-            {isAppRoute ? (
-              <AppLayout />
-            ) : (
-              <Switch>
-                <Route path="/" component={LandingPage} />
-                <Route path="/auth" component={AuthPage} />
-              </Switch>
-            )}
-            <Toaster />
-          </TooltipProvider>
-        </LanguageProvider>
+        <ThemeProvider>
+          <LanguageProvider>
+            <TooltipProvider>
+              {isAppRoute ? (
+                <AppLayout />
+              ) : (
+                <Switch>
+                  <Route path="/" component={LandingPage} />
+                  <Route path="/auth" component={AuthPage} />
+                </Switch>
+              )}
+              <Toaster />
+            </TooltipProvider>
+          </LanguageProvider>
+        </ThemeProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

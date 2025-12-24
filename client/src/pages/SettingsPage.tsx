@@ -6,6 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
+import { useTheme } from "@/lib/theme";
 import { useToast } from "@/hooks/use-toast";
 import {
   Select,
@@ -55,23 +56,9 @@ import {
 } from "@/components/ui/dialog";
 
 export default function SettingsPage() {
-  const { t } = useTranslation();
   const { user, signOut } = useAuth();
+  const { darkMode, setDarkMode, themeColor, setThemeColor } = useTheme();
   const { toast } = useToast();
-
-  const [darkMode, setDarkMode] = useState(false);
-  const [haptics, setHaptics] = useState(true);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [taskReminders, setTaskReminders] = useState(true);
-  const [habitReminders, setHabitReminders] = useState(true);
-  const [focusReminders, setFocusReminders] = useState(true);
-  const [reminderTiming, setReminderTiming] = useState("30min");
-  const [reminderStyle, setReminderStyle] = useState("gentle");
-  const [incompleteNudges, setIncompleteNudges] = useState(true);
-  const [themeColor, setThemeColor] = useState("#8b5cf6");
-  const [displayName, setDisplayName] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   const themeColors = [
     { name: "Violet", value: "#8b5cf6" },
@@ -97,7 +84,6 @@ export default function SettingsPage() {
         .single();
 
       if (data) {
-        setDarkMode(data.dark_mode);
         setHaptics(data.haptics_enabled);
         setNotificationsEnabled(data.notifications_enabled);
         setTaskReminders(data.task_reminders);
@@ -106,18 +92,7 @@ export default function SettingsPage() {
         setReminderTiming(data.reminder_timing);
         setReminderStyle(data.reminder_style);
         setIncompleteNudges(data.incomplete_nudges);
-        setThemeColor(data.theme_color || "#8b5cf6");
         setDisplayName(user?.user_metadata?.full_name || "");
-
-        if (data.dark_mode) {
-          document.documentElement.classList.add("dark");
-        } else {
-          document.documentElement.classList.remove("dark");
-        }
-
-        if (data.theme_color) {
-          document.documentElement.style.setProperty("--primary", data.theme_color);
-        }
       }
     } catch (error) {
       console.error("Error loading settings:", error);
@@ -147,18 +122,10 @@ export default function SettingsPage() {
 
   const handleDarkModeToggle = (enabled: boolean) => {
     setDarkMode(enabled);
-    updateSetting("dark_mode", enabled);
-    if (enabled) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
   };
 
   const handleThemeColorChange = (color: string) => {
     setThemeColor(color);
-    updateSetting("theme_color", color);
-    document.documentElement.style.setProperty("--primary", color);
   };
 
   const handleUpdateProfile = async () => {
@@ -177,6 +144,47 @@ export default function SettingsPage() {
         description: "Failed to update profile.",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleUpdatePassword = async () => {
+    if (!newPassword) {
+      toast({
+        title: "Error",
+        description: "Please enter a new password.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast({
+        title: "Error",
+        description: "Passwords do not match.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUpdatingPassword(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+      if (error) throw error;
+      toast({
+        title: "Password Updated",
+        description: "Your password has been successfully changed.",
+      });
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update password.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdatingPassword(false);
     }
   };
 
@@ -262,11 +270,39 @@ export default function SettingsPage() {
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Email Address</label>
                     <Input value={user?.email || ""} disabled className="bg-muted" />
-                    <p className="text-xs text-muted-foreground">Email cannot be changed here.</p>
+                  </div>
+                  <div className="space-y-4 pt-4 border-t">
+                    <h4 className="text-sm font-semibold">Change Password</h4>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">New Password</label>
+                      <Input
+                        type="password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="••••••••"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Confirm New Password</label>
+                      <Input
+                        type="password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="••••••••"
+                      />
+                    </div>
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={handleUpdatePassword}
+                      disabled={isUpdatingPassword}
+                    >
+                      {isUpdatingPassword ? "Updating..." : "Update Password"}
+                    </Button>
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button onClick={handleUpdateProfile}>Save Changes</Button>
+                  <Button onClick={handleUpdateProfile}>Save Profile</Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
