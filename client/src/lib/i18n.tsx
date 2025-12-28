@@ -1198,7 +1198,8 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     if (user) {
       await supabase
         .from("user_settings")
-        .upsert({ user_id: user.id, language: lang }, { onConflict: 'user_id' });
+        .update({ language: lang })
+        .eq("user_id", user.id);
     }
   };
 
