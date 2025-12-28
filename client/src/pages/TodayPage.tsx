@@ -21,6 +21,7 @@ import TodayInsights from "@/components/TodayInsights";
 import { useTranslation } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
+import { useNotifications } from "@/hooks/useNotifications";
 import { format, type Locale, startOfDay, endOfDay, subDays } from "date-fns";
 import { enUS, de, es, fr, it, pt, nl, pl } from "date-fns/locale";
 import { isHabitScheduledForDate, type Habit as HabitType } from "@/types/habits";
@@ -68,7 +69,8 @@ export default function TodayPage() {
   const { toast } = useToast();
   const { t, language } = useTranslation();
   const { user } = useAuth();
-  const [, navigate] = useLocation();
+  const notifications = useNotifications();
+  const [location, navigate] = useLocation();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showInsights, setShowInsights] = useState(false);
   const [openSections, setOpenSections] = useState({
@@ -143,6 +145,34 @@ export default function TodayPage() {
 
     setTasks(groups);
     setLoading(false);
+
+    // Schedule notifications for all tasks
+    data?.forEach((task: any) => {
+      if (!task.completed && task.time) {
+        notifications.scheduleTaskNotification({
+          id: task.id,
+          title: task.title,
+          time: task.time,
+          scheduled_date: task.scheduled_date,
+          completed: task.completed,
+        });
+      }
+    });
+
+    // Schedule incomplete nudge for end of day
+    const incompleteTasks = data?.filter((t: any) => !t.completed) || [];
+    if (incompleteTasks.length > 0) {
+      notifications.scheduleIncompleteNudge(
+        incompleteTasks.map((t: any) => ({
+          id: t.id,
+          title: t.title,
+          time: t.time,
+          scheduled_date: t.scheduled_date,
+          completed: t.completed,
+        })),
+        todayStr
+      );
+    }
   };
 
   const fetchStats = async () => {
@@ -191,7 +221,7 @@ export default function TodayPage() {
   useEffect(() => {
     fetchTasks();
     fetchStats();
-  }, [user, selectedDate]);
+  }, [user, selectedDate, location]);
 
   const handleToggleTask = async (period: keyof TaskGroups, id: string) => {
     const task = tasks[period].find(t => t.id === id);
@@ -262,6 +292,22 @@ export default function TodayPage() {
         t.id === id ? { ...t, completed: newCompleted } : t
       ),
     }));
+
+    // Cancel notification if task is completed, reschedule if uncompleted
+    if (newCompleted) {
+      notifications.cancelNotification(id);
+    } else {
+      const updatedTask = tasks[period].find(t => t.id === id);
+      if (updatedTask && updatedTask.time) {
+        notifications.scheduleTaskNotification({
+          id: updatedTask.id,
+          title: updatedTask.title,
+          time: updatedTask.time,
+          scheduled_date: updatedTask.scheduled_date,
+          completed: false,
+        });
+      }
+    }
 
     // Refresh stats to update habits completed count
     fetchStats();

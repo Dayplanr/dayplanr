@@ -40,6 +40,33 @@ export default function HabitsPage() {
 
   const [habits, setHabits] = useState<Habit[]>([]);
 
+  const calculateStreak = (completedDates: string[]): number => {
+    if (completedDates.length === 0) return 0;
+
+    const sortedDates = [...completedDates].sort().reverse();
+    const today = format(new Date(), "yyyy-MM-dd");
+    const yesterday = format(subDays(new Date(), 1), "yyyy-MM-dd");
+
+    if (sortedDates[0] !== today && sortedDates[0] !== yesterday) {
+      return 0;
+    }
+
+    let streak = 1;
+    for (let i = 0; i < sortedDates.length - 1; i++) {
+      const current = new Date(sortedDates[i]);
+      const next = new Date(sortedDates[i + 1]);
+      const diff = (current.getTime() - next.getTime()) / (1000 * 60 * 60 * 24);
+
+      if (diff === 1) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+
+    return streak;
+  };
+
   const fetchHabits = async () => {
     if (!user) return;
     setLoading(true);
@@ -63,7 +90,7 @@ export default function HabitsPage() {
         challengeDays: h.challenge_days || 0,
         challengeType: h.challenge_type,
         challengeCompleted: h.challenge_completed || 0,
-        streak: h.streak || 0,
+        streak: calculateStreak(h.completed_dates || []),
         bestStreak: h.best_streak || 0,
         successRate: h.success_rate || 0,
         weeklyConsistency: h.weekly_consistency || 0,
@@ -144,32 +171,6 @@ export default function HabitsPage() {
     }
   };
 
-  const calculateStreak = (completedDates: string[]): number => {
-    if (completedDates.length === 0) return 0;
-
-    const sortedDates = [...completedDates].sort().reverse();
-    const today = format(new Date(), "yyyy-MM-dd");
-    const yesterday = format(subDays(new Date(), 1), "yyyy-MM-dd");
-
-    if (sortedDates[0] !== today && sortedDates[0] !== yesterday) {
-      return 0;
-    }
-
-    let streak = 1;
-    for (let i = 0; i < sortedDates.length - 1; i++) {
-      const current = new Date(sortedDates[i]);
-      const next = new Date(sortedDates[i + 1]);
-      const diff = (current.getTime() - next.getTime()) / (1000 * 60 * 60 * 24);
-
-      if (diff === 1) {
-        streak++;
-      } else {
-        break;
-      }
-    }
-
-    return streak;
-  };
 
   const handleEditHabit = async (updatedHabit: Habit) => {
     try {

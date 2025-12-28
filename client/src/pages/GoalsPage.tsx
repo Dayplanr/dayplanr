@@ -12,7 +12,7 @@ import GoalCard from "@/components/GoalCard";
 import EditGoalSheet from "@/components/EditGoalSheet";
 import GoalInsights from "@/components/GoalInsights";
 import { useTranslation } from "@/lib/i18n";
-import { format } from "date-fns";
+import { format, differenceInDays } from "date-fns";
 import type { Goal } from "@/types/goals";
 import { calculateGoalProgress } from "@/types/goals";
 import { supabase } from "@/lib/supabase";
@@ -47,25 +47,35 @@ export default function GoalsPage() {
 
       if (goalsError) throw goalsError;
 
-      const formattedGoals: Goal[] = goalsData?.map((g: any) => ({
-        id: g.id,
-        title: g.title,
-        purpose: g.purpose,
-        category: g.category,
-        challengeDuration: g.challenge_duration,
-        visionText: g.vision_text,
-        streak: g.streak,
-        daysWithProgress: g.days_with_progress,
-        progress: g.progress,
-        createdAt: g.created_at,
-        lastActivityAt: g.last_activity_at,
-        milestones: g.milestones.map((m: any) => ({
-          id: m.id,
-          title: m.title,
-          completed: m.completed,
-        })),
-        tags: g.tags || [],
-      })) || [];
+      const formattedGoals: Goal[] = goalsData?.map((g: any) => {
+        const createdDate = new Date(g.created_at);
+        const today = new Date();
+        const daysSinceStarted = differenceInDays(today, createdDate) + 1;
+        const duration = g.challenge_duration || 0;
+
+        // Cap daysWithProgress at challenge duration if duration exists
+        const displayDays = duration > 0 ? Math.min(daysSinceStarted, duration) : daysSinceStarted;
+
+        return {
+          id: g.id,
+          title: g.title,
+          purpose: g.purpose,
+          category: g.category,
+          challengeDuration: g.challenge_duration,
+          visionText: g.vision_text,
+          streak: g.streak,
+          daysWithProgress: Math.max(1, displayDays), // Ensure at least day 1
+          progress: g.progress,
+          createdAt: g.created_at,
+          lastActivityAt: g.last_activity_at,
+          milestones: g.milestones.map((m: any) => ({
+            id: m.id,
+            title: m.title,
+            completed: m.completed,
+          })),
+          tags: g.tags || [],
+        };
+      }) || [];
 
       setGoals(formattedGoals);
     } catch (error: any) {

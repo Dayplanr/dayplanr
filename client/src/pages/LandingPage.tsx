@@ -2,10 +2,12 @@ import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle2, Target, TrendingUp, Timer, ArrowRight, Calendar, Smartphone, Monitor, Flame } from "lucide-react";
+import { CheckCircle2, Target, TrendingUp, Timer, ArrowRight, Calendar, Smartphone, Monitor, Flame, LayoutDashboard } from "lucide-react";
+import { useAuth } from "@/lib/auth";
 
 export default function LandingPage() {
   const [, navigate] = useLocation();
+  const { user } = useAuth();
 
   const features = [
     {
@@ -42,7 +44,7 @@ export default function LandingPage() {
     { value: "10K+", label: "Active Users", bgColor: "bg-blue-50 dark:bg-blue-900/20" },
     { value: "1M+", label: "Tasks Completed", bgColor: "bg-purple-50 dark:bg-purple-900/20" },
     { value: "500K+", label: "Focus Hours", bgColor: "bg-orange-50 dark:bg-orange-900/20" },
-    { value: "8", label: "Languages", bgColor: "bg-emerald-50 dark:bg-emerald-900/20" },
+    { value: "100%", label: "Free", bgColor: "bg-emerald-50 dark:bg-emerald-900/20" },
   ];
 
   return (
@@ -56,13 +58,22 @@ export default function LandingPage() {
             <span className="text-xl font-bold text-foreground">dayplanr</span>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="ghost" onClick={() => navigate("/auth")} data-testid="button-login-header">
-              Login
-            </Button>
-            <Button onClick={() => navigate("/app")} data-testid="button-get-started-header">
-              Get Started
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
+            {user ? (
+              <Button onClick={() => navigate("/app")} data-testid="button-dashboard-header">
+                <LayoutDashboard className="w-4 h-4 mr-2" />
+                Dashboard
+              </Button>
+            ) : (
+              <>
+                <Button variant="ghost" onClick={() => navigate("/auth")} data-testid="button-login-header">
+                  Login
+                </Button>
+                <Button onClick={() => navigate("/app")} data-testid="button-get-started-header">
+                  Get Started
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -88,13 +99,23 @@ export default function LandingPage() {
                 track goals, and stay focused.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button variant="outline" size="lg" onClick={() => navigate("/auth")} data-testid="button-login">
-                  Login
-                </Button>
-                <Button size="lg" onClick={() => navigate("/app")} data-testid="button-start-free">
-                  Get Started
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
+                {user ? (
+                  <Button size="lg" onClick={() => navigate("/app")} data-testid="button-dashboard">
+                    <LayoutDashboard className="w-5 h-5 mr-2" />
+                    Go to Dashboard
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                  </Button>
+                ) : (
+                  <>
+                    <Button variant="outline" size="lg" onClick={() => navigate("/auth")} data-testid="button-login">
+                      Login
+                    </Button>
+                    <Button size="lg" onClick={() => navigate("/app")} data-testid="button-start-free">
+                      Get Started
+                      <ArrowRight className="w-5 h-5 ml-2" />
+                    </Button>
+                  </>
+                )}
               </div>
             </motion.div>
 
@@ -146,7 +167,7 @@ export default function LandingPage() {
                     <span className="font-medium text-foreground">Desktop Web App</span>
                   </div>
                   <CardContent className="p-0">
-                    <img src="/src/assets/screenshot-habits.png" alt="dayplanr desktop app showing habits tracking" className="w-full h-auto" />
+                    <img src="/src/assets/desktop-habits.png" alt="dayplanr desktop app showing habits tracking" className="w-full h-auto" />
                   </CardContent>
                 </Card>
               </motion.div>
@@ -164,7 +185,7 @@ export default function LandingPage() {
                     <span className="font-medium text-sm text-foreground">Mobile App</span>
                   </div>
                   <CardContent className="p-0">
-                    <img src="/src/assets/screenshot-today.png" alt="dayplanr mobile app showing today view" className="w-full h-auto" />
+                    <img src="/src/assets/mobile-today.png" alt="dayplanr mobile app showing today view" className="w-full h-auto" />
                   </CardContent>
                 </Card>
               </motion.div>
@@ -185,7 +206,7 @@ export default function LandingPage() {
                 Everything You Need to Stay Productive
               </h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
-                Powerful features designed to help you accomplish your goals and build better habits.
+                Link your daily tasks to meaningful goals and lasting habits. Every completed task becomes a step toward your dreams.
               </p>
             </motion.div>
 

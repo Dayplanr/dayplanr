@@ -7,6 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
+import { useNotifications } from "@/hooks/useNotifications";
 import { useToast } from "@/hooks/use-toast";
 import {
   Select,
@@ -59,6 +60,7 @@ export default function SettingsPage() {
   const { t } = useTranslation();
   const { user, signOut } = useAuth();
   const { darkMode, setDarkMode, themeColor, setThemeColor } = useTheme();
+  const notifications = useNotifications();
   const { toast } = useToast();
 
   const [haptics, setHaptics] = useState(true);
@@ -337,13 +339,51 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between px-4 py-3">
               <div className="flex items-center gap-3">
                 <Bell className="w-5 h-5 text-amber-500" />
-                <span className="text-foreground">{t("notifications")}</span>
+                <div>
+                  <span className="text-foreground">{t("notifications")}</span>
+                  {notifications.getPermissionStatus() === "granted" && (
+                    <p className="text-xs text-green-600 dark:text-green-400">Enabled in browser</p>
+                  )}
+                  {notifications.getPermissionStatus() === "denied" && (
+                    <p className="text-xs text-destructive">Blocked by browser</p>
+                  )}
+                  {notifications.getPermissionStatus() === "default" && (
+                    <p className="text-xs text-muted-foreground">Permission not requested</p>
+                  )}
+                </div>
               </div>
               <Switch
                 checked={notificationsEnabled}
-                onCheckedChange={(val) => {
+                onCheckedChange={async (val) => {
+                  console.log("[Settings] Notification toggle changed to:", val);
+                  console.log("[Settings] Current permission:", notifications.getPermissionStatus());
+
+                  if (val && notifications.getPermissionStatus() !== "granted") {
+                    console.log("[Settings] Requesting browser permission...");
+                    const permission = await notifications.requestPermission();
+                    console.log("[Settings] Permission result:", permission);
+
+                    if (permission !== "granted") {
+                      console.error("[Settings] Permission was denied or dismissed");
+                      toast({
+                        title: "Permission Required",
+                        description: "Please allow notifications in your browser to enable reminders.",
+                        variant: "destructive",
+                      });
+                      // Don't update the setting if permission was denied
+                      return;
+                    }
+                    console.log("[Settings] Permission granted successfully!");
+                  }
+
+                  console.log("[Settings] Updating notification setting to:", val);
                   setNotificationsEnabled(val);
                   updateSetting("notifications_enabled", val);
+
+                  toast({
+                    title: val ? "Notifications Enabled" : "Notifications Disabled",
+                    description: val ? "You'll receive reminders for your tasks" : "Reminders are turned off",
+                  });
                 }}
                 data-testid="switch-notifications"
               />
@@ -420,139 +460,9 @@ export default function SettingsPage() {
               </div>
               <LanguageSelector />
             </div>
-            <Separator />
-            <div className="flex items-center justify-between px-4 py-3">
-              <div className="flex items-center gap-3">
-                <Vibrate className="w-5 h-5 text-orange-500" />
-                <span className="text-foreground">{t("haptics")}</span>
-              </div>
-              <Switch
-                checked={haptics}
-                onCheckedChange={(val) => {
-                  setHaptics(val);
-                  updateSetting("haptics_enabled", val);
-                }}
-                data-testid="switch-haptics"
-              />
-            </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">{t("reminderSettings")}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 pt-2">
-            <p className="text-sm text-muted-foreground">
-              {t("reminderDescription")}
-            </p>
-
-            <div className="space-y-3">
-              <p className="text-sm font-medium text-foreground">{t("reminderCategories")}</p>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <ListTodo className="w-4 h-4 text-blue-500" />
-                  <span className="text-sm text-foreground">{t("taskReminders")}</span>
-                </div>
-                <Switch
-                  checked={taskReminders}
-                  onCheckedChange={(val) => {
-                    setTaskReminders(val);
-                    updateSetting("task_reminders", val);
-                  }}
-                  data-testid="switch-task-reminders"
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Sparkles className="w-4 h-4 text-violet-500" />
-                  <span className="text-sm text-foreground">{t("habitReminders")}</span>
-                </div>
-                <Switch
-                  checked={habitReminders}
-                  onCheckedChange={(val) => {
-                    setHabitReminders(val);
-                    updateSetting("habit_reminders", val);
-                  }}
-                  data-testid="switch-habit-reminders"
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Timer className="w-4 h-4 text-emerald-500" />
-                  <span className="text-sm text-foreground">{t("focusReminders")}</span>
-                </div>
-                <Switch
-                  checked={focusReminders}
-                  onCheckedChange={(val) => {
-                    setFocusReminders(val);
-                    updateSetting("focus_reminders", val);
-                  }}
-                  data-testid="switch-focus-reminders"
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Clock className="w-4 h-4 text-amber-500" />
-                  <span className="text-sm text-foreground">{t("incompleteNudges")}</span>
-                </div>
-                <Switch
-                  checked={incompleteNudges}
-                  onCheckedChange={(val) => {
-                    setIncompleteNudges(val);
-                    updateSetting("incomplete_nudges", val);
-                  }}
-                  data-testid="switch-incomplete-nudges"
-                />
-              </div>
-            </div>
-
-            <Separator />
-
-            <div className="space-y-3">
-              <p className="text-sm font-medium text-foreground">{t("timing")}</p>
-              <Select
-                value={reminderTiming}
-                onValueChange={(val) => {
-                  setReminderTiming(val);
-                  updateSetting("reminder_timing", val);
-                }}
-              >
-                <SelectTrigger data-testid="select-reminder-timing">
-                  <SelectValue placeholder={t("timing")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="attime">{t("atTime")}</SelectItem>
-                  <SelectItem value="10min">{t("minutesBefore10")}</SelectItem>
-                  <SelectItem value="30min">{t("minutesBefore30")}</SelectItem>
-                  <SelectItem value="1hour">{t("hourBefore")}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-3">
-              <p className="text-sm font-medium text-foreground">{t("notificationStyle")}</p>
-              <Select
-                value={reminderStyle}
-                onValueChange={(val) => {
-                  setReminderStyle(val);
-                  updateSetting("reminder_style", val);
-                }}
-              >
-                <SelectTrigger data-testid="select-reminder-style">
-                  <SelectValue placeholder={t("notificationStyle")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="gentle">{t("gentle")}</SelectItem>
-                  <SelectItem value="important">{t("important")}</SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground">
-                {t("reminderNote")}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
 
         <Card className="bg-card">
           <CardContent className="p-0">

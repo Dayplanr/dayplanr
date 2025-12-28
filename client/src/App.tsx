@@ -87,20 +87,40 @@ function App() {
         <ThemeProvider>
           <LanguageProvider>
             <TooltipProvider>
-              {isAppRoute ? (
-                <AppLayout />
-              ) : (
-                <Switch>
-                  <Route path="/" component={LandingPage} />
-                  <Route path="/auth" component={AuthPage} />
-                </Switch>
-              )}
+              <AppContent isAppRoute={isAppRoute} />
               <Toaster />
             </TooltipProvider>
           </LanguageProvider>
         </ThemeProvider>
       </AuthProvider>
     </QueryClientProvider>
+  );
+}
+
+function AppContent({ isAppRoute }: { isAppRoute: boolean }) {
+  const { loading } = useAuth();
+
+  // Show nothing while checking for existing session
+  if (loading) {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <img src="/src/assets/logo.png" alt="dayplanr" className="w-full h-full object-contain" />
+          </div>
+          <div className="animate-pulse text-muted-foreground">Loading...</div>
+        </div>
+      </div>
+    );
+  }
+
+  return isAppRoute ? (
+    <AppLayout />
+  ) : (
+    <Switch>
+      <Route path="/" component={LandingPage} />
+      <Route path="/auth" component={AuthPage} />
+    </Switch>
   );
 }
 

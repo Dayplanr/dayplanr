@@ -13,7 +13,7 @@ import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 
 const DURATIONS = ["5m", "10m", "15m", "30m", "45m", "60m", "90m"];
-const CATEGORIES = ["Personal", "Work", "Health", "Learning", "Other"];
+const CATEGORIES = ["Personal", "Work", "Health", "Learning"];
 const PRIORITIES = ["low", "medium", "high"] as const;
 
 export default function AddTaskPage() {
@@ -32,7 +32,9 @@ export default function AddTaskPage() {
   const [customDuration, setCustomDuration] = useState("");
   const [isCustomDuration, setIsCustomDuration] = useState(false);
   const [linkedHabit, setLinkedHabit] = useState<string | null>("none");
-  const [category, setCategory] = useState("Personal");
+  const [category, setCategory] = useState<string | null>("Personal");
+  const [customCategory, setCustomCategory] = useState("");
+  const [isCustomCategory, setIsCustomCategory] = useState(false);
   const [priority, setPriority] = useState<typeof PRIORITIES[number]>("medium");
   const [linkedGoal, setLinkedGoal] = useState<string | null>("none");
   const [loading, setLoading] = useState(false);
@@ -83,8 +85,16 @@ export default function AddTaskPage() {
 
         // Handle category parsing
         const rawCategory = editData.category;
-        if (rawCategory && CATEGORIES.includes(rawCategory)) {
-          setCategory(rawCategory);
+        if (rawCategory) {
+          if (rawCategory === "None" || CATEGORIES.includes(rawCategory)) {
+            setCategory(rawCategory);
+            setIsCustomCategory(false);
+          } else {
+            // Custom category
+            setIsCustomCategory(true);
+            setCustomCategory(rawCategory);
+            setCategory(null);
+          }
         }
 
         setEditTaskId(editData.id);
@@ -140,7 +150,7 @@ export default function AddTaskPage() {
         goal_id: linkedGoal === "none" ? null : linkedGoal,
         scheduled_date: scheduledDate,
         duration: finalDuration,
-        category: category,
+        category: isCustomCategory ? (customCategory || null) : category,
       };
 
       let error;
@@ -314,14 +324,29 @@ export default function AddTaskPage() {
             <div className="space-y-2">
               <Label className="text-primary font-medium">{t("category")}</Label>
               <div className="flex flex-wrap gap-2">
+                <Button
+                  key="none"
+                  type="button"
+                  variant={!isCustomCategory && category === "None" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => {
+                    setCategory("None");
+                    setIsCustomCategory(false);
+                  }}
+                  className="rounded-full"
+                  data-testid="button-category-none"
+                >
+                  {t("none")}
+                </Button>
                 {CATEGORIES.map((cat) => (
                   <Button
                     key={cat}
                     type="button"
-                    variant={category === cat ? "default" : "outline"}
+                    variant={!isCustomCategory && category === cat ? "default" : "outline"}
                     size="sm"
                     onClick={() => {
                       setCategory(cat);
+                      setIsCustomCategory(false);
                     }}
                     className="rounded-full"
                     data-testid={`button-category-${cat.toLowerCase()}`}
@@ -329,7 +354,28 @@ export default function AddTaskPage() {
                     {t(cat.toLowerCase() as any) || cat}
                   </Button>
                 ))}
+                <Button
+                  type="button"
+                  variant={isCustomCategory ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setIsCustomCategory(!isCustomCategory)}
+                  className="rounded-full"
+                  data-testid="button-category-custom"
+                >
+                  {t("custom" as any) || "Custom"}
+                </Button>
               </div>
+              {isCustomCategory && (
+                <div className="max-w-[200px] mt-2">
+                  <Input
+                    type="text"
+                    placeholder="Enter category"
+                    value={customCategory}
+                    onChange={(e) => setCustomCategory(e.target.value)}
+                    className="h-8"
+                  />
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
