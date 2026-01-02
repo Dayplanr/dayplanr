@@ -7,8 +7,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreVertical, Pencil, Trash2, Check, Star } from "lucide-react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { MoreVertical, Pencil, Trash2, Check, Star, ChevronUp, ChevronDown } from "lucide-react";
 import { format, subDays, addDays, startOfDay, isSameDay } from "date-fns";
+import { useState } from "react";
 import type { ScheduleType } from "@/types/habits";
 
 interface HabitCardProps {
@@ -83,6 +89,7 @@ export default function HabitCard({
   onEdit,
   onDelete,
 }: HabitCardProps) {
+  const [isOpen, setIsOpen] = useState(false);
   const today = new Date();
 
   // Calculate the current week's Monday (Mon-Sun order)
@@ -125,131 +132,157 @@ export default function HabitCard({
 
   return (
     <Card className="hover-elevate bg-white dark:bg-card" data-testid={`card-habit-${id}`}>
-      <CardContent className="p-5 space-y-4">
-        <div className="flex items-start justify-between gap-2">
-          <div className="space-y-1">
-            <h3 className="text-lg font-semibold text-foreground leading-tight" data-testid={`text-habit-title-${id}`}>
-              {title}
-            </h3>
-            {challengeType && (
-              <p className="text-[10px] font-bold text-primary uppercase tracking-wider">
-                🏆 {challengeType}
-              </p>
-            )}
-          </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 -mr-2 -mt-1" data-testid={`button-habit-menu-${id}`}>
-                <MoreVertical className="w-4 h-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={onEdit} data-testid={`button-edit-habit-${id}`}>
-                <Pencil className="w-4 h-4 mr-2" />
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={onDelete}
-                className="text-destructive focus:text-destructive"
-                data-testid={`button-delete-habit-${id}`}
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-
-        <div>
-          <p className="text-[10px] font-bold text-muted-foreground mb-3 tracking-wide flex justify-between items-center opacity-80 uppercase">
-            <span>Last 7 Days</span>
-          </p>
-          <div className="flex items-center justify-between gap-1">
-            {weekDays.map((day) => {
-              const isCompleted = completedDates.includes(day.dateStr);
-              const isToday = isSameDay(day.date, today);
-
-              // Soft pastel highlighting for scheduled but not yet completed days
-              let bgColor = "bg-muted/50";
-              let textColor = "text-muted-foreground/60";
-              let ringColor = "";
-
-              if (isCompleted) {
-                bgColor = "bg-green-500";
-                textColor = "text-white";
-              } else if (day.isScheduled) {
-                // Soft pastel primary for scheduled days
-                bgColor = "bg-primary/20";
-                textColor = "text-primary font-bold";
-                if (isToday) ringColor = "ring-2 ring-primary ring-offset-2";
-              } else if (isToday) {
-                ringColor = "ring-2 ring-muted-foreground/30 ring-offset-2";
-              }
-
-              return (
-                <button
-                  key={day.dateStr}
-                  onClick={() => onToggleDay?.(day.dateStr)}
-                  className={`flex flex-col items-center gap-1 flex-1 relative ${isToday ? "after:content-[''] after:absolute after:-bottom-2 after:w-1 after:h-1 after:bg-primary after:rounded-full" : ""}`}
-                  data-testid={`button-day-${day.dateStr}`}
-                >
-                  <span className={`text-[10px] ${day.isScheduled ? "text-foreground font-medium" : "text-muted-foreground/60"}`}>
-                    {day.dayName}
-                  </span>
-                  <div
-                    className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-medium transition-all ${bgColor} ${textColor} ${ringColor}`}
-                  >
-                    {isCompleted ? (
-                      <Check className="w-4 h-4" />
-                    ) : (
-                      day.dayNumber
+      <CardContent className="p-5">
+        <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+          <div className="flex items-start justify-between gap-4">
+            <CollapsibleTrigger asChild>
+              <button className="flex items-center gap-2 flex-1 text-left">
+                <div className="space-y-1 flex-1">
+                  <h3 className="text-lg font-semibold text-foreground leading-tight" data-testid={`text-habit-title-${id}`}>
+                    {title}
+                  </h3>
+                  {challengeType && (
+                    <p className="text-[10px] font-bold text-primary uppercase tracking-wider">
+                      🏆 {challengeType}
+                    </p>
+                  )}
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <span>🔥 {currentStreak}d</span>
+                    <span>⭐ {best}d</span>
+                    {category && (
+                      <Badge variant="outline" className="text-[10px] font-medium bg-muted/30">
+                        {category}
+                      </Badge>
                     )}
                   </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-orange-50 dark:bg-orange-950/20 rounded-xl p-3 border border-orange-100 dark:border-orange-900/30">
-            <p className="text-[10px] text-orange-600 dark:text-orange-400 font-bold uppercase tracking-wider mb-1">Current Streak</p>
-            <div className="flex items-center gap-2">
-              <span className="text-xl">🔥</span>
-              <span className="text-xl font-bold text-orange-700 dark:text-orange-300">{currentStreak}d</span>
+                </div>
+              </button>
+            </CollapsibleTrigger>
+            <div className="flex items-center gap-1 shrink-0">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setIsOpen(!isOpen)}
+              >
+                {isOpen ? (
+                  <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                )}
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" data-testid={`button-habit-menu-${id}`}>
+                    <MoreVertical className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={onEdit} data-testid={`button-edit-habit-${id}`}>
+                    <Pencil className="w-4 h-4 mr-2" />
+                    Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={onDelete}
+                    className="text-destructive focus:text-destructive"
+                    data-testid={`button-delete-habit-${id}`}
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
-          <div className="bg-yellow-50 dark:bg-yellow-950/20 rounded-xl p-3 border border-yellow-100 dark:border-yellow-900/30">
-            <p className="text-[10px] text-yellow-600 dark:text-yellow-400 font-bold uppercase tracking-wider mb-1">Best Streak</p>
-            <div className="flex items-center gap-2">
-              <span className="text-xl">⭐</span>
-              <span className="text-xl font-bold text-yellow-700 dark:text-yellow-300">{best}d</span>
-            </div>
-          </div>
-        </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          {category && (
-            <Badge variant="outline" className="text-[10px] font-medium bg-muted/30" data-testid={`badge-category-${id}`}>
-              {category}
-            </Badge>
-          )}
-          {scheduleType !== "weekdays" && (
-            <Badge variant="secondary" className="text-[10px] font-medium" data-testid={`badge-schedule-${id}`}>
-              {scheduleLabel}
-            </Badge>
-          )}
-          {selectedDaysTag && (
-            <Badge variant="outline" className="text-[10px] font-bold border-primary/40 text-primary bg-primary/5 uppercase tracking-tighter">
-              {selectedDaysTag}
-            </Badge>
-          )}
-          {tags.map((tag) => (
-            <Badge key={tag} variant="outline" className="text-[10px] font-medium border-border text-muted-foreground bg-muted/20">
-              {tag}
-            </Badge>
-          ))}
-        </div>
+          <CollapsibleContent className="space-y-4 mt-4">
+            <div>
+              <p className="text-[10px] font-bold text-muted-foreground mb-3 tracking-wide flex justify-between items-center opacity-80 uppercase">
+                <span>Last 7 Days</span>
+              </p>
+              <div className="flex items-center justify-between gap-1">
+                {weekDays.map((day) => {
+                  const isCompleted = completedDates.includes(day.dateStr);
+                  const isToday = isSameDay(day.date, today);
+
+                  // Soft pastel highlighting for scheduled but not yet completed days
+                  let bgColor = "bg-muted/50";
+                  let textColor = "text-muted-foreground/60";
+                  let ringColor = "";
+
+                  if (isCompleted) {
+                    bgColor = "bg-green-500";
+                    textColor = "text-white";
+                  } else if (day.isScheduled) {
+                    // Soft pastel primary for scheduled days
+                    bgColor = "bg-primary/20";
+                    textColor = "text-primary font-bold";
+                    if (isToday) ringColor = "ring-2 ring-primary ring-offset-2";
+                  } else if (isToday) {
+                    ringColor = "ring-2 ring-muted-foreground/30 ring-offset-2";
+                  }
+
+                  return (
+                    <button
+                      key={day.dateStr}
+                      onClick={() => onToggleDay?.(day.dateStr)}
+                      className={`flex flex-col items-center gap-1 flex-1 relative ${isToday ? "after:content-[''] after:absolute after:-bottom-2 after:w-1 after:h-1 after:bg-primary after:rounded-full" : ""}`}
+                      data-testid={`button-day-${day.dateStr}`}
+                    >
+                      <span className={`text-[10px] ${day.isScheduled ? "text-foreground font-medium" : "text-muted-foreground/60"}`}>
+                        {day.dayName}
+                      </span>
+                      <div
+                        className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-medium transition-all ${bgColor} ${textColor} ${ringColor}`}
+                      >
+                        {isCompleted ? (
+                          <Check className="w-4 h-4" />
+                        ) : (
+                          day.dayNumber
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-orange-50 dark:bg-orange-950/20 rounded-xl p-3 border border-orange-100 dark:border-orange-900/30">
+                <p className="text-[10px] text-orange-600 dark:text-orange-400 font-bold uppercase tracking-wider mb-1">Current Streak</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">🔥</span>
+                  <span className="text-xl font-bold text-orange-700 dark:text-orange-300">{currentStreak}d</span>
+                </div>
+              </div>
+              <div className="bg-yellow-50 dark:bg-yellow-950/20 rounded-xl p-3 border border-yellow-100 dark:border-yellow-900/30">
+                <p className="text-[10px] text-yellow-600 dark:text-yellow-400 font-bold uppercase tracking-wider mb-1">Best Streak</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">⭐</span>
+                  <span className="text-xl font-bold text-yellow-700 dark:text-yellow-300">{best}d</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              {scheduleType !== "weekdays" && (
+                <Badge variant="secondary" className="text-[10px] font-medium" data-testid={`badge-schedule-${id}`}>
+                  {scheduleLabel}
+                </Badge>
+              )}
+              {selectedDaysTag && (
+                <Badge variant="outline" className="text-[10px] font-bold border-primary/40 text-primary bg-primary/5 uppercase tracking-tighter">
+                  {selectedDaysTag}
+                </Badge>
+              )}
+              {tags.map((tag) => (
+                <Badge key={tag} variant="outline" className="text-[10px] font-medium border-border text-muted-foreground bg-muted/20">
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
       </CardContent>
     </Card>
   );

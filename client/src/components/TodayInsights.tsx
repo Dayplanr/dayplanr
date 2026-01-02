@@ -26,7 +26,7 @@ import {
   Line,
   Legend,
 } from "recharts";
-import { format, subDays, startOfMonth, eachDayOfInterval, getDay } from "date-fns";
+import { format, subDays, startOfMonth, eachDayOfInterval, getDay, startOfWeek, endOfWeek, eachWeekOfInterval, startOfYear, endOfYear } from "date-fns";
 
 interface TodayInsightsProps {
   open: boolean;
@@ -46,6 +46,27 @@ const months = [
   "July", "August", "September", "October", "November", "December"
 ];
 
+const generateYears = () => {
+  return [2026, 2027, 2028, 2029, 2030];
+};
+
+const generateWeeks = (year: number) => {
+  const yearStart = startOfYear(new Date(year, 0, 1));
+  const yearEnd = endOfYear(new Date(year, 11, 31));
+  const weeks = eachWeekOfInterval({ start: yearStart, end: yearEnd }, { weekStartsOn: 1 }); // Monday start
+  
+  return weeks.map((weekStart, index) => {
+    const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
+    return {
+      value: index + 1,
+      label: `Week ${index + 1}`,
+      dateRange: `${format(weekStart, "MMM d")} - ${format(weekEnd, "MMM d")}`,
+      startDate: weekStart,
+      endDate: weekEnd
+    };
+  });
+};
+
 export default function TodayInsights({
   open,
   onOpenChange,
@@ -57,6 +78,8 @@ export default function TodayInsights({
 }: TodayInsightsProps) {
   const [activeTab, setActiveTab] = useState("weekly");
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "MMMM"));
+  const [selectedYear, setSelectedYear] = useState(2026);
+  const [selectedWeek, setSelectedWeek] = useState(1);
 
   const weeklyData = [
     { day: "Mon", tasks: 5, focus: 45 },
@@ -68,9 +91,8 @@ export default function TodayInsights({
     { day: "Sun", tasks: 1, focus: 15 },
   ];
 
-  const getMonthlyData = (month: string) => {
+  const getMonthlyData = (month: string, year: number) => {
     const monthIndex = months.indexOf(month);
-    const year = new Date().getFullYear();
     const startDate = new Date(year, monthIndex, 1);
     const endDate = new Date(year, monthIndex + 1, 0);
     
@@ -81,13 +103,17 @@ export default function TodayInsights({
     }));
   };
 
-  const monthlyData = getMonthlyData(selectedMonth);
+  const monthlyData = getMonthlyData(selectedMonth, selectedYear);
 
-  const yearlyData = months.map((month) => ({
-    month: month.substring(0, 3),
-    tasks: Math.floor(Math.random() * 150) + 50,
-    focus: Math.floor(Math.random() * 1500) + 300,
-  }));
+  const getYearlyData = (year: number) => {
+    return months.map((month) => ({
+      month: month.substring(0, 3),
+      tasks: Math.floor(Math.random() * 150) + 50,
+      focus: Math.floor(Math.random() * 1500) + 300,
+    }));
+  };
+
+  const yearlyData = getYearlyData(selectedYear);
 
   const weeklyProductivityScore = Math.round(
     ((weeklyData.reduce((sum, d) => sum + d.tasks, 0) / 50) * 50) +
@@ -106,9 +132,8 @@ export default function TodayInsights({
 
   const renderMonthHeatmap = () => {
     const monthIndex = months.indexOf(selectedMonth);
-    const year = new Date().getFullYear();
-    const monthStart = new Date(year, monthIndex, 1);
-    const monthEnd = new Date(year, monthIndex + 1, 0);
+    const monthStart = new Date(selectedYear, monthIndex, 1);
+    const monthEnd = new Date(selectedYear, monthIndex + 1, 0);
     const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
     const firstDayOfWeek = getDay(monthStart);
     const emptyCells = Array(firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1).fill(null);
@@ -139,7 +164,7 @@ export default function TodayInsights({
             style={{
               backgroundColor: `hsl(var(--primary) / ${getHeatmapOpacity(i + 1)})`,
             }}
-            title={`${format(day, "MMM d")}`}
+            title={`${format(day, "MMM d, yyyy")}`}
           >
             <span className="text-xs">{format(day, "d")}</span>
           </div>
@@ -167,11 +192,54 @@ export default function TodayInsights({
             </TabsList>
 
             <TabsContent value="weekly" className="space-y-4 mt-4">
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="text-sm font-medium">Select Week</h3>
+                <div className="flex gap-2">
+                  <Select value={selectedWeek.toString()} onValueChange={(value) => setSelectedWeek(parseInt(value))}>
+                    <SelectTrigger className="w-32" data-testid="select-week-today">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {generateWeeks(selectedYear).map((week) => (
+                        <SelectItem key={week.value} value={week.value.toString()}>
+                          {week.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
+                    <SelectTrigger className="w-20" data-testid="select-year-today-weekly">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {generateYears().map((year) => (
+                        <SelectItem key={year} value={year.toString()}>
+                          {year}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {(() => {
+                const weeks = generateWeeks(selectedYear);
+                const currentWeek = weeks.find(w => w.value === selectedWeek);
+                return (
+                  <div className="p-3 bg-muted/50 rounded-lg text-center">
+                    <p className="text-sm font-medium">
+                      {currentWeek ? currentWeek.dateRange : 'Week not found'} {selectedYear}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">Selected week range</p>
+                  </div>
+                );
+              })()}
+
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2">
                     <Target className="w-4 h-4" />
-                    Tasks vs Focus Time
+                    Week {selectedWeek} {selectedYear} - Tasks vs Focus Time
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -201,7 +269,7 @@ export default function TodayInsights({
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2">
                     <Trophy className="w-4 h-4" />
-                    Productivity Score
+                    Week {selectedWeek} {selectedYear} Productivity Score
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -237,25 +305,39 @@ export default function TodayInsights({
             </TabsContent>
 
             <TabsContent value="monthly" className="space-y-4 mt-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium">Select Month</h3>
-                <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                  <SelectTrigger className="w-36" data-testid="select-month">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {months.map((month) => (
-                      <SelectItem key={month} value={month}>
-                        {month}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="text-sm font-medium">Select Date</h3>
+                <div className="flex gap-2">
+                  <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                    <SelectTrigger className="w-32" data-testid="select-month">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {months.map((month) => (
+                        <SelectItem key={month} value={month}>
+                          {month}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
+                    <SelectTrigger className="w-20" data-testid="select-year">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {generateYears().map((year) => (
+                        <SelectItem key={year} value={year.toString()}>
+                          {year}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">{selectedMonth} Activity</CardTitle>
+                  <CardTitle className="text-sm">{selectedMonth} {selectedYear} Activity</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {renderMonthHeatmap()}
@@ -331,11 +413,27 @@ export default function TodayInsights({
             </TabsContent>
 
             <TabsContent value="yearly" className="space-y-4 mt-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-medium">Select Year</h3>
+                <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
+                  <SelectTrigger className="w-20" data-testid="select-year-yearly">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {generateYears().map((year) => (
+                      <SelectItem key={year} value={year.toString()}>
+                        {year}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2">
                     <Target className="w-4 h-4" />
-                    Tasks vs Focus Time
+                    {selectedYear} Tasks vs Focus Time
                   </CardTitle>
                 </CardHeader>
                 <CardContent>

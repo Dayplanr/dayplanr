@@ -12,7 +12,7 @@ import GoalCard from "@/components/GoalCard";
 import EditGoalSheet from "@/components/EditGoalSheet";
 import GoalInsights from "@/components/GoalInsights";
 import { useTranslation } from "@/lib/i18n";
-import { format, differenceInDays } from "date-fns";
+import { format, differenceInDays, startOfDay } from "date-fns";
 import type { Goal } from "@/types/goals";
 import { calculateGoalProgress } from "@/types/goals";
 import { supabase } from "@/lib/supabase";
@@ -48,8 +48,8 @@ export default function GoalsPage() {
       if (goalsError) throw goalsError;
 
       const formattedGoals: Goal[] = goalsData?.map((g: any) => {
-        const createdDate = new Date(g.created_at);
-        const today = new Date();
+        const createdDate = startOfDay(new Date(g.created_at));
+        const today = startOfDay(new Date());
         const daysSinceStarted = differenceInDays(today, createdDate) + 1;
         const duration = g.challenge_duration || 0;
 
@@ -280,17 +280,17 @@ export default function GoalsPage() {
               onDelete={() => handleDeleteGoal(goal.id)}
             />
           ))}
-        </div>
 
-        {!loading && goals.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground mb-4">{t("noGoals")}</p>
-            <Button onClick={() => navigate("/app/goals/new")} data-testid="button-add-first-goal">
-              <Plus className="w-4 h-4 mr-2" />
-              {t("addGoal")}
-            </Button>
-          </div>
-        )}
+          {!loading && goals.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground mb-4">{t("noGoals")}</p>
+              <Button onClick={() => navigate("/app/goals/new")} data-testid="button-add-first-goal">
+                <Plus className="w-4 h-4 mr-2" />
+                {t("addGoal")}
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
 
       <EditGoalSheet

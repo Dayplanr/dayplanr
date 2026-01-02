@@ -7,8 +7,8 @@ import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
-import { useNotifications } from "@/hooks/useNotifications";
 import { useToast } from "@/hooks/use-toast";
+import { timerSounds } from "@/lib/timerSounds";
 import {
   Select,
   SelectContent,
@@ -30,19 +30,14 @@ import {
 import {
   User,
   Trash2,
-  Bell,
   Palette,
   Moon,
-  Smartphone,
   Globe,
-  Vibrate,
   LogOut,
-  Clock,
-  Timer,
   ChevronRight,
-  ListTodo,
-  Sparkles,
   Check,
+  Volume2,
+  Play,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -60,17 +55,7 @@ export default function SettingsPage() {
   const { t } = useTranslation();
   const { user, signOut } = useAuth();
   const { darkMode, setDarkMode, themeColor, setThemeColor } = useTheme();
-  const notifications = useNotifications();
   const { toast } = useToast();
-
-  const [haptics, setHaptics] = useState(true);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [taskReminders, setTaskReminders] = useState(true);
-  const [habitReminders, setHabitReminders] = useState(true);
-  const [focusReminders, setFocusReminders] = useState(true);
-  const [reminderTiming, setReminderTiming] = useState("30min");
-  const [reminderStyle, setReminderStyle] = useState("gentle");
-  const [incompleteNudges, setIncompleteNudges] = useState(true);
 
   const [displayName, setDisplayName] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -78,6 +63,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [timerSound, setTimerSound] = useState("bell");
 
   const themeColors = [
     { name: "Violet", value: "#8b5cf6" },
@@ -96,39 +82,124 @@ export default function SettingsPage() {
 
   const loadSettings = async () => {
     try {
+      console.log("🔧 Loading user settings...");
+      
+      // First try to get existing settings
       const { data, error } = await supabase
         .from("user_settings")
         .select("*")
         .eq("user_id", user?.id)
         .single();
 
-      if (data) {
-        setHaptics(data.haptics_enabled);
-        setNotificationsEnabled(data.notifications_enabled);
-        setTaskReminders(data.task_reminders);
-        setHabitReminders(data.habit_reminders);
-        setFocusReminders(data.focus_reminders);
-        setReminderTiming(data.reminder_timing);
-        setReminderStyle(data.reminder_style);
-        setIncompleteNudges(data.incomplete_nudges);
+      if (error && error.code === 'PGRST116') {
+        // No settings found, create default settings
+        console.log("🔧 No settings found, creating defaults...");
+        const { data: newData, error: insertError } = await supabase
+          .from("user_settings")
+          .insert({
+            user_id: user?.id,
+            timer_sound: "bell"
+          })
+          .select()
+          .single();
+          
+        if (insertError) {
+          console.error("Error creating default settings:", insertError);
+        } else {
+          console.log("🔧 Created default settings");
+          setDisplayName(user?.user_metadata?.full_name || "");
+          setTimerSound("bell");
+        }
+      } else if (data) {
+        console.log("🔧 Loaded existing settings:", data);
         setDisplayName(user?.user_metadata?.full_name || "");
+        setTimerSound(data.timer_sound || "bell");
       }
     } catch (error) {
       console.error("Error loading settings:", error);
+      // Set defaults on error
+      setDisplayName(user?.user_metadata?.full_name || "");
+      setTimerSound("bell");
     } finally {
       setLoading(false);
     }
   };
 
-  const updateSetting = async (key: string, value: any) => {
-    if (!user) return;
+  const playPreviewSound = async (soundValue: string) => {
+    try {
+      console.log(`🔊 Playing preview sound: ${soundValue}`);
+      
+      // Import the continuous sound function
+      const { startContinuousTimerSound } = await import("@/lib/timerSounds");
+      
+      // Create a short preview (3 seconds)
+      const continuousSound = await startContinuousTimerSound(soundValue);
+      
+      // Stop after 3 seconds for preview
+      setTimeout(() => {
+        continuousSound.stop();
+        console.log(`🔇 Preview sound stopped after 3 seconds`);
+      }, 3000);
+      
+      console.log("Preview sound started successfully");
+    } catch (error) {
+      console.error("Error playing preview sound:", error);
+      toast({
+        title: "Audio Error",
+        description: "Could not play preview sound. Please check your browser settings.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleTimerSoundChange = async (soundValue: string) => {
+    console.log("🔊 Changing timer sound to:", soundValue);
+    setTimerSound(soundValue);
+    await updateSetting("timer_sound", soundValue);
+    
+    // Also update the user_settings table with upsert to handle missing records
     try {
       const { error } = await supabase
         .from("user_settings")
-        .update({ [key]: value })
-        .eq("user_id", user.id);
+        .upsert({
+          user_id: user?.id,
+          timer_sound: soundValue
+        }, {
+          onConflict: 'user_id'
+        });
+      
+      if (error) {
+        console.error("Error upserting timer sound:", error);
+      } else {
+        console.log("🔊 Timer sound setting saved successfully");
+      }
+    } catch (error) {
+      console.error("Error saving timer sound:", error);
+    }
+    
+    toast({
+      title: "Timer Sound Updated",
+      description: `Your timer completion sound has been changed to ${timerSounds.find(s => s.value === soundValue)?.name || soundValue}.`,
+    });
+  };
+
+  const updateSetting = async (key: string, value: any) => {
+    if (!user) return;
+    try {
+      console.log(`🔧 Updating setting ${key} to:`, value);
+      
+      // Use upsert to handle cases where user_settings doesn't exist yet
+      const { error } = await supabase
+        .from("user_settings")
+        .upsert({
+          user_id: user.id,
+          [key]: value
+        }, {
+          onConflict: 'user_id'
+        });
 
       if (error) throw error;
+      console.log(`🔧 Setting ${key} updated successfully`);
     } catch (error) {
       console.error(`Error updating setting ${key}:`, error);
       toast({
@@ -333,61 +404,64 @@ export default function SettingsPage() {
 
         <Card className="bg-card">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">{t("connections")}</CardTitle>
+            <CardTitle className="text-base font-semibold">Timer Settings</CardTitle>
           </CardHeader>
           <CardContent className="space-y-1 p-0">
-            <div className="flex items-center justify-between px-4 py-3">
-              <div className="flex items-center gap-3">
-                <Bell className="w-5 h-5 text-amber-500" />
-                <div>
-                  <span className="text-foreground">{t("notifications")}</span>
-                  {notifications.getPermissionStatus() === "granted" && (
-                    <p className="text-xs text-green-600 dark:text-green-400">Enabled in browser</p>
-                  )}
-                  {notifications.getPermissionStatus() === "denied" && (
-                    <p className="text-xs text-destructive">Blocked by browser</p>
-                  )}
-                  {notifications.getPermissionStatus() === "default" && (
-                    <p className="text-xs text-muted-foreground">Permission not requested</p>
-                  )}
+            <Dialog>
+              <DialogTrigger asChild>
+                <button className="w-full flex items-center justify-between px-4 py-3 hover-elevate" data-testid="button-timer-sound">
+                  <div className="flex items-center gap-3">
+                    <Volume2 className="w-5 h-5 text-green-500" />
+                    <span className="text-foreground">Timer Sound</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground">
+                      {timerSounds.find(s => s.value === timerSound)?.name || "Soft Bell"}
+                    </span>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  </div>
+                </button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Timer Sound</DialogTitle>
+                  <DialogDescription>Choose a sound that plays when your timer completes.</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-3 py-4">
+                  {timerSounds.map((sound) => (
+                    <div
+                      key={sound.value}
+                      className={`flex items-center justify-between p-3 rounded-lg border-2 transition-all cursor-pointer ${
+                        timerSound === sound.value 
+                          ? "border-primary bg-primary/10" 
+                          : "border-transparent hover:bg-accent"
+                      }`}
+                      onClick={() => handleTimerSoundChange(sound.value)}
+                    >
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3">
+                          <div className="font-medium">{sound.name}</div>
+                          {timerSound === sound.value && <Check className="w-4 h-4 text-primary" />}
+                        </div>
+                        <div className="text-sm text-muted-foreground mt-1">{sound.description}</div>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          playPreviewSound(sound.value);
+                        }}
+                        className="ml-3"
+                      >
+                        <Play className="w-3 h-3 mr-1" />
+                        Preview
+                      </Button>
+                    </div>
+                  ))}
                 </div>
-              </div>
-              <Switch
-                checked={notificationsEnabled}
-                onCheckedChange={async (val) => {
-                  console.log("[Settings] Notification toggle changed to:", val);
-                  console.log("[Settings] Current permission:", notifications.getPermissionStatus());
-
-                  if (val && notifications.getPermissionStatus() !== "granted") {
-                    console.log("[Settings] Requesting browser permission...");
-                    const permission = await notifications.requestPermission();
-                    console.log("[Settings] Permission result:", permission);
-
-                    if (permission !== "granted") {
-                      console.error("[Settings] Permission was denied or dismissed");
-                      toast({
-                        title: "Permission Required",
-                        description: "Please allow notifications in your browser to enable reminders.",
-                        variant: "destructive",
-                      });
-                      // Don't update the setting if permission was denied
-                      return;
-                    }
-                    console.log("[Settings] Permission granted successfully!");
-                  }
-
-                  console.log("[Settings] Updating notification setting to:", val);
-                  setNotificationsEnabled(val);
-                  updateSetting("notifications_enabled", val);
-
-                  toast({
-                    title: val ? "Notifications Enabled" : "Notifications Disabled",
-                    description: val ? "You'll receive reminders for your tasks" : "Reminders are turned off",
-                  });
-                }}
-                data-testid="switch-notifications"
-              />
-            </div>
+              </DialogContent>
+            </Dialog>
           </CardContent>
         </Card>
 

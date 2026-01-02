@@ -139,7 +139,8 @@ type TranslationKey =
   | "learning"
   | "other"
   | "taskDeleted"
-  | "activeGoals";
+  | "activeGoals"
+  | "progress";
 
 type Translations = Record<TranslationKey, string>;
 
@@ -277,6 +278,7 @@ const translations: Record<Language, Translations> = {
     other: "Other",
     taskDeleted: "Task Deleted",
     activeGoals: "Active Goals",
+    progress: "Daily Progress",
   },
   de: {
     today: "Heute",
@@ -403,6 +405,7 @@ const translations: Record<Language, Translations> = {
     other: "Andere",
     taskDeleted: "Aufgabe gelöscht",
     activeGoals: "Aktive Ziele",
+    progress: "Täglicher Fortschritt",
   },
   es: {
     today: "Hoy",
@@ -529,6 +532,7 @@ const translations: Record<Language, Translations> = {
     other: "Otro",
     taskDeleted: "Tarea eliminada",
     activeGoals: "Metas Activas",
+    progress: "Progreso Diario",
   },
   fr: {
     today: "Aujourd'hui",
@@ -655,6 +659,7 @@ const translations: Record<Language, Translations> = {
     other: "Autre",
     taskDeleted: "Tâche supprimée",
     activeGoals: "Objectifs Actifs",
+    progress: "Progrès Quotidien",
   },
   it: {
     today: "Oggi",
@@ -781,6 +786,7 @@ const translations: Record<Language, Translations> = {
     other: "Altro",
     taskDeleted: "Attività eliminata",
     activeGoals: "Obiettivi Attivi",
+    progress: "Progresso Giornaliero",
   },
   pt: {
     today: "Hoje",
@@ -907,6 +913,7 @@ const translations: Record<Language, Translations> = {
     other: "Outro",
     taskDeleted: "Tarefa excluída",
     activeGoals: "Metas Ativas",
+    progress: "Progresso Diário",
   },
   nl: {
     today: "Vandaag",
@@ -1033,6 +1040,7 @@ const translations: Record<Language, Translations> = {
     other: "Overig",
     taskDeleted: "Taak Verwijderd",
     activeGoals: "Actieve Doelen",
+    progress: "Dagelijkse Voortgang",
   },
   pl: {
     today: "Dzisiaj",
@@ -1159,6 +1167,7 @@ const translations: Record<Language, Translations> = {
     other: "Inne",
     taskDeleted: "Zadanie usunięte",
     activeGoals: "Aktywne Cele",
+    progress: "Dzienny Postęp",
   },
 };
 

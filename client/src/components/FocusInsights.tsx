@@ -7,8 +7,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Clock, Target, TrendingUp, Trophy, Calendar, ChevronRight } from "lucide-react";
-import { format, startOfMonth, eachDayOfInterval, getDay } from "date-fns";
+import { format, startOfMonth, eachDayOfInterval, getDay, startOfWeek, endOfWeek, eachWeekOfInterval, startOfYear, endOfYear } from "date-fns";
 import {
   PieChart,
   Pie,
@@ -33,6 +40,32 @@ interface FocusInsightsProps {
   yearData: { month: string; minutes: number }[];
 }
 
+const months = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
+
+const generateYears = () => {
+  return [2026, 2027, 2028, 2029, 2030];
+};
+
+const generateWeeks = (year: number) => {
+  const yearStart = startOfYear(new Date(year, 0, 1));
+  const yearEnd = endOfYear(new Date(year, 11, 31));
+  const weeks = eachWeekOfInterval({ start: yearStart, end: yearEnd }, { weekStartsOn: 1 }); // Monday start
+  
+  return weeks.map((weekStart, index) => {
+    const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
+    return {
+      value: index + 1,
+      label: `Week ${index + 1}`,
+      dateRange: `${format(weekStart, "MMM d")} - ${format(weekEnd, "MMM d")}`,
+      startDate: weekStart,
+      endDate: weekEnd
+    };
+  });
+};
+
 export default function FocusInsights({
   open,
   onOpenChange,
@@ -44,6 +77,9 @@ export default function FocusInsights({
 }: FocusInsightsProps) {
   const [showMonthDetails, setShowMonthDetails] = useState(false);
   const [activeTab, setActiveTab] = useState("today");
+  const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "MMMM"));
+  const [selectedYear, setSelectedYear] = useState(2026);
+  const [selectedWeek, setSelectedWeek] = useState(1);
 
   const todayPieData = [
     { name: "Pomodoro", value: 65, color: "#8b5cf6" },
@@ -60,9 +96,10 @@ export default function FocusInsights({
   };
 
   const renderMonthHeatmap = () => {
-    const today = new Date();
-    const monthStart = startOfMonth(today);
-    const days = eachDayOfInterval({ start: monthStart, end: today });
+    const monthIndex = months.indexOf(selectedMonth);
+    const monthStart = new Date(selectedYear, monthIndex, 1);
+    const monthEnd = new Date(selectedYear, monthIndex + 1, 0);
+    const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
     const firstDayOfWeek = getDay(monthStart);
     const emptyCells = Array(firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1).fill(null);
 
@@ -86,7 +123,7 @@ export default function FocusInsights({
               style={{
                 backgroundColor: `hsl(var(--primary) / ${getHeatmapOpacity(minutes)})`,
               }}
-              title={`${format(day, "MMM d")}: ${minutes} min`}
+              title={`${format(day, "MMM d, yyyy")}: ${minutes} min`}
             >
               <span className="text-xs">{format(day, "d")}</span>
             </div>
@@ -97,8 +134,8 @@ export default function FocusInsights({
   };
 
   const renderYearHeatmap = () => {
-    const months = Array.from({ length: 12 }, (_, i) => {
-      const date = new Date(new Date().getFullYear(), i, 1);
+    const yearMonths = Array.from({ length: 12 }, (_, i) => {
+      const date = new Date(selectedYear, i, 1);
       const yearMonth = yearData.find((d) => d.month === format(date, "MMM"));
       return {
         month: format(date, "MMM"),
@@ -108,7 +145,7 @@ export default function FocusInsights({
 
     return (
       <div className="grid grid-cols-4 gap-2">
-        {months.map((m) => (
+        {yearMonths.map((m) => (
           <div
             key={m.month}
             className="p-3 rounded-md text-center"
@@ -198,6 +235,49 @@ export default function FocusInsights({
             </TabsContent>
 
             <TabsContent value="week" className="space-y-4 mt-4">
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="text-sm font-medium">Select Week</h3>
+                <div className="flex gap-2">
+                  <Select value={selectedWeek.toString()} onValueChange={(value) => setSelectedWeek(parseInt(value))}>
+                    <SelectTrigger className="w-32" data-testid="select-week-focus">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {generateWeeks(selectedYear).map((week) => (
+                        <SelectItem key={week.value} value={week.value.toString()}>
+                          {week.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
+                    <SelectTrigger className="w-20" data-testid="select-year-focus-weekly">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {generateYears().map((year) => (
+                        <SelectItem key={year} value={year.toString()}>
+                          {year}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {(() => {
+                const weeks = generateWeeks(selectedYear);
+                const currentWeek = weeks.find(w => w.value === selectedWeek);
+                return (
+                  <div className="p-3 bg-muted/50 rounded-lg text-center">
+                    <p className="text-sm font-medium">
+                      {currentWeek ? currentWeek.dateRange : 'Week not found'} {selectedYear}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">Selected week range</p>
+                  </div>
+                );
+              })()}
+
               <div className="h-48">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={weekData}>
@@ -212,7 +292,7 @@ export default function FocusInsights({
               </div>
               <div className="p-3 bg-muted/50 rounded-lg flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-muted-foreground">Top Timer This Week</p>
+                  <p className="text-xs text-muted-foreground">Top Timer Week {selectedWeek} {selectedYear}</p>
                   <p className="text-sm font-semibold">Pomodoro</p>
                 </div>
                 <Badge>12 sessions</Badge>
@@ -220,6 +300,36 @@ export default function FocusInsights({
             </TabsContent>
 
             <TabsContent value="month" className="space-y-4 mt-4">
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="text-sm font-medium">Select Date</h3>
+                <div className="flex gap-2">
+                  <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                    <SelectTrigger className="w-32" data-testid="select-month-focus">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {months.map((month) => (
+                        <SelectItem key={month} value={month}>
+                          {month}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
+                    <SelectTrigger className="w-20" data-testid="select-year-focus">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {generateYears().map((year) => (
+                        <SelectItem key={year} value={year.toString()}>
+                          {year}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
               <button
                 onClick={() => setShowMonthDetails(true)}
                 className="w-full p-3 bg-muted/50 rounded-lg flex items-center justify-between hover-elevate active-elevate-2"
@@ -227,7 +337,7 @@ export default function FocusInsights({
               >
                 <div className="flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm">View detailed monthly insights</span>
+                  <span className="text-sm">View {selectedMonth} {selectedYear} insights</span>
                 </div>
                 <ChevronRight className="w-4 h-4 text-muted-foreground" />
               </button>
@@ -252,6 +362,22 @@ export default function FocusInsights({
             </TabsContent>
 
             <TabsContent value="year" className="space-y-4 mt-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-medium">Select Year</h3>
+                <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
+                  <SelectTrigger className="w-20" data-testid="select-year-focus-yearly">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {generateYears().map((year) => (
+                      <SelectItem key={year} value={year.toString()}>
+                        {year}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
               {renderYearHeatmap()}
               <div className="space-y-2">
                 <h4 className="text-sm font-medium">Timer Ranking</h4>
@@ -284,7 +410,7 @@ export default function FocusInsights({
                 <Trophy className="w-5 h-5 text-primary" />
                 <div>
                   <p className="text-xs text-muted-foreground">Best Focus Month</p>
-                  <p className="text-sm font-semibold">October 2024</p>
+                  <p className="text-sm font-semibold">October {selectedYear}</p>
                 </div>
               </div>
             </TabsContent>
@@ -295,7 +421,7 @@ export default function FocusInsights({
       <Dialog open={showMonthDetails} onOpenChange={setShowMonthDetails}>
         <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Monthly Focus Insights</DialogTitle>
+            <DialogTitle>{selectedMonth} {selectedYear} Focus Insights</DialogTitle>
           </DialogHeader>
           <div className="space-y-6 py-4">
             <div>

@@ -16,6 +16,7 @@ import { Timer, Rocket, Zap, Brain, Coffee, Plus, TrendingUp } from "lucide-reac
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
+import { stopAllTimerSounds, stopTimerSound } from "@/lib/audioManager";
 
 interface CustomTimer {
   id: string;
@@ -80,6 +81,51 @@ export default function FocusPage() {
       fetchCustomTimers();
     }
   }, [user]);
+
+  // Add global event listeners to stop timer sounds
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        console.log("Escape key pressed, stopping all timer sounds");
+        stopTimerSound();
+        stopAllTimerSounds();
+      }
+    };
+
+    const handleBeforeUnload = () => {
+      console.log("Page unloading, stopping all timer sounds");
+      stopTimerSound();
+      stopAllTimerSounds();
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        console.log("Page hidden, stopping all timer sounds");
+        stopTimerSound();
+        stopAllTimerSounds();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
+  // Stop any playing audio when active session is cleared
+  useEffect(() => {
+    if (!activeSession) {
+      // Use the global audio manager to stop all sounds
+      console.log("Active session cleared, stopping all timer sounds via audio manager");
+      stopTimerSound();
+      stopAllTimerSounds();
+    }
+  }, [activeSession]);
 
   const weekData = [
     { day: "Mon", pomodoro: 3, deepwork: 1, custom: 0 },
@@ -202,6 +248,13 @@ export default function FocusPage() {
     }
   };
 
+  const handleSessionCancel = () => {
+    console.log("Session cancelled, stopping any playing sounds");
+    stopTimerSound();
+    stopAllTimerSounds(); // Use the global audio manager
+    setActiveSession(null);
+  };
+
   const handleSessionComplete = async () => {
     if (activeSession && user) {
       try {
@@ -293,7 +346,7 @@ export default function FocusPage() {
             breakMinutes={activeSession.breakDuration}
             icon={activeSession.icon}
             onComplete={handleSessionComplete}
-            onCancel={() => setActiveSession(null)}
+            onCancel={handleSessionCancel}
           />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -79,6 +79,7 @@ export default function TodayPage() {
     evening: true,
     night: true,
   });
+  const [progressOpen, setProgressOpen] = useState(true);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     focusMinutes: 0,
@@ -582,56 +583,73 @@ export default function TodayPage() {
 
         <CalendarScrubber selectedDate={selectedDate} onSelectDate={setSelectedDate} />
 
-        <div className="grid grid-cols-2 gap-4">
-          <Card className="bg-card shadow-sm">
-            <CardContent className="p-4 flex flex-col items-center text-center">
-              <div className="p-3 rounded-xl bg-blue-100 dark:bg-blue-900/30 mb-3">
-                <TrendingUp className="w-6 h-6 text-black dark:text-white" />
-              </div>
-              <p className="text-sm text-muted-foreground">{t("dailyProgress")}</p>
-              <p className="text-2xl font-bold text-foreground mt-1" data-testid="text-daily-progress">
-                {progressPercent}%
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                {completedTasks} {t("of")} {totalTasks}
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="bg-card shadow-sm">
-            <CardContent className="p-4 flex flex-col items-center text-center">
-              <div className="p-3 rounded-xl bg-purple-100 dark:bg-purple-900/30 mb-3">
-                <Clock className="w-6 h-6 text-black dark:text-white" />
-              </div>
-              <p className="text-sm text-muted-foreground">{t("focusTime")}</p>
-              <p className="text-2xl font-bold text-foreground mt-1" data-testid="text-focus-time">
-                {todayFocusMinutes}m
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="bg-card shadow-sm">
-            <CardContent className="p-4 flex flex-col items-center text-center">
-              <div className="p-3 rounded-xl bg-orange-100 dark:bg-orange-900/30 mb-3">
-                <Flame className="w-6 h-6 text-black dark:text-white" />
-              </div>
-              <p className="text-sm text-muted-foreground">{t("streak")}</p>
-              <p className="text-2xl font-bold text-foreground mt-1" data-testid="text-streak">
-                {currentStreak}d
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="bg-card shadow-sm">
-            <CardContent className="p-4 flex flex-col items-center text-center">
-              <div className="p-3 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 mb-3">
-                <CheckCircle2 className="w-6 h-6 text-black dark:text-white" />
-              </div>
-              <p className="text-sm text-muted-foreground">{t("habits")}</p>
-              <p className="text-2xl font-bold text-foreground mt-1" data-testid="text-habits-progress">
-                {completedHabits}/{totalHabits}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">{t("complete")}</p>
-            </CardContent>
-          </Card>
-        </div>
+        <Collapsible
+          open={progressOpen}
+          onOpenChange={setProgressOpen}
+        >
+          <CollapsibleTrigger asChild>
+            <button className="flex items-center justify-between w-full py-3">
+              <h2 className="text-lg font-semibold text-foreground">{t("progress")}</h2>
+              {progressOpen ? (
+                <ChevronUp className="w-5 h-5 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-muted-foreground" />
+              )}
+            </button>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <Card className="bg-card shadow-sm">
+                <CardContent className="p-4 flex flex-col items-center text-center">
+                  <div className="p-3 rounded-xl bg-blue-100 dark:bg-blue-900/30 mb-3">
+                    <TrendingUp className="w-6 h-6 text-black dark:text-white" />
+                  </div>
+                  <p className="text-sm text-muted-foreground">{t("dailyProgress")}</p>
+                  <p className="text-2xl font-bold text-foreground mt-1" data-testid="text-daily-progress">
+                    {progressPercent}%
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {completedTasks} {t("of")} {totalTasks}
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="bg-card shadow-sm">
+                <CardContent className="p-4 flex flex-col items-center text-center">
+                  <div className="p-3 rounded-xl bg-purple-100 dark:bg-purple-900/30 mb-3">
+                    <Clock className="w-6 h-6 text-black dark:text-white" />
+                  </div>
+                  <p className="text-sm text-muted-foreground">{t("focusTime")}</p>
+                  <p className="text-2xl font-bold text-foreground mt-1" data-testid="text-focus-time">
+                    {todayFocusMinutes}m
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="bg-card shadow-sm">
+                <CardContent className="p-4 flex flex-col items-center text-center">
+                  <div className="p-3 rounded-xl bg-orange-100 dark:bg-orange-900/30 mb-3">
+                    <Flame className="w-6 h-6 text-black dark:text-white" />
+                  </div>
+                  <p className="text-sm text-muted-foreground">{t("streak")}</p>
+                  <p className="text-2xl font-bold text-foreground mt-1" data-testid="text-streak">
+                    {currentStreak}d
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="bg-card shadow-sm">
+                <CardContent className="p-4 flex flex-col items-center text-center">
+                  <div className="p-3 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 mb-3">
+                    <CheckCircle2 className="w-6 h-6 text-black dark:text-white" />
+                  </div>
+                  <p className="text-sm text-muted-foreground">{t("habits")}</p>
+                  <p className="text-2xl font-bold text-foreground mt-1" data-testid="text-habits-progress">
+                    {completedHabits}/{totalHabits}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">{t("complete")}</p>
+                </CardContent>
+              </Card>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
 
         {renderTaskSection(t("morning"), "morning", tasks.morning)}
         {renderTaskSection(t("afternoon"), "afternoon", tasks.afternoon)}
