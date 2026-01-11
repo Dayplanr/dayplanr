@@ -11,6 +11,7 @@ export default function ActiveFocusSessionExample() {
         icon="timer"
         onComplete={() => console.log('Session complete!')}
         onCancel={() => console.log('Session cancelled')}
+        onNotificationDismiss={() => console.log('Notification dismissed')}
       />
     </div>
   );

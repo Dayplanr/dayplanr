@@ -6,6 +6,7 @@ import { useTimerSound } from "@/hooks/useTimerSound";
 import { audioManager } from "@/lib/audioManager";
 import { startContinuousTimerSound } from "@/lib/timerSounds";
 import { useToast } from "@/hooks/use-toast";
+import TimerCompletionNotification from "./TimerCompletionNotification";
 
 interface ActiveFocusSessionProps {
   mode: string;
@@ -15,6 +16,7 @@ interface ActiveFocusSessionProps {
   icon: string;
   onComplete: () => void;
   onCancel: () => void;
+  onNotificationDismiss?: () => void;
 }
 
 export default function ActiveFocusSession({
@@ -25,11 +27,13 @@ export default function ActiveFocusSession({
   icon,
   onComplete,
   onCancel,
+  onNotificationDismiss,
 }: ActiveFocusSessionProps) {
   const [timeLeft, setTimeLeft] = useState(totalMinutes * 60);
   const [isRunning, setIsRunning] = useState(false);
   const [isBreak, setIsBreak] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [showCompletionNotification, setShowCompletionNotification] = useState(false);
   const { timerSound } = useTimerSound();
   const { toast } = useToast();
 
@@ -75,6 +79,17 @@ export default function ActiveFocusSession({
     console.log("🔇 STOP SOUND: All cleanup methods executed");
   };
 
+  const handleNotificationDismiss = () => {
+    console.log("🔇 User dismissed notification - stopping sound and hiding notification");
+    setShowCompletionNotification(false);
+    stopCompletionSound();
+    
+    // Clear the active session when notification is dismissed
+    if (onNotificationDismiss) {
+      onNotificationDismiss();
+    }
+  };
+
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isRunning && timeLeft > 0) {
@@ -84,6 +99,7 @@ export default function ActiveFocusSession({
             console.log("🔊 TIMER COMPLETED! Starting completion sound...");
             setIsRunning(false);
             setIsCompleted(true);
+            setShowCompletionNotification(true);
 
             // Play looping notification sound
             playCompletionSound();
@@ -120,6 +136,7 @@ export default function ActiveFocusSession({
 
   const handleReset = () => {
     stopCompletionSound(); // Stop sound when resetting
+    setShowCompletionNotification(false); // Hide notification when resetting
     setTimeLeft(isBreak ? breakMinutes * 60 : totalMinutes * 60);
     setIsRunning(false);
     setIsCompleted(false);
@@ -151,115 +168,118 @@ export default function ActiveFocusSession({
   const strokeDashoffset = circumference - (progress / 100) * circumference;
 
   return (
-    <Card className="border-2 border-primary/20">
-      <CardContent className="p-8 flex flex-col items-center">
-        <div className="flex items-center justify-between w-full mb-6">
-          <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getIconBackground()}`}>
-              {getIconComponent()}
+    <>
+      <Card className="border-2 border-primary/20">
+        <CardContent className="p-8 flex flex-col items-center">
+          <div className="flex items-center justify-between w-full mb-6">
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getIconBackground()}`}>
+                {getIconComponent()}
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground">{title}</h3>
+                <p className="text-xs text-muted-foreground">
+                  {isBreak ? "Break Time" : "Focus Session"}
+                  {isCompleted && " - Completed!"}
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-semibold text-foreground">{title}</h3>
-              <p className="text-xs text-muted-foreground">
-                {isBreak ? "Break Time" : "Focus Session"}
-                {isCompleted && " - Completed!"}
-              </p>
-            </div>
-          </div>
-          <Button 
-            size="icon" 
-            variant="ghost" 
-            onClick={() => {
-              console.log("🔴 X button clicked - IMMEDIATE STOP of all audio");
-              
-              // Multiple stop methods for maximum effectiveness
-              audioManager.stopTimerSound();
-              audioManager.stopAllTimerSounds();
-              audioManager.emergencyStopAll();
-              
-              // Reset completion state
-              setIsCompleted(false);
-              
-              toast({
-                title: "Timer Cancelled",
-                description: "All audio stopped",
-                duration: 2000,
-              });
-              onCancel();
-            }} 
-            data-testid="button-cancel-session"
-          >
-            <X className="w-4 h-4" />
-          </Button>
-        </div>
-
-        <div className="relative mb-8">
-          <svg width="200" height="200" className="transform -rotate-90">
-            <circle
-              cx="100"
-              cy="100"
-              r="90"
-              stroke="hsl(var(--muted))"
-              strokeWidth="8"
-              fill="none"
-            />
-            <circle
-              cx="100"
-              cy="100"
-              r="90"
-              stroke={isBreak ? "hsl(var(--chart-2))" : "hsl(var(--primary))"}
-              strokeWidth="8"
-              fill="none"
-              strokeLinecap="round"
-              strokeDasharray={circumference}
-              strokeDashoffset={strokeDashoffset}
-              className="transition-all duration-300"
-            />
-          </svg>
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-4xl font-semibold font-mono" data-testid="text-session-timer">
-              {formatTime(timeLeft)}
-            </span>
-            {isBreak && (
-              <span className="text-xs text-muted-foreground mt-1">Break</span>
-            )}
-          </div>
-        </div>
-
-        <div className="flex gap-3">
-          <Button
-            size="icon"
-            onClick={() => {
-              if (isCompleted) {
-                stopCompletionSound(); // Stop sound when starting new session
+            <Button 
+              size="icon" 
+              variant="ghost" 
+              onClick={() => {
+                console.log("🔴 X button clicked - IMMEDIATE STOP of all audio");
+                
+                // Multiple stop methods for maximum effectiveness
+                audioManager.stopTimerSound();
+                audioManager.stopAllTimerSounds();
+                audioManager.emergencyStopAll();
+                
+                // Reset completion state
                 setIsCompleted(false);
-              }
-              setIsRunning(!isRunning);
-            }}
-            data-testid="button-session-play-pause"
-          >
-            {isRunning ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-          </Button>
-          <Button
-            size="icon"
-            variant="outline"
-            onClick={handleReset}
-            data-testid="button-session-reset"
-          >
-            <RotateCcw className="w-4 h-4" />
-          </Button>
-          {isCompleted && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={stopCompletionSound}
-              data-testid="button-stop-sound"
+                setShowCompletionNotification(false);
+                
+                toast({
+                  title: "Timer Cancelled",
+                  description: "All audio stopped",
+                  duration: 2000,
+                });
+                onCancel();
+              }} 
+              data-testid="button-cancel-session"
             >
-              Stop Sound
+              <X className="w-4 h-4" />
             </Button>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+          </div>
+
+          <div className="relative mb-8">
+            <svg width="200" height="200" className="transform -rotate-90">
+              <circle
+                cx="100"
+                cy="100"
+                r="90"
+                stroke="hsl(var(--muted))"
+                strokeWidth="8"
+                fill="none"
+              />
+              <circle
+                cx="100"
+                cy="100"
+                r="90"
+                stroke={isBreak ? "hsl(var(--chart-2))" : "hsl(var(--primary))"}
+                strokeWidth="8"
+                fill="none"
+                strokeLinecap="round"
+                strokeDasharray={circumference}
+                strokeDashoffset={strokeDashoffset}
+                className="transition-all duration-300"
+              />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-4xl font-semibold font-mono" data-testid="text-session-timer">
+                {formatTime(timeLeft)}
+              </span>
+              {isBreak && (
+                <span className="text-xs text-muted-foreground mt-1">Break</span>
+              )}
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            <Button
+              size="icon"
+              onClick={() => {
+                if (isCompleted) {
+                  stopCompletionSound(); // Stop sound when starting new session
+                  setIsCompleted(false);
+                  setShowCompletionNotification(false);
+                }
+                setIsRunning(!isRunning);
+              }}
+              data-testid="button-session-play-pause"
+            >
+              {isRunning ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+            </Button>
+            <Button
+              size="icon"
+              variant="outline"
+              onClick={handleReset}
+              data-testid="button-session-reset"
+            >
+              <RotateCcw className="w-4 h-4" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Persistent Timer Completion Notification */}
+      <TimerCompletionNotification
+        isVisible={showCompletionNotification}
+        sessionTitle={title}
+        sessionDuration={isBreak ? breakMinutes : totalMinutes}
+        isBreakSession={isBreak}
+        onDismiss={handleNotificationDismiss}
+      />
+    </>
   );
 }

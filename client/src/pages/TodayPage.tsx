@@ -144,6 +144,22 @@ export default function TodayPage() {
       }
     });
 
+    // Sort tasks within each period by time
+    Object.keys(groups).forEach((period) => {
+      const periodKey = period as keyof TaskGroups;
+      groups[periodKey].sort((a, b) => {
+        // Tasks without time go to the end
+        if (!a.time && !b.time) return 0;
+        if (!a.time) return 1;
+        if (!b.time) return -1;
+        
+        // Convert time strings to comparable format (24h)
+        const timeA = convertTo24Hour(a.time);
+        const timeB = convertTo24Hour(b.time);
+        return timeA.localeCompare(timeB);
+      });
+    });
+
     setTasks(groups);
     setLoading(false);
 
@@ -223,6 +239,15 @@ export default function TodayPage() {
     fetchTasks();
     fetchStats();
   }, [user, selectedDate, location]);
+
+  useEffect(() => {
+    // Check if we need to preserve a selected date when returning from task creation
+    const preserveDate = localStorage.getItem("preserveSelectedDate");
+    if (preserveDate) {
+      localStorage.removeItem("preserveSelectedDate");
+      setSelectedDate(new Date(preserveDate));
+    }
+  }, [location]);
 
   const handleToggleTask = async (period: keyof TaskGroups, id: string) => {
     const task = tasks[period].find(t => t.id === id);
@@ -357,6 +382,18 @@ export default function TodayPage() {
     return "night";
   };
 
+  const convertTo24Hour = (time12h: string): string => {
+    const [time, modifier] = time12h.split(" ");
+    let [hours, minutes] = time.split(":");
+    if (hours === "12") {
+      hours = "00";
+    }
+    if (modifier === "PM") {
+      hours = (parseInt(hours, 10) + 12).toString();
+    }
+    return `${hours.padStart(2, "0")}:${minutes}`;
+  };
+
   const formatTime = (time: string): string => {
     const [hours, minutes] = time.split(":");
     const hour = parseInt(hours);
@@ -441,11 +478,14 @@ export default function TodayPage() {
 
   const handleEditTask = (period: keyof TaskGroups, task: Task) => {
     localStorage.setItem("editTask", JSON.stringify({ ...task, period }));
+    localStorage.setItem("selectedTaskDate", format(selectedDate, "yyyy-MM-dd"));
+    localStorage.setItem("returnToDate", format(selectedDate, "yyyy-MM-dd"));
     navigate("/app/tasks/new");
   };
 
   const handleAddTask = () => {
     localStorage.setItem("selectedTaskDate", format(selectedDate, "yyyy-MM-dd"));
+    localStorage.setItem("returnToDate", format(selectedDate, "yyyy-MM-dd"));
     navigate("/app/tasks/new");
   };
 

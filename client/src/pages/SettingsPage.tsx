@@ -4,10 +4,12 @@ import LanguageSelector from "@/components/LanguageSelector";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
 import { useToast } from "@/hooks/use-toast";
+import { useTimerSound } from "@/hooks/useTimerSound";
 import { timerSounds } from "@/lib/timerSounds";
 import {
   Select,
@@ -35,6 +37,7 @@ import {
   Globe,
   LogOut,
   ChevronRight,
+  ChevronDown,
   Check,
   Volume2,
   Play,
@@ -56,6 +59,15 @@ export default function SettingsPage() {
   const { user, signOut } = useAuth();
   const { darkMode, setDarkMode, themeColor, setThemeColor } = useTheme();
   const { toast } = useToast();
+  const { timerSound: hookTimerSound, refreshTimerSound } = useTimerSound();
+  
+  // Use local state for immediate UI updates
+  const [localTimerSound, setLocalTimerSound] = useState(hookTimerSound);
+  
+  // Sync local state with hook state
+  useEffect(() => {
+    setLocalTimerSound(hookTimerSound);
+  }, [hookTimerSound]);
 
   const [displayName, setDisplayName] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -63,7 +75,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [timerSound, setTimerSound] = useState("bell");
+  const [isTimerSettingsOpen, setIsTimerSettingsOpen] = useState(false);
 
   const themeColors = [
     { name: "Violet", value: "#8b5cf6" },
@@ -98,7 +110,7 @@ export default function SettingsPage() {
           .from("user_settings")
           .insert({
             user_id: user?.id,
-            timer_sound: "bell"
+            timer_sound: "radar" // Use new default
           })
           .select()
           .single();
@@ -108,18 +120,15 @@ export default function SettingsPage() {
         } else {
           console.log("🔧 Created default settings");
           setDisplayName(user?.user_metadata?.full_name || "");
-          setTimerSound("bell");
         }
       } else if (data) {
         console.log("🔧 Loaded existing settings:", data);
         setDisplayName(user?.user_metadata?.full_name || "");
-        setTimerSound(data.timer_sound || "bell");
       }
     } catch (error) {
       console.error("Error loading settings:", error);
       // Set defaults on error
       setDisplayName(user?.user_metadata?.full_name || "");
-      setTimerSound("bell");
     } finally {
       setLoading(false);
     }
@@ -153,34 +162,79 @@ export default function SettingsPage() {
   };
 
   const handleTimerSoundChange = async (soundValue: string) => {
-    console.log("🔊 Changing timer sound to:", soundValue);
-    setTimerSound(soundValue);
-    await updateSetting("timer_sound", soundValue);
+    // Update local state immediately for responsive UI
+    setLocalTimerSound(soundValue);
     
-    // Also update the user_settings table with upsert to handle missing records
     try {
-      const { error } = await supabase
-        .from("user_settings")
-        .upsert({
-          user_id: user?.id,
-          timer_sound: soundValue
-        }, {
-          onConflict: 'user_id'
-        });
-      
-      if (error) {
-        console.error("Error upserting timer sound:", error);
-      } else {
-        console.log("🔊 Timer sound setting saved successfully");
+      if (!user?.id) {
+        throw new Error("No user ID available");
       }
+      
+      // First try to check if user_settings record exists
+      const { data: existingData, error: selectError } = await supabase
+        .from("user_settings")
+        .select("id, timer_sound")
+        .eq("user_id", user.id)
+        .single();
+      
+      let updateError = null;
+      
+      if (selectError && selectError.code === 'PGRST116') {
+        // Record doesn't exist, create it
+        const { error } = await supabase
+          .from("user_settings")
+          .insert({
+            user_id: user.id,
+            timer_sound: soundValue
+          });
+        updateError = error;
+      } else if (existingData) {
+        // Record exists, update it
+        const { error } = await supabase
+          .from("user_settings")
+          .update({ timer_sound: soundValue })
+          .eq("user_id", user.id);
+        updateError = error;
+      } else {
+        // Some other error occurred
+        updateError = selectError;
+      }
+      
+      if (updateError) {
+        throw updateError;
+      }
+      
+      // Store in localStorage as backup
+      localStorage.setItem(`timer_sound_${user.id}`, soundValue);
+      
+      // Refresh the hook to sync with database
+      setTimeout(() => refreshTimerSound(), 100);
+      
+      toast({
+        title: "Timer Sound Updated",
+        description: `Changed to ${timerSounds.find(s => s.value === soundValue)?.name || soundValue}`,
+      });
+      
     } catch (error) {
-      console.error("Error saving timer sound:", error);
+      // Fallback to localStorage
+      try {
+        localStorage.setItem(`timer_sound_${user?.id}`, soundValue);
+        
+        toast({
+          title: "Timer Sound Updated (Local)",
+          description: `Changed to ${timerSounds.find(s => s.value === soundValue)?.name || soundValue} (saved locally)`,
+        });
+      } catch (localError) {
+        // Revert local state on complete failure
+        setLocalTimerSound(hookTimerSound);
+        
+        toast({
+          title: "Error",
+          description: `Failed to save timer sound: ${error.message || error}`,
+          variant: "destructive",
+        });
+      }
     }
-    
-    toast({
-      title: "Timer Sound Updated",
-      description: `Your timer completion sound has been changed to ${timerSounds.find(s => s.value === soundValue)?.name || soundValue}.`,
-    });
   };
 
   const updateSetting = async (key: string, value: any) => {
@@ -407,61 +461,73 @@ export default function SettingsPage() {
             <CardTitle className="text-base font-semibold">Timer Settings</CardTitle>
           </CardHeader>
           <CardContent className="space-y-1 p-0">
-            <Dialog>
-              <DialogTrigger asChild>
-                <button className="w-full flex items-center justify-between px-4 py-3 hover-elevate" data-testid="button-timer-sound">
-                  <div className="flex items-center gap-3">
-                    <Volume2 className="w-5 h-5 text-green-500" />
-                    <span className="text-foreground">Timer Sound</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground">
-                      {timerSounds.find(s => s.value === timerSound)?.name || "Soft Bell"}
-                    </span>
-                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                  </div>
-                </button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Timer Sound</DialogTitle>
-                  <DialogDescription>Choose a sound that plays when your timer completes.</DialogDescription>
-                </DialogHeader>
-                <div className="space-y-3 py-4">
-                  {timerSounds.map((sound) => (
-                    <div
-                      key={sound.value}
-                      className={`flex items-center justify-between p-3 rounded-lg border-2 transition-all cursor-pointer ${
-                        timerSound === sound.value 
-                          ? "border-primary bg-primary/10" 
-                          : "border-transparent hover:bg-accent"
-                      }`}
-                      onClick={() => handleTimerSoundChange(sound.value)}
-                    >
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3">
-                          <div className="font-medium">{sound.name}</div>
-                          {timerSound === sound.value && <Check className="w-4 h-4 text-primary" />}
-                        </div>
-                        <div className="text-sm text-muted-foreground mt-1">{sound.description}</div>
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          playPreviewSound(sound.value);
-                        }}
-                        className="ml-3"
-                      >
-                        <Play className="w-3 h-3 mr-1" />
-                        Preview
-                      </Button>
+            <Collapsible open={isTimerSettingsOpen} onOpenChange={setIsTimerSettingsOpen}>
+              <Card>
+                <CollapsibleTrigger asChild>
+                  <button className="w-full flex items-center justify-between px-4 py-3 hover:bg-accent/50 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <Volume2 className="w-5 h-5 text-green-500" />
+                      <span className="text-foreground font-medium">Timer Sound</span>
                     </div>
-                  ))}
-                </div>
-              </DialogContent>
-            </Dialog>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">
+                        {timerSounds.find(s => s.value === localTimerSound)?.name || "Radar"}
+                      </span>
+                      {isTimerSettingsOpen ? (
+                        <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                      )}
+                    </div>
+                  </button>
+                </CollapsibleTrigger>
+                
+                <CollapsibleContent>
+                  <CardContent className="pt-0 pb-4">
+                    <div className="space-y-2">
+                      <p className="text-sm text-muted-foreground mb-3">
+                        Choose a sound that plays when your timer completes.
+                      </p>
+                      {timerSounds.map((sound) => {
+                        const isSelected = localTimerSound === sound.value;
+                        
+                        return (
+                          <div
+                            key={sound.value}
+                            className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all ${
+                              isSelected
+                                ? "border-primary bg-primary/10 ring-2 ring-primary/20" 
+                                : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                            }`}
+                            onClick={() => handleTimerSoundChange(sound.value)}
+                          >
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3">
+                                <div className="font-medium">{sound.name}</div>
+                                {isSelected && <Check className="w-4 h-4 text-primary" />}
+                              </div>
+                              <div className="text-sm text-muted-foreground">{sound.description}</div>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                playPreviewSound(sound.value);
+                              }}
+                              className="ml-3"
+                            >
+                              <Play className="w-3 h-3 mr-1" />
+                              Preview
+                            </Button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                </CollapsibleContent>
+              </Card>
+            </Collapsible>
           </CardContent>
         </Card>
 

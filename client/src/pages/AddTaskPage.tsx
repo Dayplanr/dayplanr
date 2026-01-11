@@ -171,6 +171,18 @@ export default function AddTaskPage() {
         title: t("today"),
         description: editTaskId ? "Task updated successfully!" : "Task added successfully!",
       });
+      
+      // Check if we should return to a specific date
+      const returnToDate = localStorage.getItem("returnToDate");
+      if (returnToDate) {
+        localStorage.removeItem("returnToDate");
+        // If return date is not today, preserve the selected date in TodayPage
+        const today = format(new Date(), "yyyy-MM-dd");
+        if (returnToDate !== today) {
+          localStorage.setItem("preserveSelectedDate", returnToDate);
+        }
+      }
+      
       navigate("/app");
     } catch (error: any) {
       toast({
@@ -205,7 +217,19 @@ export default function AddTaskPage() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => navigate("/app")}
+              onClick={() => {
+                // Check if we should return to a specific date
+                const returnToDate = localStorage.getItem("returnToDate");
+                if (returnToDate) {
+                  localStorage.removeItem("returnToDate");
+                  // If return date is not today, preserve the selected date in TodayPage
+                  const today = format(new Date(), "yyyy-MM-dd");
+                  if (returnToDate !== today) {
+                    localStorage.setItem("preserveSelectedDate", returnToDate);
+                  }
+                }
+                navigate("/app");
+              }}
               data-testid="button-back-today"
             >
               <ArrowLeft className="w-5 h-5" />

@@ -284,7 +284,8 @@ export default function FocusPage() {
         });
       }
     }
-    setActiveSession(null);
+    // Don't clear activeSession here - let the notification dismissal handle it
+    // setActiveSession(null);
   };
 
   const getCustomTimerIcon = (iconName: string) => {
@@ -347,6 +348,7 @@ export default function FocusPage() {
             icon={activeSession.icon}
             onComplete={handleSessionComplete}
             onCancel={handleSessionCancel}
+            onNotificationDismiss={() => setActiveSession(null)}
           />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
