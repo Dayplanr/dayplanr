@@ -21,5 +21,5 @@
     }
   },
   "include": ["client/src/**/*.ts", "client/src/**/*.tsx", "shared/**/*.ts", "server/**/*.ts"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "client/src/components/examples"]
 }

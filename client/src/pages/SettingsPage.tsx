@@ -230,7 +230,7 @@ export default function SettingsPage() {
         
         toast({
           title: "Error",
-          description: `Failed to save timer sound: ${error.message || error}`,
+          description: `Failed to save timer sound: ${error instanceof Error ? error.message : String(error)}`,
           variant: "destructive",
         });
       }
