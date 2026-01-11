@@ -1,11 +1,11 @@
-# Vercel Deployment Checklist
+# Vercel Deployment Checklist - UPDATED
 
 ## ✅ Completed
 - [x] TypeScript compilation errors fixed
-- [x] Build process working successfully
-- [x] vercel.json configuration created
+- [x] Build process working successfully  
+- [x] vercel.json configured for static site deployment
 - [x] Example components excluded from build
-- [x] Server configuration ready for production
+- [x] Identified Supabase as backend (no Express server needed)
 
 ## 🔧 Required Actions Before Deployment
 
@@ -13,21 +13,24 @@
 Add these environment variables in your Vercel dashboard:
 
 **Required:**
-- `DATABASE_URL` - Your PostgreSQL database connection string
-- `VITE_SUPABASE_URL` - Your Supabase project URL
-- `VITE_SUPABASE_ANON_KEY` - Your Supabase anonymous key
+- `VITE_SUPABASE_URL` - Your Supabase project URL (already in .env.local)
+- `VITE_SUPABASE_ANON_KEY` - Your Supabase anonymous key (already in .env.local)
 
-**Optional:**
-- `NODE_ENV=production` (automatically set by Vercel)
+**Note:** Since you're using Supabase as your backend, you don't need `DATABASE_URL` or Express server configuration.
 
-### 2. Database Setup
-- Ensure your PostgreSQL database is accessible from Vercel
-- Run database migrations: `npm run db:push`
-- Consider using Vercel Postgres or Supabase for hosting
+### 2. Supabase Database Setup
+- Ensure your Supabase database has the required tables:
+  - `users`
+  - `tasks` 
+  - `habits`
+  - `focus_sessions`
+  - `user_settings`
+- Configure Row Level Security (RLS) policies
+- Set up authentication in Supabase dashboard
 
 ### 3. Domain Configuration
 - Configure your custom domain in Vercel dashboard (if needed)
-- Update CORS settings if using external APIs
+- Update CORS settings in Supabase if needed
 
 ## 📋 Deployment Steps
 
@@ -38,7 +41,7 @@ Add these environment variables in your Vercel dashboard:
 
 2. **Configure Environment Variables:**
    - Go to Vercel Dashboard → Project → Settings → Environment Variables
-   - Add all required variables listed above
+   - Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`
 
 3. **Deploy:**
    ```bash
@@ -55,4 +58,4 @@ Add these environment variables in your Vercel dashboard:
 
 ## 🚀 Your App is Ready!
 
-All critical issues have been resolved. Your app should deploy successfully to Vercel.
+**Key Discovery:** Your app uses Supabase as the backend, so it can be deployed as a static site. No Express server needed for production!
