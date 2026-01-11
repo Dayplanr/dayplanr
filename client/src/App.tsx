@@ -18,6 +18,7 @@ import AddHabitPage from "@/pages/AddHabitPage";
 import AddTaskPage from "@/pages/AddTaskPage";
 import FocusPage from "@/pages/FocusPage";
 import SettingsPage from "@/pages/SettingsPage";
+import { LoadingScreen } from "@/components/LoadingScreen";
 import { AuthProvider, useAuth } from "./lib/auth";
 import { Redirect } from "wouter";
 
@@ -102,16 +103,7 @@ function AppContent({ isAppRoute }: { isAppRoute: boolean }) {
 
   // Show nothing while checking for existing session
   if (loading) {
-    return (
-      <div className="h-screen w-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 bg-primary/10">
-            <div className="text-2xl font-bold text-primary">D</div>
-          </div>
-          <div className="animate-pulse text-muted-foreground">Loading...</div>
-        </div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return isAppRoute ? (

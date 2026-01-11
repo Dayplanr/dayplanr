@@ -93,7 +93,7 @@ export function OnboardingModal({ open, onOpenChange, onComplete }: OnboardingMo
               <div className={`${step.bgColor} p-8 flex items-center justify-center`}>
                 <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center overflow-hidden">
                   {currentStep === 0 ? (
-                    <img src="/src/assets/logo.png" alt="dayplanr logo" className="w-12 h-12 object-contain" />
+                    <img src="/logo.svg" alt="dayplanr logo" className="w-12 h-12 object-contain" />
                   ) : (
                     <step.icon className="w-10 h-10 text-white" />
                   )}

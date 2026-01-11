@@ -53,7 +53,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-12 h-12 rounded-lg flex items-center justify-center">
-              <img src="/src/assets/logo.png" alt="dayplanr logo" className="w-full h-full object-contain" />
+              <img src="/logo.svg" alt="dayplanr logo" className="w-full h-full object-contain" />
             </div>
             <span className="text-xl font-bold text-foreground">dayplanr</span>
           </div>
@@ -122,8 +122,62 @@ export default function LandingPage() {
             <motion.div
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4"
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="mt-16 relative"
+            >
+              {/* Hero App Mockups */}
+              <div className="relative max-w-5xl mx-auto">
+                {/* Desktop mockup */}
+                <div className="relative z-10">
+                  <Card className="overflow-hidden border-2 border-white/20 shadow-2xl">
+                    <div className="bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 p-3 flex items-center gap-2 border-b">
+                      <div className="flex gap-1.5">
+                        <div className="w-3 h-3 rounded-full bg-red-400"></div>
+                        <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+                        <div className="w-3 h-3 rounded-full bg-green-400"></div>
+                      </div>
+                      <div className="flex-1 text-center">
+                        <div className="bg-white dark:bg-gray-700 rounded px-3 py-1 text-xs text-muted-foreground max-w-xs mx-auto">
+                          dayplanr.app
+                        </div>
+                      </div>
+                    </div>
+                    <CardContent className="p-0">
+                      <img src="/desktop-dashboard.png" alt="dayplanr desktop dashboard" className="w-full h-auto" />
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Mobile mockups */}
+                <div className="absolute -right-4 md:-right-8 top-8 z-20">
+                  <Card className="max-w-[200px] md:max-w-[240px] overflow-hidden border-2 border-white/30 shadow-xl transform rotate-3">
+                    <div className="bg-black p-2 flex justify-center">
+                      <div className="w-16 h-1 bg-gray-600 rounded-full"></div>
+                    </div>
+                    <CardContent className="p-0">
+                      <img src="/mobile-today.png" alt="dayplanr mobile today view" className="w-full h-auto" />
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="absolute -left-4 md:-left-8 top-16 z-20">
+                  <Card className="max-w-[180px] md:max-w-[220px] overflow-hidden border-2 border-white/30 shadow-xl transform -rotate-2">
+                    <div className="bg-black p-2 flex justify-center">
+                      <div className="w-16 h-1 bg-gray-600 rounded-full"></div>
+                    </div>
+                    <CardContent className="p-0">
+                      <img src="/mobile-habits.png" alt="dayplanr mobile habits view" className="w-full h-auto" />
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-4"
             >
               {stats.map((stat, index) => (
                 <Card key={index} className={`${stat.bgColor} border-0`}>
@@ -150,26 +204,102 @@ export default function LandingPage() {
                 Works Everywhere You Do
               </h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
-                Use dayplanr on your desktop browser or mobile device. Your progress syncs seamlessly.
+                Use dayplanr on your desktop browser or mobile device. Your progress syncs seamlessly across all platforms.
               </p>
             </motion.div>
 
-            <div className="grid md:grid-cols-2 gap-8 items-center">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              {/* Desktop Section */}
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5 }}
+                className="order-2 lg:order-1"
               >
-                <Card className="overflow-hidden border-2 border-blue-100 dark:border-blue-900/30">
+                <div className="mb-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                      <Monitor className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-foreground">Desktop Experience</h3>
+                  </div>
+                  <p className="text-muted-foreground mb-6">
+                    Full-featured web application with comprehensive dashboards, detailed analytics, and powerful productivity tools designed for focused work sessions.
+                  </p>
+                  <ul className="space-y-3">
+                    <li className="flex items-center gap-3">
+                      <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                      <span className="text-sm text-muted-foreground">Comprehensive dashboard views</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                      <span className="text-sm text-muted-foreground">Advanced analytics and insights</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                      <span className="text-sm text-muted-foreground">Keyboard shortcuts for power users</span>
+                    </li>
+                  </ul>
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+                className="order-1 lg:order-2"
+              >
+                <Card className="overflow-hidden border-2 border-blue-100 dark:border-blue-900/30 shadow-2xl">
                   <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 p-4 flex items-center gap-2 border-b border-blue-100 dark:border-blue-900/30">
-                    <Monitor className="w-5 h-5 text-blue-600" />
-                    <span className="font-medium text-foreground">Desktop Web App</span>
+                    <div className="flex gap-1.5">
+                      <div className="w-3 h-3 rounded-full bg-red-400"></div>
+                      <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+                      <div className="w-3 h-3 rounded-full bg-green-400"></div>
+                    </div>
+                    <div className="flex-1 text-center">
+                      <div className="bg-white dark:bg-gray-700 rounded px-3 py-1 text-xs text-muted-foreground max-w-xs mx-auto">
+                        dayplanr.app
+                      </div>
+                    </div>
                   </div>
                   <CardContent className="p-0">
-                    <img src="/src/assets/desktop-habits.png" alt="dayplanr desktop app showing habits tracking" className="w-full h-auto" />
+                    <img src="/desktop-habits.png" alt="dayplanr desktop app showing habits tracking" className="w-full h-auto" />
                   </CardContent>
                 </Card>
+              </motion.div>
+            </div>
+
+            <div className="grid lg:grid-cols-2 gap-12 items-center mt-20">
+              {/* Mobile Section */}
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                className="flex justify-center lg:justify-start"
+              >
+                <div className="relative">
+                  <Card className="max-w-[280px] overflow-hidden border-2 border-purple-100 dark:border-purple-900/30 shadow-2xl">
+                    <div className="bg-black p-3 flex justify-center">
+                      <div className="w-16 h-1 bg-gray-600 rounded-full"></div>
+                    </div>
+                    <CardContent className="p-0">
+                      <img src="/mobile-today.png" alt="dayplanr mobile app showing today view" className="w-full h-auto" />
+                    </CardContent>
+                  </Card>
+                  
+                  {/* Floating mobile card */}
+                  <Card className="absolute -right-8 top-16 max-w-[200px] overflow-hidden border-2 border-orange-100 dark:border-orange-900/30 shadow-xl transform rotate-6 z-10">
+                    <div className="bg-black p-2 flex justify-center">
+                      <div className="w-12 h-0.5 bg-gray-600 rounded-full"></div>
+                    </div>
+                    <CardContent className="p-0">
+                      <img src="/mobile-habits.png" alt="dayplanr mobile habits view" className="w-full h-auto" />
+                    </CardContent>
+                  </Card>
+                </div>
               </motion.div>
 
               <motion.div
@@ -177,17 +307,32 @@ export default function LandingPage() {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: 0.1 }}
-                className="flex justify-center"
               >
-                <Card className="max-w-[280px] overflow-hidden border-2 border-purple-100 dark:border-purple-900/30">
-                  <div className="bg-gradient-to-r from-purple-50 to-orange-50 dark:from-purple-900/20 dark:to-orange-900/20 p-3 flex items-center justify-center gap-2 border-b border-purple-100 dark:border-purple-900/30">
-                    <Smartphone className="w-4 h-4 text-purple-600" />
-                    <span className="font-medium text-sm text-foreground">Mobile App</span>
+                <div className="mb-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                      <Smartphone className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-foreground">Mobile Optimized</h3>
                   </div>
-                  <CardContent className="p-0">
-                    <img src="/src/assets/mobile-today.png" alt="dayplanr mobile app showing today view" className="w-full h-auto" />
-                  </CardContent>
-                </Card>
+                  <p className="text-muted-foreground mb-6">
+                    Native-like mobile experience with touch-optimized interfaces, offline support, and quick actions for productivity on the go.
+                  </p>
+                  <ul className="space-y-3">
+                    <li className="flex items-center gap-3">
+                      <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                      <span className="text-sm text-muted-foreground">Touch-optimized interface</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                      <span className="text-sm text-muted-foreground">Quick task creation and completion</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                      <span className="text-sm text-muted-foreground">Offline mode for uninterrupted productivity</span>
+                    </li>
+                  </ul>
+                </div>
               </motion.div>
             </div>
           </div>
@@ -269,7 +414,7 @@ export default function LandingPage() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-md flex items-center justify-center">
-                <img src="/src/assets/logo.png" alt="dayplanr logo" className="w-full h-full object-contain" />
+                <img src="/logo.svg" alt="dayplanr logo" className="w-full h-full object-contain" />
               </div>
               <span className="font-bold text-foreground">dayplanr</span>
             </div>
