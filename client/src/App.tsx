@@ -105,8 +105,8 @@ function AppContent({ isAppRoute }: { isAppRoute: boolean }) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <img src="/src/assets/logo.png" alt="dayplanr" className="w-full h-full object-contain" />
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 bg-primary/10">
+            <div className="text-2xl font-bold text-primary">D</div>
           </div>
           <div className="animate-pulse text-muted-foreground">Loading...</div>
         </div>

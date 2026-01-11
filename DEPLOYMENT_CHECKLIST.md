@@ -1,61 +1,53 @@
-# Vercel Deployment Checklist - UPDATED
+# Vercel Deployment Fix - Empty Page Issue
 
-## ✅ Completed
-- [x] TypeScript compilation errors fixed
-- [x] Build process working successfully  
-- [x] vercel.json configured for static site deployment
-- [x] Example components excluded from build
-- [x] Identified Supabase as backend (no Express server needed)
+## 🚨 CRITICAL: Environment Variables Missing
 
-## 🔧 Required Actions Before Deployment
+Your app is showing a blank page because the Supabase environment variables are not configured in Vercel.
 
-### 1. Environment Variables Setup
-Add these environment variables in your Vercel dashboard:
+## ✅ Fixes Applied
+- [x] Fixed SPA routing in vercel.json
+- [x] Added error handling for missing environment variables
+- [x] Fixed logo loading issue
+- [x] Made Supabase initialization more robust
 
-**Required:**
-- `VITE_SUPABASE_URL` - Your Supabase project URL (already in .env.local)
-- `VITE_SUPABASE_ANON_KEY` - Your Supabase anonymous key (already in .env.local)
+## 🔧 IMMEDIATE ACTION REQUIRED
 
-**Note:** Since you're using Supabase as your backend, you don't need `DATABASE_URL` or Express server configuration.
+### 1. Set Environment Variables in Vercel Dashboard
 
-### 2. Supabase Database Setup
-- Ensure your Supabase database has the required tables:
-  - `users`
-  - `tasks` 
-  - `habits`
-  - `focus_sessions`
-  - `user_settings`
-- Configure Row Level Security (RLS) policies
-- Set up authentication in Supabase dashboard
+**Go to:** Vercel Dashboard → Your Project → Settings → Environment Variables
 
-### 3. Domain Configuration
-- Configure your custom domain in Vercel dashboard (if needed)
-- Update CORS settings in Supabase if needed
+**Add these EXACT variables:**
 
-## 📋 Deployment Steps
+```
+VITE_SUPABASE_URL=https://vrtlltthcfiagmcwjrhq.supabase.co
+VITE_SUPABASE_ANON_KEY=sb_publishable_yyQ3H6qEsI-4w9BKWhj4CQ_LEZ4kfZM
+```
 
-1. **Connect to Vercel:**
-   ```bash
-   npx vercel
-   ```
+### 2. Redeploy After Adding Variables
 
-2. **Configure Environment Variables:**
-   - Go to Vercel Dashboard → Project → Settings → Environment Variables
-   - Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`
+After adding the environment variables:
 
-3. **Deploy:**
-   ```bash
-   npx vercel --prod
-   ```
+```bash
+npx vercel --prod
+```
 
-## ⚠️ Known Issues to Monitor
+## 🔍 How to Verify It's Working
 
-1. **Large Bundle Size:** Your main JS bundle is 1.4MB. Consider code splitting for better performance.
+1. **Check Browser Console:** Open DevTools → Console
+2. **Look for errors:** Should not see "Missing Supabase environment variables"
+3. **Test navigation:** App should load the landing page at `/`
 
-2. **PostCSS Warning:** Non-critical warning about PostCSS plugin configuration.
+## 🚀 Expected Behavior After Fix
 
-3. **Timer Sounds:** Ensure audio files are properly served in production.
+- **Landing page** loads at root URL
+- **Authentication** works properly  
+- **App routes** (`/app`, `/app/goals`, etc.) work correctly
+- **No blank page** issues
 
-## 🚀 Your App is Ready!
+## ⚠️ If Still Blank After Adding Env Vars
 
-**Key Discovery:** Your app uses Supabase as the backend, so it can be deployed as a static site. No Express server needed for production!
+1. Check Vercel deployment logs for errors
+2. Open browser DevTools → Console for JavaScript errors
+3. Verify environment variables are actually set in Vercel dashboard
+
+The app is now configured correctly - it just needs the environment variables!
