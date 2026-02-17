@@ -93,7 +93,7 @@ export function OnboardingModal({ open, onOpenChange, onComplete }: OnboardingMo
               <div className={`${step.bgColor} p-8 flex items-center justify-center`}>
                 <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center overflow-hidden">
                   {currentStep === 0 ? (
-                    <img src="/logo.svg" alt="dayplanr logo" className="w-12 h-12 object-contain" />
+                    <img src="/logo-new.png?v=4" alt="dayplanr logo" className="w-12 h-12 object-contain" />
                   ) : (
                     <step.icon className="w-10 h-10 text-white" />
                   )}
@@ -109,10 +109,10 @@ export function OnboardingModal({ open, onOpenChange, onComplete }: OnboardingMo
                       <div
                         key={index}
                         className={`w-2 h-2 rounded-full transition-colors ${index === currentStep
-                            ? "bg-primary"
-                            : index < currentStep
-                              ? "bg-primary/50"
-                              : "bg-muted"
+                          ? "bg-primary"
+                          : index < currentStep
+                            ? "bg-primary/50"
+                            : "bg-muted"
                           }`}
                       />
                     ))}
@@ -154,8 +154,8 @@ export function OnboardingModal({ open, onOpenChange, onComplete }: OnboardingMo
                       key={lang.code}
                       onClick={() => setLanguage(lang.code)}
                       className={`flex items-center gap-2 p-3 rounded-lg border transition-colors ${language === lang.code
-                          ? "border-primary bg-primary/10"
-                          : "border-border hover:border-primary/50"
+                        ? "border-primary bg-primary/10"
+                        : "border-border hover:border-primary/50"
                         }`}
                       data-testid={`button-language-${lang.code}`}
                     >

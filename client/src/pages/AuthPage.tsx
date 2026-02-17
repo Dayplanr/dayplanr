@@ -88,7 +88,7 @@ export default function AuthPage() {
         >
           <div className="text-center mb-8">
             <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <img src="/logo.svg" alt="dayplanr logo" className="w-full h-full object-contain" />
+              <img src="/logo-new.png?v=4" alt="dayplanr logo" className="w-full h-full object-contain" />
             </div>
             <h1 className="text-2xl font-bold text-foreground">
               {isSignUp ? "Create your account" : "Create an account"}

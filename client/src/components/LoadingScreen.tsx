@@ -10,9 +10,9 @@ export function LoadingScreen() {
           transition={{ duration: 0.5 }}
           className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6"
         >
-          <img src="/logo.svg" alt="dayplanr" className="w-full h-full object-contain" />
+          <img src="/logo-new.png?v=4" alt="dayplanr" className="w-full h-full object-contain" />
         </motion.div>
-        
+
         <motion.h1
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -21,7 +21,7 @@ export function LoadingScreen() {
         >
           dayplanr
         </motion.h1>
-        
+
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}

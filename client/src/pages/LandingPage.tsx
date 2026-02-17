@@ -48,27 +48,27 @@ export default function LandingPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background text-sm md:text-base">
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border">
-        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-12 h-12 rounded-lg flex items-center justify-center">
-              <img src="/logo.svg" alt="dayplanr logo" className="w-full h-full object-contain" />
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center overflow-hidden">
+              <img src="/logo-new.png?v=4" alt="dayplanr logo" className="w-full h-full object-contain" />
             </div>
             <span className="text-xl font-bold text-foreground">dayplanr</span>
           </div>
           <div className="flex items-center gap-3">
             {user ? (
-              <Button onClick={() => navigate("/app")} data-testid="button-dashboard-header">
+              <Button size="sm" onClick={() => navigate("/app")} data-testid="button-dashboard-header">
                 <LayoutDashboard className="w-4 h-4 mr-2" />
                 Dashboard
               </Button>
             ) : (
               <>
-                <Button variant="ghost" onClick={() => navigate("/auth")} data-testid="button-login-header">
+                <Button variant="ghost" size="sm" onClick={() => navigate("/auth")} data-testid="button-login-header">
                   Login
                 </Button>
-                <Button onClick={() => navigate("/app")} data-testid="button-get-started-header">
+                <Button size="sm" onClick={() => navigate("/app")} data-testid="button-get-started-header">
                   Get Started
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
@@ -79,7 +79,7 @@ export default function LandingPage() {
       </header>
 
       <main>
-        <section className="relative py-20 md:py-28 overflow-hidden">
+        <section className="relative py-12 md:py-16 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50/30 to-orange-50/20 dark:from-blue-900/10 dark:via-purple-900/5 dark:to-orange-900/10" />
           <div className="max-w-6xl mx-auto px-4 relative">
             <motion.div
@@ -88,102 +88,54 @@ export default function LandingPage() {
               transition={{ duration: 0.5 }}
               className="text-center max-w-3xl mx-auto"
             >
-              <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6">
+              <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-4">
                 Stop completing tasks.{" "}
-                <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-orange-500 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-orange-500 bg-clip-text text-transparent whitespace-nowrap">
                   Start making progress.
                 </span>
               </h1>
-              <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+              <p className="text-base md:text-lg text-muted-foreground mb-6 max-w-2xl mx-auto">
                 The all-in-one productivity app that helps you manage tasks, build habits,
                 track goals, and stay focused.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 {user ? (
-                  <Button size="lg" onClick={() => navigate("/app")} data-testid="button-dashboard">
-                    <LayoutDashboard className="w-5 h-5 mr-2" />
+                  <Button size="default" onClick={() => navigate("/app")} data-testid="button-dashboard">
+                    <LayoutDashboard className="w-4 h-4 mr-2" />
                     Go to Dashboard
-                    <ArrowRight className="w-5 h-5 ml-2" />
+                    <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 ) : (
                   <>
-                    <Button variant="outline" size="lg" onClick={() => navigate("/auth")} data-testid="button-login">
+                    <Button variant="outline" size="default" onClick={() => navigate("/auth")} data-testid="button-login">
                       Login
                     </Button>
-                    <Button size="lg" onClick={() => navigate("/app")} data-testid="button-start-free">
+                    <Button size="default" onClick={() => navigate("/app")} data-testid="button-start-free">
                       Get Started
-                      <ArrowRight className="w-5 h-5 ml-2" />
+                      <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                   </>
                 )}
               </div>
             </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="mt-16 relative"
-            >
-              {/* Hero App Mockups */}
-              <div className="relative max-w-5xl mx-auto">
-                {/* Desktop mockup */}
-                <div className="relative z-10">
-                  <Card className="overflow-hidden border-2 border-white/20 shadow-2xl">
-                    <div className="bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 p-3 flex items-center gap-2 border-b">
-                      <div className="flex gap-1.5">
-                        <div className="w-3 h-3 rounded-full bg-red-400"></div>
-                        <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
-                        <div className="w-3 h-3 rounded-full bg-green-400"></div>
-                      </div>
-                      <div className="flex-1 text-center">
-                        <div className="bg-white dark:bg-gray-700 rounded px-3 py-1 text-xs text-muted-foreground max-w-xs mx-auto">
-                          dayplanr.app
-                        </div>
-                      </div>
-                    </div>
-                    <CardContent className="p-0">
-                      <img src="/desktop-dashboard.png" alt="dayplanr desktop dashboard" className="w-full h-auto" />
-                    </CardContent>
-                  </Card>
-                </div>
 
-                {/* Mobile mockups */}
-                <div className="absolute -right-4 md:-right-8 top-8 z-20">
-                  <Card className="max-w-[200px] md:max-w-[240px] overflow-hidden border-2 border-white/30 shadow-xl transform rotate-3">
-                    <div className="bg-black p-2 flex justify-center">
-                      <div className="w-16 h-1 bg-gray-600 rounded-full"></div>
-                    </div>
-                    <CardContent className="p-0">
-                      <img src="/mobile-today.png" alt="dayplanr mobile today view" className="w-full h-auto" />
-                    </CardContent>
-                  </Card>
-                </div>
 
-                <div className="absolute -left-4 md:-left-8 top-16 z-20">
-                  <Card className="max-w-[180px] md:max-w-[220px] overflow-hidden border-2 border-white/30 shadow-xl transform -rotate-2">
-                    <div className="bg-black p-2 flex justify-center">
-                      <div className="w-16 h-1 bg-gray-600 rounded-full"></div>
-                    </div>
-                    <CardContent className="p-0">
-                      <img src="/mobile-habits.png" alt="dayplanr mobile habits view" className="w-full h-auto" />
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-            </motion.div>
+
+
+
 
             <motion.div
-              initial={{ opacity: 0, y: 40 }}
+              initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
-              className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-4"
+              className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4"
             >
               {stats.map((stat, index) => (
-                <Card key={index} className={`${stat.bgColor} border-0`}>
-                  <CardContent className="p-6 text-center">
-                    <p className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">{stat.value}</p>
-                    <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
+                <Card key={index} className={`${stat.bgColor} border-0 shadow-sm`}>
+                  <CardContent className="p-4 text-center">
+                    <p className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">{stat.value}</p>
+                    <p className="text-xs md:text-sm text-muted-foreground mt-0.5">{stat.label}</p>
                   </CardContent>
                 </Card>
               ))}
@@ -191,171 +143,198 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="py-20">
+        <section className="py-16">
           <div className="max-w-6xl mx-auto px-4">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
-              className="text-center mb-12"
+              className="text-center mb-10"
             >
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+              <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3">
                 Works Everywhere You Do
               </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
+              <p className="text-muted-foreground max-w-xl mx-auto text-sm md:text-base">
                 Use dayplanr on your desktop browser or mobile device. Your progress syncs seamlessly across all platforms.
               </p>
             </motion.div>
 
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="grid lg:grid-cols-2 gap-8 md:gap-12 items-center">
               {/* Desktop Section */}
               <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5 }}
-                className="order-2 lg:order-1"
+                className="text-center max-w-2xl mx-auto mb-8"
               >
-                <div className="mb-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                      <Monitor className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                <div className="mb-4">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                      <Monitor className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                     </div>
-                    <h3 className="text-2xl font-bold text-foreground">Desktop Experience</h3>
+                    <h3 className="text-xl font-bold text-foreground">Desktop Experience</h3>
                   </div>
-                  <p className="text-muted-foreground mb-6">
+                  <p className="text-muted-foreground mb-4 text-sm md:text-base">
                     Full-featured web application with comprehensive dashboards, detailed analytics, and powerful productivity tools designed for focused work sessions.
                   </p>
-                  <ul className="space-y-3">
-                    <li className="flex items-center gap-3">
-                      <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                  <ul className="space-y-2">
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
                       <span className="text-sm text-muted-foreground">Comprehensive dashboard views</span>
                     </li>
-                    <li className="flex items-center gap-3">
-                      <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>
                       <span className="text-sm text-muted-foreground">Advanced analytics and insights</span>
                     </li>
-                    <li className="flex items-center gap-3">
-                      <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-orange-500"></div>
                       <span className="text-sm text-muted-foreground">Keyboard shortcuts for power users</span>
                     </li>
                   </ul>
                 </div>
               </motion.div>
 
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5 }}
-                className="order-1 lg:order-2"
-              >
-                <Card className="overflow-hidden border-2 border-blue-100 dark:border-blue-900/30 shadow-2xl">
-                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 p-4 flex items-center gap-2 border-b border-blue-100 dark:border-blue-900/30">
-                    <div className="flex gap-1.5">
-                      <div className="w-3 h-3 rounded-full bg-red-400"></div>
-                      <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
-                      <div className="w-3 h-3 rounded-full bg-green-400"></div>
-                    </div>
-                    <div className="flex-1 text-center">
-                      <div className="bg-white dark:bg-gray-700 rounded px-3 py-1 text-xs text-muted-foreground max-w-xs mx-auto">
-                        dayplanr.app
+              {/* Desktop Experience Section */}
+              <div className="mt-16">
+
+
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                >
+                  <div className="grid grid-cols-1 gap-6 max-w-5xl mx-auto">
+                    <Card className="overflow-hidden border-2 border-blue-100 dark:border-blue-900/30 shadow-xl">
+                      <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 p-3 flex items-center gap-2 border-b border-blue-100 dark:border-blue-900/30">
+                        <div className="flex gap-1">
+                          <div className="w-2.5 h-2.5 rounded-full bg-red-400"></div>
+                          <div className="w-2.5 h-2.5 rounded-full bg-yellow-400"></div>
+                          <div className="w-2.5 h-2.5 rounded-full bg-green-400"></div>
+                        </div>
+                        <div className="flex-1 text-center">
+                          <div className="bg-white dark:bg-gray-700 rounded px-2 py-0.5 text-[10px] text-muted-foreground max-w-[100px] mx-auto">
+                            dayplanr.app
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                      <CardContent className="p-0">
+                        <img src="/desktop-habits.png" alt="dayplanr desktop app showing habits tracking" className="w-full h-auto" />
+                      </CardContent>
+                    </Card>
+
+                    <Card className="overflow-hidden border-2 border-purple-100 dark:border-purple-900/30 shadow-xl">
+                      <div className="bg-gradient-to-r from-purple-50 to-orange-50 dark:from-purple-900/20 dark:to-orange-900/20 p-3 flex items-center gap-2 border-b border-purple-100 dark:border-purple-900/30">
+                        <div className="flex gap-1">
+                          <div className="w-2.5 h-2.5 rounded-full bg-red-400"></div>
+                          <div className="w-2.5 h-2.5 rounded-full bg-yellow-400"></div>
+                          <div className="w-2.5 h-2.5 rounded-full bg-green-400"></div>
+                        </div>
+                        <div className="flex-1 text-center">
+                          <div className="bg-white dark:bg-gray-700 rounded px-2 py-0.5 text-[10px] text-muted-foreground max-w-[100px] mx-auto">
+                            dayplanr.app
+                          </div>
+                        </div>
+                      </div>
+                      <CardContent className="p-0">
+                        <img src="/desktop-today.png" alt="dayplanr desktop app showing today view" className="w-full h-auto" />
+                      </CardContent>
+                    </Card>
                   </div>
-                  <CardContent className="p-0">
-                    <img src="/desktop-habits.png" alt="dayplanr desktop app showing habits tracking" className="w-full h-auto" />
-                  </CardContent>
-                </Card>
-              </motion.div>
+                </motion.div>
+              </div>
+
+
             </div>
 
-            <div className="grid lg:grid-cols-2 gap-12 items-center mt-20">
-              {/* Mobile Section */}
+            {/* Mobile Experience Section */}
+            <div className="grid lg:grid-cols-2 gap-8 md:gap-12 items-center mt-16">
+              {/* Mobile Screenshots - Left Side */}
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.1 }}
-                className="flex justify-center lg:justify-start"
+                transition={{ duration: 0.5 }}
               >
-                <div className="relative">
-                  <Card className="max-w-[280px] overflow-hidden border-2 border-purple-100 dark:border-purple-900/30 shadow-2xl">
-                    <div className="bg-black p-3 flex justify-center">
-                      <div className="w-16 h-1 bg-gray-600 rounded-full"></div>
+                <div className="flex justify-center gap-4 flex-wrap">
+                  <Card className="max-w-[280px] overflow-hidden border-2 border-purple-100 dark:border-purple-900/30 shadow-xl">
+                    <div className="bg-black p-2 flex justify-center">
+                      <div className="w-12 h-1 bg-gray-600 rounded-full"></div>
                     </div>
                     <CardContent className="p-0">
-                      <img src="/mobile-today.png" alt="dayplanr mobile app showing today view" className="w-full h-auto" />
+                      <img src="/mobile-screenshot-1.png" alt="dayplanr mobile app screenshot 1" className="w-full h-auto" />
                     </CardContent>
                   </Card>
-                  
-                  {/* Floating mobile card */}
-                  <Card className="absolute -right-8 top-16 max-w-[200px] overflow-hidden border-2 border-orange-100 dark:border-orange-900/30 shadow-xl transform rotate-6 z-10">
+
+                  <Card className="max-w-[280px] overflow-hidden border-2 border-orange-100 dark:border-orange-900/30 shadow-xl">
                     <div className="bg-black p-2 flex justify-center">
-                      <div className="w-12 h-0.5 bg-gray-600 rounded-full"></div>
+                      <div className="w-12 h-1 bg-gray-600 rounded-full"></div>
                     </div>
                     <CardContent className="p-0">
-                      <img src="/mobile-habits.png" alt="dayplanr mobile habits view" className="w-full h-auto" />
+                      <img src="/mobile-screenshot-2.png" alt="dayplanr mobile app screenshot 2" className="w-full h-auto" />
                     </CardContent>
                   </Card>
                 </div>
               </motion.div>
 
+              {/* Mobile Text - Right Side */}
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.1 }}
+                transition={{ duration: 0.5 }}
               >
-                <div className="mb-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-                      <Smartphone className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                <div className="mb-4">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                      <Smartphone className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                     </div>
-                    <h3 className="text-2xl font-bold text-foreground">Mobile Optimized</h3>
+                    <h3 className="text-xl font-bold text-foreground">Mobile Experience</h3>
                   </div>
-                  <p className="text-muted-foreground mb-6">
-                    Native-like mobile experience with touch-optimized interfaces, offline support, and quick actions for productivity on the go.
+                  <p className="text-muted-foreground mb-4 text-sm md:text-base">
+                    Native-like mobile experience designed for productivity on the go, with touch-optimized interfaces and quick actions.
                   </p>
-                  <ul className="space-y-3">
-                    <li className="flex items-center gap-3">
-                      <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                  <ul className="space-y-2">
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>
                       <span className="text-sm text-muted-foreground">Touch-optimized interface</span>
                     </li>
-                    <li className="flex items-center gap-3">
-                      <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-orange-500"></div>
                       <span className="text-sm text-muted-foreground">Quick task creation and completion</span>
                     </li>
-                    <li className="flex items-center gap-3">
-                      <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
                       <span className="text-sm text-muted-foreground">Offline mode for uninterrupted productivity</span>
                     </li>
                   </ul>
                 </div>
               </motion.div>
             </div>
+
+
           </div>
         </section>
 
-        <section className="py-20 bg-gradient-to-br from-blue-50/50 via-purple-50/30 to-orange-50/50 dark:from-blue-900/10 dark:via-purple-900/5 dark:to-orange-900/10">
+        <section className="py-16 bg-gradient-to-br from-blue-50/50 via-purple-50/30 to-orange-50/50 dark:from-blue-900/10 dark:via-purple-900/5 dark:to-orange-900/10">
           <div className="max-w-6xl mx-auto px-4">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
-              className="text-center mb-12"
+              className="text-center mb-10"
             >
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+              <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3">
                 Everything You Need to Stay Productive
               </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
+              <p className="text-muted-foreground max-w-xl mx-auto text-sm md:text-base">
                 Link your daily tasks to meaningful goals and lasting habits. Every completed task becomes a step toward your dreams.
               </p>
             </motion.div>
 
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid md:grid-cols-2 gap-4">
               {features.map((feature, index) => (
                 <motion.div
                   key={index}
@@ -364,14 +343,14 @@ export default function LandingPage() {
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                 >
-                  <Card className="h-full hover-elevate border-0 bg-card/80 backdrop-blur-sm">
-                    <CardContent className="p-6 flex gap-4">
-                      <div className={`p-3 rounded-xl ${feature.bgColor} h-fit`}>
-                        <feature.icon className={`w-6 h-6 ${feature.iconColor}`} />
+                  <Card className="h-full hover-elevate border-0 bg-card/80 backdrop-blur-sm shadow-sm">
+                    <CardContent className="p-5 flex gap-3">
+                      <div className={`p-2.5 rounded-lg ${feature.bgColor} h-fit`}>
+                        <feature.icon className={`w-5 h-5 ${feature.iconColor}`} />
                       </div>
                       <div>
-                        <h3 className="text-lg font-semibold text-foreground mb-2">{feature.title}</h3>
-                        <p className="text-muted-foreground">{feature.description}</p>
+                        <h3 className="text-base font-semibold text-foreground mb-1">{feature.title}</h3>
+                        <p className="text-sm text-muted-foreground leading-relaxed">{feature.description}</p>
                       </div>
                     </CardContent>
                   </Card>
@@ -381,7 +360,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="py-20 bg-gradient-to-r from-blue-600 via-purple-600 to-orange-500">
+        <section className="py-16 bg-gradient-to-r from-blue-600 via-purple-600 to-orange-500">
           <div className="max-w-4xl mx-auto px-4 text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -389,19 +368,19 @@ export default function LandingPage() {
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
             >
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+              <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">
                 Ready to Make Real Progress?
               </h2>
-              <p className="text-white/80 mb-8 max-w-xl mx-auto">
+              <p className="text-white/80 mb-6 max-w-lg mx-auto text-sm md:text-base">
                 Join thousands of users who have already transformed their daily routines with dayplanr.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button size="lg" variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20" onClick={() => navigate("/auth")} data-testid="button-login-cta">
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button size="default" variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20" onClick={() => navigate("/auth")} data-testid="button-login-cta">
                   Login
                 </Button>
-                <Button size="lg" className="bg-white text-purple-600 hover:bg-white/90" onClick={() => navigate("/app")} data-testid="button-get-started-cta">
+                <Button size="default" className="bg-white text-purple-600 hover:bg-white/90" onClick={() => navigate("/app")} data-testid="button-get-started-cta">
                   Get Started Now
-                  <ArrowRight className="w-5 h-5 ml-2" />
+                  <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </div>
             </motion.div>
@@ -409,18 +388,21 @@ export default function LandingPage() {
         </section>
       </main>
 
-      <footer className="border-t border-border py-8">
+      <footer className="border-t border-border py-6">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-md flex items-center justify-center">
-                <img src="/logo.svg" alt="dayplanr logo" className="w-full h-full object-contain" />
+              <div className="w-10 h-10 rounded flex items-center justify-center overflow-hidden">
+                <img src="/logo-new.png?v=4" alt="dayplanr logo" className="w-full h-full object-contain" />
               </div>
-              <span className="font-bold text-foreground">dayplanr</span>
+              <span className="font-bold text-foreground text-sm">dayplanr</span>
             </div>
+            <p className="text-xs text-muted-foreground">
+              © {new Date().getFullYear()} dayplanr. All rights reserved.
+            </p>
           </div>
         </div>
       </footer>
-    </div>
+    </div >
   );
 }
