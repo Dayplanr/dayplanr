@@ -176,8 +176,8 @@ export default function LandingPage() {
                     </div>
                     <h3 className="text-xl font-bold text-foreground">Desktop Experience</h3>
                   </div>
-                  <p className="text-muted-foreground mb-4 text-sm md:text-base">
-                    Full-featured web application with comprehensive dashboards, detailed analytics, and powerful productivity tools designed for focused work sessions.
+                  <p className="text-muted-foreground mb-4 text-sm md:text-base max-w-3xl text-left tracking-tight">
+                    Full-featured web application with comprehensive dashboards,<br />detailed analytics, and powerful productivity tools designed for focused work&nbsp;sessions.
                   </p>
                   <ul className="space-y-2">
                     <li className="flex items-center gap-2">
@@ -224,23 +224,7 @@ export default function LandingPage() {
                       </CardContent>
                     </Card>
 
-                    <Card className="overflow-hidden border-2 border-purple-100 dark:border-purple-900/30 shadow-xl">
-                      <div className="bg-gradient-to-r from-purple-50 to-orange-50 dark:from-purple-900/20 dark:to-orange-900/20 p-3 flex items-center gap-2 border-b border-purple-100 dark:border-purple-900/30">
-                        <div className="flex gap-1">
-                          <div className="w-2.5 h-2.5 rounded-full bg-red-400"></div>
-                          <div className="w-2.5 h-2.5 rounded-full bg-yellow-400"></div>
-                          <div className="w-2.5 h-2.5 rounded-full bg-green-400"></div>
-                        </div>
-                        <div className="flex-1 text-center">
-                          <div className="bg-white dark:bg-gray-700 rounded px-2 py-0.5 text-[10px] text-muted-foreground max-w-[100px] mx-auto">
-                            dayplanr.app
-                          </div>
-                        </div>
-                      </div>
-                      <CardContent className="p-0">
-                        <img src="/desktop-today.png" alt="dayplanr desktop app showing today view" className="w-full h-auto" />
-                      </CardContent>
-                    </Card>
+
                   </div>
                 </motion.div>
               </div>
@@ -267,14 +251,7 @@ export default function LandingPage() {
                     </CardContent>
                   </Card>
 
-                  <Card className="max-w-[280px] overflow-hidden border-2 border-orange-100 dark:border-orange-900/30 shadow-xl">
-                    <div className="bg-black p-2 flex justify-center">
-                      <div className="w-12 h-1 bg-gray-600 rounded-full"></div>
-                    </div>
-                    <CardContent className="p-0">
-                      <img src="/mobile-screenshot-2.png" alt="dayplanr mobile app screenshot 2" className="w-full h-auto" />
-                    </CardContent>
-                  </Card>
+
                 </div>
               </motion.div>
 
