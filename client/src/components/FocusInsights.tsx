@@ -30,14 +30,18 @@ import {
   Line,
 } from "recharts";
 
+interface SessionData {
+  id?: string;
+  duration?: number;
+  mode?: string;
+  completed_at?: string;
+  [key: string]: any;
+}
+
 interface FocusInsightsProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  todayMinutes: number;
-  todaySessions: number;
-  weekData: { day: string; pomodoro: number; deepwork: number; custom: number }[];
-  monthData: { date: string; minutes: number }[];
-  yearData: { month: string; minutes: number }[];
+  sessionHistory: SessionData[];
 }
 
 const months = [
@@ -53,7 +57,7 @@ const generateWeeks = (year: number) => {
   const yearStart = startOfYear(new Date(year, 0, 1));
   const yearEnd = endOfYear(new Date(year, 11, 31));
   const weeks = eachWeekOfInterval({ start: yearStart, end: yearEnd }, { weekStartsOn: 1 }); // Monday start
-  
+
   return weeks.map((weekStart, index) => {
     const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
     return {
@@ -69,23 +73,134 @@ const generateWeeks = (year: number) => {
 export default function FocusInsights({
   open,
   onOpenChange,
-  todayMinutes,
-  todaySessions,
-  weekData,
-  monthData,
-  yearData,
+  sessionHistory = [],
 }: FocusInsightsProps) {
   const [showMonthDetails, setShowMonthDetails] = useState(false);
   const [activeTab, setActiveTab] = useState("today");
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "MMMM"));
-  const [selectedYear, setSelectedYear] = useState(2026);
-  const [selectedWeek, setSelectedWeek] = useState(1);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedWeek, setSelectedWeek] = useState(1); // Would normally calculate current week
 
-  const todayPieData = [
-    { name: "Pomodoro", value: 65, color: "#8b5cf6" },
-    { name: "Deep Work", value: 25, color: "#3b82f6" },
-    { name: "Custom", value: 10, color: "#10b981" },
-  ];
+  const today = new Date();
+  const todayStr = format(today, "yyyy-MM-dd");
+
+  const todaySessionsList = sessionHistory.filter(s => s.completed_at?.startsWith(todayStr));
+  const todayMinutes = todaySessionsList.reduce((acc, s) => acc + (s.duration || 0), 0);
+  const todaySessions = todaySessionsList.length;
+
+  let todayPieData = [
+    { name: "Pomodoro", value: todaySessionsList.filter(s => s.mode === "pomodoro").length, color: "#8b5cf6" },
+    { name: "Deep Work", value: todaySessionsList.filter(s => s.mode === "deepwork").length, color: "#3b82f6" },
+    { name: "Custom", value: todaySessionsList.filter(s => s.mode === "custom").length, color: "#10b981" },
+  ].filter(d => d.value > 0);
+
+  if (todayPieData.length === 0) {
+    todayPieData = [{ name: "No Sessions", value: 1, color: "#e5e7eb" }];
+  }
+
+  const getWeekData = () => {
+    const weeks = generateWeeks(selectedYear);
+    const targetWeek = weeks.find(w => w.value === selectedWeek);
+    if (!targetWeek) return [];
+
+    const days = eachDayOfInterval({ start: targetWeek.startDate, end: targetWeek.endDate });
+
+    return days.map(day => {
+      const dayStr = format(day, "yyyy-MM-dd");
+      const daySessions = sessionHistory.filter(s => s.completed_at?.startsWith(dayStr));
+      return {
+        day: format(day, "EEE"),
+        pomodoro: daySessions.filter(s => s.mode === "pomodoro").reduce((acc, s) => acc + (s.duration || 0), 0),
+        deepwork: daySessions.filter(s => s.mode === "deepwork").reduce((acc, s) => acc + (s.duration || 0), 0),
+        custom: daySessions.filter(s => s.mode === "custom").reduce((acc, s) => acc + (s.duration || 0), 0),
+      };
+    });
+  };
+
+  const weekData = getWeekData();
+
+  const getMonthData = () => {
+    const monthIndex = months.indexOf(selectedMonth);
+    const monthStart = new Date(selectedYear, monthIndex, 1);
+    const monthEnd = new Date(selectedYear, monthIndex + 1, 0);
+    const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
+
+    return days.map(day => {
+      const dayStr = format(day, "yyyy-MM-dd");
+      const daySessions = sessionHistory.filter(s => s.completed_at?.startsWith(dayStr));
+      return {
+        date: dayStr,
+        minutes: daySessions.reduce((acc, s) => acc + (s.duration || 0), 0)
+      };
+    });
+  };
+
+  const monthData = getMonthData();
+
+  const getYearData = () => {
+    return months.map((month, index) => {
+      const monthStart = new Date(selectedYear, index, 1);
+      const monthEnd = new Date(selectedYear, index + 1, 0);
+      const monthSessions = sessionHistory.filter(s => {
+        if (!s.completed_at) return false;
+        const d = new Date(s.completed_at);
+        return d >= monthStart && d <= monthEnd;
+      });
+
+      return {
+        month: month.substring(0, 3),
+        minutes: monthSessions.reduce((acc, s) => acc + (s.duration || 0), 0)
+      };
+    });
+  };
+
+  const yearData = getYearData();
+
+  const getYearTimerRankings = () => {
+    const yearStart = new Date(selectedYear, 0, 1);
+    const yearEnd = new Date(selectedYear, 11, 31);
+
+    const yearSessions = sessionHistory.filter(s => {
+      if (!s.completed_at) return false;
+      const d = new Date(s.completed_at);
+      return d >= yearStart && d <= yearEnd;
+    });
+
+    const pomodoro = yearSessions.filter(s => s.mode === "pomodoro").length;
+    const deepwork = yearSessions.filter(s => s.mode === "deepwork").length;
+    const custom = yearSessions.filter(s => s.mode === "custom").length;
+
+    return [
+      { name: "Pomodoro", sessions: pomodoro, color: "#8b5cf6" },
+      { name: "Deep Work", sessions: deepwork, color: "#3b82f6" },
+      { name: "Custom", sessions: custom, color: "#10b981" },
+    ].sort((a, b) => b.sessions - a.sessions);
+  };
+
+  const timerRankings = getYearTimerRankings();
+
+  const getTopWeekTimer = () => {
+    const totals = {
+      Pomodoro: weekData.reduce((acc, d) => acc + d.pomodoro, 0),
+      "Deep Work": weekData.reduce((acc, d) => acc + d.deepwork, 0),
+      Custom: weekData.reduce((acc, d) => acc + d.custom, 0),
+    };
+    const max = Math.max(totals.Pomodoro, totals["Deep Work"], totals.Custom);
+    if (max === 0) return { name: "None", value: 0 };
+    if (totals.Pomodoro === max) return { name: "Pomodoro", value: max };
+    if (totals["Deep Work"] === max) return { name: "Deep Work", value: max };
+    return { name: "Custom", value: max };
+  };
+
+  const topWeekTimer = getTopWeekTimer();
+
+  const getTopMonth = () => {
+    if (!yearData.length) return "None";
+    const max = yearData.reduce((prev, current) => (prev.minutes > current.minutes) ? prev : current);
+    return max.minutes > 0 ? max.month : "None";
+  };
+
+  const topMonth = getTopMonth();
 
   const getHeatmapOpacity = (minutes: number) => {
     if (minutes === 0) return 0.1;
@@ -293,9 +408,9 @@ export default function FocusInsights({
               <div className="p-3 bg-muted/50 rounded-lg flex items-center justify-between">
                 <div>
                   <p className="text-xs text-muted-foreground">Top Timer Week {selectedWeek} {selectedYear}</p>
-                  <p className="text-sm font-semibold">Pomodoro</p>
+                  <p className="text-sm font-semibold">{topWeekTimer.name}</p>
                 </div>
-                <Badge>12 sessions</Badge>
+                <Badge>{topWeekTimer.value} mins</Badge>
               </div>
             </TabsContent>
 
@@ -382,11 +497,7 @@ export default function FocusInsights({
               <div className="space-y-2">
                 <h4 className="text-sm font-medium">Timer Ranking</h4>
                 <div className="space-y-2">
-                  {[
-                    { name: "Pomodoro", sessions: 156, color: "#8b5cf6" },
-                    { name: "Deep Work", sessions: 78, color: "#3b82f6" },
-                    { name: "Morning Focus", sessions: 45, color: "#10b981" },
-                  ].map((timer, i) => (
+                  {timerRankings.map((timer, i) => (
                     <div
                       key={timer.name}
                       className="flex items-center justify-between p-2 bg-muted/50 rounded-md"
@@ -410,7 +521,7 @@ export default function FocusInsights({
                 <Trophy className="w-5 h-5 text-primary" />
                 <div>
                   <p className="text-xs text-muted-foreground">Best Focus Month</p>
-                  <p className="text-sm font-semibold">October {selectedYear}</p>
+                  <p className="text-sm font-semibold">{topMonth} {selectedYear}</p>
                 </div>
               </div>
             </TabsContent>
@@ -433,11 +544,21 @@ export default function FocusInsights({
               <div className="h-48">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
-                    data={[
-                      { name: "Pomodoro", value: 42 },
-                      { name: "Deep Work", value: 18 },
-                      { name: "Custom", value: 12 },
-                    ]}
+                    data={(() => {
+                      const monthIndex = months.indexOf(selectedMonth);
+                      const monthStart = new Date(selectedYear, monthIndex, 1);
+                      const monthEnd = new Date(selectedYear, monthIndex + 1, 0);
+                      const mSessions = sessionHistory.filter(s => {
+                        if (!s.completed_at) return false;
+                        const d = new Date(s.completed_at);
+                        return d >= monthStart && d <= monthEnd;
+                      });
+                      return [
+                        { name: "Pomodoro", value: mSessions.filter(s => s.mode === "pomodoro").length },
+                        { name: "Deep Work", value: mSessions.filter(s => s.mode === "deepwork").length },
+                        { name: "Custom", value: mSessions.filter(s => s.mode === "custom").length },
+                      ];
+                    })()}
                   >
                     <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                     <YAxis tick={{ fontSize: 12 }} />
@@ -473,15 +594,30 @@ export default function FocusInsights({
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div className="p-3 bg-muted/50 rounded-lg text-center">
-                <p className="text-2xl font-semibold font-mono">1,245</p>
+                <p className="text-2xl font-semibold font-mono">
+                  {monthData.reduce((acc, d) => acc + d.minutes, 0)}
+                </p>
                 <p className="text-xs text-muted-foreground">Total Minutes</p>
               </div>
               <div className="p-3 bg-muted/50 rounded-lg text-center">
-                <p className="text-2xl font-semibold font-mono">72</p>
+                <p className="text-2xl font-semibold font-mono">
+                  {(() => {
+                    const monthIndex = months.indexOf(selectedMonth);
+                    const monthStart = new Date(selectedYear, monthIndex, 1);
+                    const monthEnd = new Date(selectedYear, monthIndex + 1, 0);
+                    return sessionHistory.filter(s => {
+                      if (!s.completed_at) return false;
+                      const d = new Date(s.completed_at);
+                      return d >= monthStart && d <= monthEnd;
+                    }).length;
+                  })()}
+                </p>
                 <p className="text-xs text-muted-foreground">Sessions</p>
               </div>
               <div className="p-3 bg-muted/50 rounded-lg text-center">
-                <p className="text-2xl font-semibold font-mono">17</p>
+                <p className="text-2xl font-semibold font-mono">
+                  {monthData.filter(d => d.minutes > 0).length}
+                </p>
                 <p className="text-xs text-muted-foreground">Active Days</p>
               </div>
             </div>

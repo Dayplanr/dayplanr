@@ -97,6 +97,7 @@ export default function HabitsPage() {
         monthlyConsistency: h.monthly_consistency || 0,
         completedDates: h.completed_dates || [],
         hasTimer: false,
+        goal_id: h.goal_id,
       })) || [];
 
       setHabits(formattedHabits);
@@ -184,6 +185,7 @@ export default function HabitsPage() {
           selected_days: updatedHabit.selectedDays,
           challenge_days: updatedHabit.challengeDays,
           challenge_type: updatedHabit.challengeType,
+          goal_id: updatedHabit.goal_id,
         })
         .eq("id", updatedHabit.id);
 

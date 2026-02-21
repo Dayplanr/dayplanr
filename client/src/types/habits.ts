@@ -17,6 +17,7 @@ export interface Habit {
   monthlyConsistency: number;
   completedDates: string[];
   hasTimer: boolean;
+  goal_id?: string;
 }
 
 export interface HabitFormData {

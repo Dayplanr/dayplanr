@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Repeat, X } from "lucide-react";
 import type { ScheduleType } from "@/types/habits";
+import type { Goal } from "@/types/goals";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
@@ -59,8 +60,29 @@ export default function AddHabitPage() {
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [challengeDays, setChallengeDays] = useState(30);
   const [loading, setLoading] = useState(false);
+  const [goals, setGoals] = useState<Goal[]>([]);
+  const [selectedGoalId, setSelectedGoalId] = useState<string>("none");
   const { user } = useAuth();
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (!user) return;
+    const fetchGoals = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("goals")
+          .select("id, title")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false });
+        if (!error && data) {
+          setGoals(data as Goal[]);
+        }
+      } catch (err) {
+        console.error("Failed to fetch goals:", err);
+      }
+    };
+    fetchGoals();
+  }, [user]);
 
   const handleDayToggle = (dayId: string) => {
     setSelectedDays((prev) =>
@@ -116,6 +138,7 @@ export default function AddHabitPage() {
           weekly_consistency: 0,
           monthly_consistency: 0,
           completed_dates: [],
+          goal_id: selectedGoalId === "none" ? null : selectedGoalId,
         });
 
       if (error) throw error;
@@ -180,6 +203,23 @@ export default function AddHabitPage() {
                 className="text-lg"
                 data-testid="input-habit-name"
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Link to Goal (Optional)</Label>
+              <Select value={selectedGoalId} onValueChange={setSelectedGoalId}>
+                <SelectTrigger data-testid="select-goal">
+                  <SelectValue placeholder="Select a goal" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No Goal</SelectItem>
+                  {goals.map((goal) => (
+                    <SelectItem key={goal.id} value={goal.id}>
+                      {goal.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">

@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/lib/auth";
+import { supabase } from "@/lib/supabase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -54,7 +56,7 @@ const generateWeeks = (year: number) => {
   const yearStart = startOfYear(new Date(year, 0, 1));
   const yearEnd = endOfYear(new Date(year, 11, 31));
   const weeks = eachWeekOfInterval({ start: yearStart, end: yearEnd }, { weekStartsOn: 1 }); // Monday start
-  
+
   return weeks.map((weekStart, index) => {
     const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
     return {
@@ -78,42 +80,100 @@ export default function TodayInsights({
 }: TodayInsightsProps) {
   const [activeTab, setActiveTab] = useState("weekly");
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "MMMM"));
-  const [selectedYear, setSelectedYear] = useState(2026);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedWeek, setSelectedWeek] = useState(1);
 
-  const weeklyData = [
-    { day: "Mon", tasks: 5, focus: 45 },
-    { day: "Tue", tasks: 8, focus: 90 },
-    { day: "Wed", tasks: 3, focus: 30 },
-    { day: "Thu", tasks: 6, focus: 60 },
-    { day: "Fri", tasks: 4, focus: 75 },
-    { day: "Sat", tasks: 2, focus: 20 },
-    { day: "Sun", tasks: 1, focus: 15 },
-  ];
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [taskHistory, setTaskHistory] = useState<any[]>([]);
+  const [sessionHistory, setSessionHistory] = useState<any[]>([]);
 
-  const getMonthlyData = (month: string, year: number) => {
-    const monthIndex = months.indexOf(month);
-    const startDate = new Date(year, monthIndex, 1);
-    const endDate = new Date(year, monthIndex + 1, 0);
-    
-    return eachDayOfInterval({ start: startDate, end: endDate }).map((date, i) => ({
-      day: format(date, "d"),
-      tasks: Math.floor(Math.random() * 8) + 1,
-      focus: Math.floor(Math.random() * 90) + 10,
-    }));
+  useEffect(() => {
+    if (open && user) {
+      const fetchData = async () => {
+        setLoading(true);
+        const [tasksRes, focusRes] = await Promise.all([
+          supabase.from("tasks").select("scheduled_date, completed").eq("user_id", user.id).eq("completed", true),
+          supabase.from("focus_sessions").select("completed_at, duration").eq("user_id", user.id)
+        ]);
+
+        if (tasksRes.data) setTaskHistory(tasksRes.data);
+        if (focusRes.data) setSessionHistory(focusRes.data);
+        setLoading(false);
+      };
+      fetchData();
+    }
+  }, [open, user]);
+
+  const getWeeklyData = () => {
+    const weeks = generateWeeks(selectedYear);
+    const targetWeek = weeks.find(w => w.value === selectedWeek);
+    if (!targetWeek) return [];
+
+    const days = eachDayOfInterval({ start: targetWeek.startDate, end: targetWeek.endDate });
+
+    return days.map(day => {
+      const dayStr = format(day, "yyyy-MM-dd");
+      const dTasks = taskHistory.filter(t => t.scheduled_date === dayStr);
+      const dSessions = sessionHistory.filter(s => s.completed_at?.startsWith(dayStr));
+
+      return {
+        day: format(day, "EEE"),
+        tasks: dTasks.length,
+        focus: dSessions.reduce((acc, s) => acc + (s.duration || 0), 0)
+      };
+    });
   };
 
-  const monthlyData = getMonthlyData(selectedMonth, selectedYear);
+  const weeklyData = getWeeklyData();
 
-  const getYearlyData = (year: number) => {
-    return months.map((month) => ({
-      month: month.substring(0, 3),
-      tasks: Math.floor(Math.random() * 150) + 50,
-      focus: Math.floor(Math.random() * 1500) + 300,
-    }));
+  const getMonthlyData = () => {
+    const monthIndex = months.indexOf(selectedMonth);
+    const monthStart = new Date(selectedYear, monthIndex, 1);
+    const monthEnd = new Date(selectedYear, monthIndex + 1, 0);
+    const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
+
+    return days.map(day => {
+      const dayStr = format(day, "yyyy-MM-dd");
+      const dTasks = taskHistory.filter(t => t.scheduled_date === dayStr);
+      const dSessions = sessionHistory.filter(s => s.completed_at?.startsWith(dayStr));
+
+      return {
+        day: format(day, "d"),
+        tasks: dTasks.length,
+        focus: dSessions.reduce((acc, s) => acc + (s.duration || 0), 0)
+      };
+    });
   };
 
-  const yearlyData = getYearlyData(selectedYear);
+  const monthlyData = getMonthlyData();
+
+  const getYearlyData = () => {
+    return months.map((month, index) => {
+      const monthStart = new Date(selectedYear, index, 1);
+      const monthEnd = new Date(selectedYear, index + 1, 0);
+
+      const mTasks = taskHistory.filter(t => {
+        if (!t.scheduled_date) return false;
+        const d = new Date(t.scheduled_date);
+        return d >= monthStart && d <= monthEnd;
+      });
+
+      const mSessions = sessionHistory.filter(s => {
+        if (!s.completed_at) return false;
+        const d = new Date(s.completed_at);
+        return d >= monthStart && d <= monthEnd;
+      });
+
+      return {
+        month: month.substring(0, 3), // Jan
+        tasks: mTasks.length,
+        focus: mSessions.reduce((acc, s) => acc + (s.duration || 0), 0)
+      };
+    });
+  };
+
+  const yearlyData = getYearlyData();
 
   const weeklyProductivityScore = Math.round(
     ((weeklyData.reduce((sum, d) => sum + d.tasks, 0) / 50) * 50) +
