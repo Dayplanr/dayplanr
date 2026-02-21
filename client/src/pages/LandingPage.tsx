@@ -65,10 +65,10 @@ export default function LandingPage() {
               </Button>
             ) : (
               <>
-                <Button variant="ghost" size="sm" onClick={() => navigate("/auth")} data-testid="button-login-header">
+                <Button variant="ghost" size="sm" onClick={() => navigate("/auth?mode=login")} data-testid="button-login-header">
                   Login
                 </Button>
-                <Button size="sm" onClick={() => navigate("/app")} data-testid="button-get-started-header">
+                <Button size="sm" onClick={() => navigate("/auth?mode=signup")} data-testid="button-get-started-header">
                   Get Started
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
@@ -107,10 +107,10 @@ export default function LandingPage() {
                   </Button>
                 ) : (
                   <>
-                    <Button variant="outline" size="default" onClick={() => navigate("/auth")} data-testid="button-login">
+                    <Button variant="outline" size="default" onClick={() => navigate("/auth?mode=login")} data-testid="button-login">
                       Login
                     </Button>
-                    <Button size="default" onClick={() => navigate("/app")} data-testid="button-start-free">
+                    <Button size="default" onClick={() => navigate("/auth?mode=signup")} data-testid="button-start-free">
                       Get Started
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
@@ -352,10 +352,10 @@ export default function LandingPage() {
                 Join thousands of users who have already transformed their daily routines with dayplanr.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button size="default" variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20" onClick={() => navigate("/auth")} data-testid="button-login-cta">
+                <Button size="default" variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20" onClick={() => navigate("/auth?mode=login")} data-testid="button-login-cta">
                   Login
                 </Button>
-                <Button size="default" className="bg-white text-purple-600 hover:bg-white/90" onClick={() => navigate("/app")} data-testid="button-get-started-cta">
+                <Button size="default" className="bg-white text-purple-600 hover:bg-white/90" onClick={() => navigate("/auth?mode=signup")} data-testid="button-get-started-cta">
                   Get Started Now
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
