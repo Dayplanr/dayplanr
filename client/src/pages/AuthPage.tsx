@@ -66,7 +66,7 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50/30 to-orange-50/20 dark:from-blue-900/10 dark:via-purple-900/5 dark:to-orange-900/10 flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col">
       <header className="p-4">
         <Button
           variant="ghost"
