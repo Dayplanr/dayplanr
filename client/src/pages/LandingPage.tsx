@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,14 @@ import { useAuth } from "@/lib/auth";
 
 export default function LandingPage() {
   const [, navigate] = useLocation();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+
+  // Redirect to app if already logged in
+  useEffect(() => {
+    if (user && !loading) {
+      navigate("/app");
+    }
+  }, [user, loading, navigate]);
 
   const features = [
     {

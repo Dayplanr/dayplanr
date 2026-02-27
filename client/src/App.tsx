@@ -99,11 +99,17 @@ function App() {
 }
 
 function AppContent({ isAppRoute }: { isAppRoute: boolean }) {
-  const { loading } = useAuth();
+  const { user, loading } = useAuth();
 
   // Show nothing while checking for existing session
   if (loading) {
     return <LoadingScreen />;
+  }
+
+  // If user is logged in but at root/auth, redirect to app
+  // or just render AppLayout if they are at /app already
+  if (user && !isAppRoute) {
+    return <Redirect to="/app" />;
   }
 
   return isAppRoute ? (
