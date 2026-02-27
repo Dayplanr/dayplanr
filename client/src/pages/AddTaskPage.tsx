@@ -171,7 +171,7 @@ export default function AddTaskPage() {
         title: t("today"),
         description: editTaskId ? "Task updated successfully!" : "Task added successfully!",
       });
-      
+
       // Check if we should return to a specific date
       const returnToDate = localStorage.getItem("returnToDate");
       if (returnToDate) {
@@ -182,7 +182,7 @@ export default function AddTaskPage() {
           localStorage.setItem("preserveSelectedDate", returnToDate);
         }
       }
-      
+
       navigate("/app");
     } catch (error: any) {
       toast({
@@ -213,7 +213,7 @@ export default function AddTaskPage() {
     >
       <div className="h-full overflow-y-auto">
         <div className="max-w-2xl mx-auto p-4 pb-20 md:pb-8">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3 mb-6">
             <Button
               variant="ghost"
               size="icon"
@@ -238,15 +238,6 @@ export default function AddTaskPage() {
               <ListTodo className="w-6 h-6 text-primary" />
               <h1 className="text-xl font-bold">{editTaskId ? "Edit Task" : t("newTask")}</h1>
             </div>
-            <Button
-              variant="ghost"
-              onClick={handleSubmit}
-              disabled={!title.trim() || loading}
-              className="text-primary font-semibold"
-              data-testid="button-save-task"
-            >
-              {loading ? "..." : t("save")}
-            </Button>
           </div>
 
           <div className="space-y-6">
@@ -441,6 +432,35 @@ export default function AddTaskPage() {
                   </Button>
                 ))}
               </div>
+            </div>
+
+            <div className="flex gap-3 pt-6">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => {
+                  const returnToDate = localStorage.getItem("returnToDate");
+                  if (returnToDate) {
+                    localStorage.removeItem("returnToDate");
+                    const today = format(new Date(), "yyyy-MM-dd");
+                    if (returnToDate !== today) {
+                      localStorage.setItem("preserveSelectedDate", returnToDate);
+                    }
+                  }
+                  navigate("/app");
+                }}
+                data-testid="button-cancel-task"
+              >
+                {t("cancel")}
+              </Button>
+              <Button
+                className="flex-1"
+                onClick={handleSubmit}
+                disabled={!title.trim() || loading}
+                data-testid="button-save-task"
+              >
+                {loading ? "..." : (editTaskId ? "Update Task" : "Create Task")}
+              </Button>
             </div>
           </div>
         </div>

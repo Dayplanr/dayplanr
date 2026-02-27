@@ -152,7 +152,7 @@ export default function TodayPage() {
         if (!a.time && !b.time) return 0;
         if (!a.time) return 1;
         if (!b.time) return -1;
-        
+
         // Convert time strings to comparable format (24h)
         const timeA = convertTo24Hour(a.time);
         const timeB = convertTo24Hour(b.time);
@@ -599,7 +599,7 @@ export default function TodayPage() {
       <div className="max-w-4xl mx-auto p-4 space-y-4">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">{t("today")}</h1>
+            <h1 className="text-2xl font-bold text-foreground">{t("today")}</h1>
             <p className="text-muted-foreground capitalize">{formattedDate}</p>
           </div>
           <DropdownMenu>
