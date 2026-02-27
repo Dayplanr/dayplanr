@@ -167,17 +167,17 @@ export default function LandingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5 }}
-                className="text-center max-w-2xl mx-auto mb-8"
+                className="text-center sm:text-left max-w-2xl mx-auto lg:mx-0 mb-8"
               >
                 <div className="mb-4">
-                  <div className="flex items-center gap-3 mb-3">
+                  <div className="flex items-center justify-center sm:justify-start gap-3 mb-3">
                     <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
                       <Monitor className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                     </div>
                     <h3 className="text-xl font-bold text-foreground">Desktop Experience</h3>
                   </div>
-                  <p className="text-muted-foreground mb-4 text-sm md:text-base max-w-3xl text-left tracking-tight">
-                    Full-featured web application with comprehensive dashboards,<br />detailed analytics, and powerful productivity tools designed for focused work&nbsp;sessions.
+                  <p className="text-muted-foreground mb-4 text-sm md:text-base max-w-3xl text-center sm:text-left tracking-tight">
+                    Full-featured web application with comprehensive dashboards, <span className="sm:block">detailed <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent font-semibold">analytics</span>,</span> and powerful productivity tools designed for focused <span className="whitespace-nowrap">work sessions</span>.
                   </p>
                   <ul className="space-y-2">
                     <li className="flex items-center gap-2">
@@ -242,7 +242,7 @@ export default function LandingPage() {
                 transition={{ duration: 0.5 }}
               >
                 <div className="flex justify-center gap-4 flex-wrap">
-                  <Card className="max-w-[280px] overflow-hidden border-2 border-purple-100 dark:border-purple-900/30 shadow-xl">
+                  <Card className="max-w-[260px] md:max-w-[280px] overflow-hidden border-2 border-purple-100 dark:border-purple-900/30 shadow-xl">
                     <div className="bg-black p-2 flex justify-center">
                       <div className="w-12 h-1 bg-gray-600 rounded-full"></div>
                     </div>
@@ -263,13 +263,13 @@ export default function LandingPage() {
                 transition={{ duration: 0.5 }}
               >
                 <div className="mb-4">
-                  <div className="flex items-center gap-3 mb-3">
+                  <div className="flex items-center justify-center sm:justify-start gap-3 mb-3">
                     <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
                       <Smartphone className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                     </div>
                     <h3 className="text-xl font-bold text-foreground">Mobile Experience</h3>
                   </div>
-                  <p className="text-muted-foreground mb-4 text-sm md:text-base">
+                  <p className="text-muted-foreground mb-4 text-sm md:text-base text-center sm:text-left">
                     Native-like mobile experience designed for productivity on the go, with touch-optimized interfaces and quick actions.
                   </p>
                   <ul className="space-y-2">

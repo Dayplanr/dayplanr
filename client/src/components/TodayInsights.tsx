@@ -217,18 +217,32 @@ export default function TodayInsights({
         {emptyCells.map((_, i) => (
           <div key={`empty-${i}`} className="aspect-square" />
         ))}
-        {days.map((day, i) => (
-          <div
-            key={day.toISOString()}
-            className="aspect-square rounded-sm flex items-center justify-center"
-            style={{
-              backgroundColor: `hsl(var(--primary) / ${getHeatmapOpacity(i + 1)})`,
-            }}
-            title={`${format(day, "MMM d, yyyy")}`}
-          >
-            <span className="text-xs">{format(day, "d")}</span>
-          </div>
-        ))}
+        {days.map((day) => {
+          const dayStr = format(day, "yyyy-MM-dd");
+          const dTasks = taskHistory.filter(t => t.scheduled_date === dayStr).length;
+          const dSessions = sessionHistory.filter(s => s.completed_at?.startsWith(dayStr)).length;
+          const activityCount = dTasks + dSessions;
+
+          const getActiveOpacity = (count: number) => {
+            if (count === 0) return 0.1;
+            if (count <= 2) return 0.3;
+            if (count <= 5) return 0.6;
+            return 1;
+          };
+
+          return (
+            <div
+              key={day.toISOString()}
+              className="aspect-square rounded-sm flex items-center justify-center"
+              style={{
+                backgroundColor: `hsl(var(--primary) / ${getActiveOpacity(activityCount)})`,
+              }}
+              title={`${format(day, "MMM d, yyyy")}: ${activityCount} activities`}
+            >
+              <span className="text-xs">{format(day, "d")}</span>
+            </div>
+          );
+        })}
       </div>
     );
   };
