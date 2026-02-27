@@ -26,6 +26,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Check active sessions and sets the user
         const initializeAuth = async () => {
             try {
+                // Check if we have an item in localStorage directly for debugging/safety on mobile
+                const localSession = typeof window !== 'undefined' ? window.localStorage.getItem('supabase.auth.token') : null;
+                console.log('[Auth] localStorage check:', localSession ? 'Key found' : 'No key');
+
                 const { data: { session }, error } = await supabase.auth.getSession();
 
                 if (error) {
@@ -34,17 +38,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     return;
                 }
 
-                console.log('[Auth] Initial session check:', session ? 'Session found' : 'No session');
-
                 if (mounted) {
-                    setSession(session);
-                    setUser(session?.user ?? null);
-                    // We don't set loading to false here yet, we wait for onAuthStateChange 
-                    // to confirm or just set it if we have a session
                     if (session) {
-                        console.log('[Auth] User identified:', session.user.email);
+                        console.log('[Auth] Initial session found for:', session.user.email);
+                        setSession(session);
+                        setUser(session.user);
+                    } else {
+                        console.log('[Auth] No initial session found');
                     }
-                    setLoading(false);
+
+                    // On mobile, sometimes the session is loaded asynchronously after a tiny delay
+                    // even if getSession() returns null initially.
+                    setTimeout(() => {
+                        if (mounted) setLoading(false);
+                    }, 100);
                 }
             } catch (err) {
                 console.error('[Auth] Initial check failed:', err);
