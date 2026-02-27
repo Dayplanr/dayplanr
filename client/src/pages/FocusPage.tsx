@@ -290,23 +290,25 @@ export default function FocusPage() {
             <h1 className="text-2xl font-bold text-foreground">{t("focus")}</h1>
             <p className="text-sm text-muted-foreground">{t("deepWork")}</p>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button size="icon" className="rounded-full h-11 w-11" data-testid="button-focus-menu">
-                <Plus className="w-5 h-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setShowCreateTimer(true)} data-testid="menu-create-timer">
-                <Timer className="w-4 h-4 mr-2" />
-                {t("create")}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setShowInsights(true)} data-testid="menu-insights">
-                <TrendingUp className="w-4 h-4 mr-2" />
-                {t("insights")}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => setShowInsights(true)}
+              variant="outline"
+              size="icon"
+              className="rounded-full h-10 w-10 border-border/50 bg-background/50 hover:bg-accent"
+              data-testid="button-focus-insights-header"
+            >
+              <TrendingUp className="w-4 h-4" />
+            </Button>
+            <Button
+              onClick={() => setShowCreateTimer(true)}
+              className="rounded-full h-11 px-6 gap-2 shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95"
+              data-testid="button-create-timer-header"
+            >
+              <Plus className="w-5 h-5" />
+              <span className="font-bold">{t("create")}</span>
+            </Button>
+          </div>
         </div>
 
         {activeSession ? (

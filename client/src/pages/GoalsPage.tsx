@@ -242,23 +242,25 @@ export default function GoalsPage() {
             <h1 className="text-2xl font-bold text-foreground">{t("goals")}</h1>
             <p className="text-muted-foreground">{t("goalProgress")}</p>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button size="icon" className="rounded-full h-11 w-11" data-testid="button-goals-menu">
-                <Plus className="w-5 h-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => navigate("/app/goals/new")} data-testid="menu-add-goal">
-                <Target className="w-4 h-4 mr-2" />
-                {t("addGoal")}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setShowInsights(true)} data-testid="menu-goals-insights">
-                <TrendingUp className="w-4 h-4 mr-2" />
-                {t("insights")}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => setShowInsights(true)}
+              variant="outline"
+              size="icon"
+              className="rounded-full h-10 w-10 border-border/50 bg-background/50 hover:bg-accent"
+              data-testid="button-goals-insights-header"
+            >
+              <TrendingUp className="w-4 h-4" />
+            </Button>
+            <Button
+              onClick={() => navigate("/app/goals/new")}
+              className="rounded-full h-11 px-6 gap-2 shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95"
+              data-testid="button-add-goal-header"
+            >
+              <Plus className="w-5 h-5" />
+              <span className="font-bold">{t("addGoal")}</span>
+            </Button>
+          </div>
         </div>
 
         <div className="space-y-4">

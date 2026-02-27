@@ -15,7 +15,7 @@ export const languageNames: Record<Language, string> = {
   pl: "Polski",
 };
 
-type TranslationKey =
+export type TranslationKey =
   | "today"
   | "goals"
   | "habits"

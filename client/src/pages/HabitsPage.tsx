@@ -240,23 +240,25 @@ export default function HabitsPage() {
             <h1 className="text-2xl font-bold text-foreground">{t("habits")}</h1>
             <p className="text-sm text-muted-foreground">{t("habitStreak")}</p>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button size="icon" className="rounded-full h-11 w-11" data-testid="button-focus-menu">
-                <Plus className="w-5 h-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => navigate("/app/habits/new")} data-testid="menu-add-habit">
-                <Sparkles className="w-4 h-4 mr-2" />
-                {t("addHabit")}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setShowInsights(true)} data-testid="menu-habits-insights">
-                <TrendingUp className="w-4 h-4 mr-2" />
-                {t("insights")}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => setShowInsights(true)}
+              variant="outline"
+              size="icon"
+              className="rounded-full h-10 w-10 border-border/50 bg-background/50 hover:bg-accent"
+              data-testid="button-habits-insights-header"
+            >
+              <TrendingUp className="w-4 h-4" />
+            </Button>
+            <Button
+              onClick={() => navigate("/app/habits/new")}
+              className="rounded-full h-11 px-6 gap-2 shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95"
+              data-testid="button-add-habit-header"
+            >
+              <Plus className="w-5 h-5" />
+              <span className="font-bold">{t("addHabit")}</span>
+            </Button>
+          </div>
         </div>
 
         <div className="space-y-4">

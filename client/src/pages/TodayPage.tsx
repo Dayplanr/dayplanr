@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { Plus, TrendingUp, Clock, CheckCircle2, Flame, ChevronUp, ChevronDown, Bell, ListTodo, MoreVertical, Pencil, Trash2, Tag } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Plus, TrendingUp, Clock, CheckCircle2, Flame, ChevronUp, ChevronDown, Bell, ListTodo, MoreVertical, Pencil, Trash2, Tag, Calendar as CalendarIcon, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +19,8 @@ import {
 } from "@/components/ui/collapsible";
 import CalendarScrubber from "@/components/CalendarScrubber";
 import TodayInsights from "@/components/TodayInsights";
+import ModernTaskCard from "@/components/ModernTaskCard";
+import ProgressRing from "@/components/ProgressRing";
 import { useTranslation } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
@@ -250,7 +253,7 @@ export default function TodayPage() {
   }, [location]);
 
   const handleToggleTask = async (period: keyof TaskGroups, id: string) => {
-    const task = tasks[period].find(t => t.id === id);
+    const task = tasks[period].find((t: Task) => t.id === id);
     if (!task) return;
 
     const newCompleted = !task.completed;
@@ -312,9 +315,9 @@ export default function TodayPage() {
       }
     }
 
-    setTasks((prev) => ({
+    setTasks((prev: TaskGroups) => ({
       ...prev,
-      [period]: prev[period].map((t) =>
+      [period]: prev[period].map((t: Task) =>
         t.id === id ? { ...t, completed: newCompleted } : t
       ),
     }));
@@ -340,7 +343,7 @@ export default function TodayPage() {
   };
 
   const toggleSection = (section: keyof typeof openSections) => {
-    setOpenSections((prev) => ({ ...prev, [section]: !prev[section] }));
+    setOpenSections((prev: typeof openSections) => ({ ...prev, [section]: !prev[section] }));
   };
 
   const calculateStreak = (completedDates: string[]): number => {
@@ -467,9 +470,9 @@ export default function TodayPage() {
       }
     }
 
-    setTasks((prev) => ({
+    setTasks((prev: TaskGroups) => ({
       ...prev,
-      [period]: prev[period].filter((task) => task.id !== id),
+      [period]: prev[period].filter((task: Task) => task.id !== id),
     }));
 
     toast({ title: t("taskDeleted") || "Task deleted" });
@@ -494,202 +497,171 @@ export default function TodayPage() {
       key={period}
       open={openSections[period]}
       onOpenChange={() => toggleSection(period)}
+      className="mb-2"
     >
       <CollapsibleTrigger asChild>
-        <button className="flex items-center justify-between w-full py-3">
-          <h2 className="text-lg font-semibold text-foreground">{title}</h2>
-          {openSections[period] ? (
-            <ChevronUp className="w-5 h-5 text-muted-foreground" />
-          ) : (
-            <ChevronDown className="w-5 h-5 text-muted-foreground" />
-          )}
+        <button className="flex items-center justify-between w-full py-2 px-1 group">
+          <div className="flex items-center gap-2">
+            <h2 className="text-sm font-semibold text-muted-foreground/70 uppercase tracking-wider">{title}</h2>
+            {periodTasks.length > 0 && (
+              <span className="text-xs bg-muted px-2 py-0.5 rounded-full text-muted-foreground font-medium">
+                {periodTasks.length}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="h-px w-12 bg-border hidden group-hover:block" />
+            {openSections[period] ? (
+              <ChevronUp className="w-4 h-4 text-muted-foreground/50" />
+            ) : (
+              <ChevronDown className="w-4 h-4 text-muted-foreground/50" />
+            )}
+          </div>
         </button>
       </CollapsibleTrigger>
-      <CollapsibleContent className="space-y-3">
-        {periodTasks.map((task) => (
-          <div
-            key={task.id}
-            className="flex overflow-hidden rounded-lg border border-border bg-card"
-            data-testid={`task-item-${task.id}`}
-          >
-            <div className={`w-1.5 ${priorityBorderColors[task.priority]}`} />
-            <div className="flex items-center gap-3 flex-1 p-4">
-              <button
-                onClick={() => handleToggleTask(period, task.id)}
-                className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${task.completed
-                  ? "bg-primary border-primary"
-                  : "border-muted-foreground"
-                  }`}
-                data-testid={`button-toggle-task-${task.id}`}
+      <CollapsibleContent>
+        <div className="space-y-3 pt-2">
+          <AnimatePresence mode="popLayout">
+            {periodTasks.length > 0 ? (
+              periodTasks.map((task) => (
+                <ModernTaskCard
+                  key={task.id}
+                  id={task.id}
+                  title={task.title}
+                  description={task.description}
+                  time={task.time}
+                  priority={task.priority}
+                  completed={task.completed}
+                  hasReminder={task.hasReminder}
+                  duration={task.duration}
+                  category={task.category}
+                  onToggle={() => handleToggleTask(period, task.id)}
+                  onEdit={() => handleEditTask(period, task)}
+                  onDelete={() => handleDeleteTask(period, task.id)}
+                  t={t}
+                />
+              ))
+            ) : (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="py-8 text-center"
               >
-                {task.completed && (
-                  <CheckCircle2 className="w-4 h-4 text-primary-foreground" />
-                )}
-              </button>
-              <div className="flex-1">
-                <p className={`font-medium ${task.completed ? "line-through text-muted-foreground" : "text-foreground"}`}>
-                  {task.title}
-                </p>
-                <div className="flex items-center gap-3 mt-1">
-                  {task.time && (
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-3 h-3 text-muted-foreground" />
-                      <p className="text-xs text-muted-foreground">{task.time}</p>
-                    </div>
-                  )}
-                  {task.duration && (
-                    <Badge variant="secondary" className="text-[10px] h-4 px-1.5 font-medium bg-secondary/30 text-secondary-foreground border-none">
-                      {task.duration}
-                    </Badge>
-                  )}
-                  {task.category && task.category !== "None" && (
-                    <div className="flex items-center gap-1 px-1.5 h-4 rounded-full bg-primary/10 border border-primary/20">
-                      <Tag className="w-2.5 h-2.5 text-primary" />
-                      <span className="text-[10px] font-medium text-primary leading-none capitalize">
-                        {task.category}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                {task.hasReminder && (
-                  <Bell className="w-4 h-4 text-muted-foreground" />
-                )}
-                <Badge
-                  variant="outline"
-                  className={`text-xs font-medium ${task.priority === "high" ? "text-red-500 border-red-500" :
-                    task.priority === "medium" ? "text-yellow-600 border-yellow-500" :
-                      "text-green-500 border-green-500"
-                    }`}
-                >
-                  {t(task.priority)}
-                </Badge>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8" data-testid={`button-task-menu-${task.id}`}>
-                      <MoreVertical className="w-4 h-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => handleEditTask(period, task)} data-testid={`menu-edit-task-${task.id}`}>
-                      <Pencil className="w-4 h-4 mr-2" />
-                      {t("edit")}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => handleDeleteTask(period, task.id)}
-                      className="text-red-500"
-                      data-testid={`menu-delete-task-${task.id}`}
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      {t("delete")}
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
-          </div>
-        ))}
+                <p className="text-sm text-muted-foreground italic">No tasks for this period</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </CollapsibleContent>
     </Collapsible>
   );
 
   return (
-    <div className="h-full overflow-y-auto pb-20 md:pb-4">
-      <div className="max-w-4xl mx-auto p-4 space-y-4">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">{t("today")}</h1>
-            <p className="text-muted-foreground capitalize">{formattedDate}</p>
-          </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button size="icon" className="rounded-full h-11 w-11" data-testid="button-add-task">
-                <Plus className="w-5 h-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleAddTask} data-testid="menu-add-task">
-                <ListTodo className="w-4 h-4 mr-2" />
-                {t("addTask")}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setShowInsights(true)} data-testid="menu-today-insights">
-                <TrendingUp className="w-4 h-4 mr-2" />
-                {t("insights")}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-
-        <CalendarScrubber selectedDate={selectedDate} onSelectDate={setSelectedDate} />
-
-        <Collapsible
-          open={progressOpen}
-          onOpenChange={setProgressOpen}
+    <div className="h-full overflow-y-auto pb-24 md:pb-8 bg-background/50">
+      <div className="max-w-3xl mx-auto p-4 space-y-8">
+        {/* Header Section */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col gap-6 pt-4"
         >
-          <CollapsibleTrigger asChild>
-            <button className="flex items-center justify-between w-full py-3">
-              <h2 className="text-lg font-semibold text-foreground">{t("progress")}</h2>
-              {progressOpen ? (
-                <ChevronUp className="w-5 h-5 text-muted-foreground" />
-              ) : (
-                <ChevronDown className="w-5 h-5 text-muted-foreground" />
-              )}
-            </button>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <Card className="bg-card shadow-sm">
-                <CardContent className="p-4 flex flex-col items-center text-center">
-                  <div className="p-3 rounded-xl bg-blue-100 dark:bg-blue-900/30 mb-3">
-                    <TrendingUp className="w-6 h-6 text-black dark:text-white" />
-                  </div>
-                  <p className="text-sm text-muted-foreground">{t("dailyProgress")}</p>
-                  <p className="text-2xl font-bold text-foreground mt-1" data-testid="text-daily-progress">
-                    {progressPercent}%
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {completedTasks} {t("of")} {totalTasks}
-                  </p>
-                </CardContent>
-              </Card>
-              <Card className="bg-card shadow-sm">
-                <CardContent className="p-4 flex flex-col items-center text-center">
-                  <div className="p-3 rounded-xl bg-purple-100 dark:bg-purple-900/30 mb-3">
-                    <Clock className="w-6 h-6 text-black dark:text-white" />
-                  </div>
-                  <p className="text-sm text-muted-foreground">{t("focusTime")}</p>
-                  <p className="text-2xl font-bold text-foreground mt-1" data-testid="text-focus-time">
-                    {todayFocusMinutes}m
-                  </p>
-                </CardContent>
-              </Card>
-              <Card className="bg-card shadow-sm">
-                <CardContent className="p-4 flex flex-col items-center text-center">
-                  <div className="p-3 rounded-xl bg-orange-100 dark:bg-orange-900/30 mb-3">
-                    <Flame className="w-6 h-6 text-black dark:text-white" />
-                  </div>
-                  <p className="text-sm text-muted-foreground">{t("streak")}</p>
-                  <p className="text-2xl font-bold text-foreground mt-1" data-testid="text-streak">
-                    {currentStreak}d
-                  </p>
-                </CardContent>
-              </Card>
-              <Card className="bg-card shadow-sm">
-                <CardContent className="p-4 flex flex-col items-center text-center">
-                  <div className="p-3 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 mb-3">
-                    <CheckCircle2 className="w-6 h-6 text-black dark:text-white" />
-                  </div>
-                  <p className="text-sm text-muted-foreground">{t("habits")}</p>
-                  <p className="text-2xl font-bold text-foreground mt-1" data-testid="text-habits-progress">
-                    {completedHabits}/{totalHabits}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">{t("complete")}</p>
-                </CardContent>
-              </Card>
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-1">
+                <h1 className="text-2xl font-bold text-foreground">
+                  {t("today")}
+                </h1>
+                {progressPercent === 100 && totalTasks > 0 && (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 200, damping: 10 }}
+                  >
+                    <Sparkles className="w-5 h-5 text-amber-500 fill-amber-500" />
+                  </motion.div>
+                )}
+              </div>
+              <div className="flex items-center gap-2 text-muted-foreground font-medium">
+                <CalendarIcon className="w-3.5 h-3.5" />
+                <p className="text-sm capitalize">{formattedDate}</p>
+              </div>
             </div>
-          </CollapsibleContent>
-        </Collapsible>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={() => setShowInsights(true)}
+                variant="outline"
+                size="icon"
+                className="rounded-full h-10 w-10 border-border/50 bg-background/50 hover:bg-accent"
+                data-testid="button-today-insights-header"
+              >
+                <TrendingUp className="w-4 h-4" />
+              </Button>
+              <Button onClick={handleAddTask} className="rounded-full h-11 px-6 gap-2 shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95" data-testid="button-add-task-header">
+                <Plus className="w-5 h-5" />
+                <span className="font-bold">{t("addTask")}</span>
+              </Button>
+            </div>
+          </div>
+
+          <div className="bg-card/30 backdrop-blur-md rounded-3xl p-1 border border-border/20 shadow-sm">
+            <CalendarScrubber selectedDate={selectedDate} onSelectDate={setSelectedDate} />
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.1 }}
+        >
+          <Card className="overflow-hidden border-none shadow-soft glass-card">
+            <CardContent className="p-0">
+              <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-border/30">
+                {/* Main Progress Ring */}
+                <div className="p-6 flex flex-col items-center justify-center text-center bg-primary/5">
+                  <ProgressRing progress={progressPercent} size={120} strokeWidth={10} color="hsl(var(--primary))" />
+                  <div className="mt-4">
+                    <p className="text-xs font-medium text-muted-foreground tracking-wide uppercase">{t("dailyProgress")}</p>
+                    <p className="text-sm font-black text-foreground mt-1">
+                      {completedTasks} <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-70">of</span> {totalTasks}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Focus Time */}
+                <div className="p-6 flex flex-col items-center justify-center text-center">
+                  <div className="p-3 rounded-2xl bg-blue-500/10 mb-3 group-hover:scale-110 transition-transform">
+                    <Clock className="w-6 h-6 text-blue-500" />
+                  </div>
+                  <p className="text-2xl font-black text-foreground">
+                    {todayFocusMinutes}<span className="text-sm font-bold text-muted-foreground ml-1">m</span>
+                  </p>
+                  <p className="text-xs font-medium text-muted-foreground tracking-wide uppercase mt-1">{t("focusTime")}</p>
+                </div>
+
+                {/* Streak & Habits */}
+                <div className="p-6 flex flex-col items-center justify-center text-center">
+                  <div className="flex gap-4 mb-4">
+                    <div className="flex flex-col items-center">
+                      <div className="p-2 rounded-xl bg-orange-500/10 mb-1">
+                        <Flame className="w-4 h-4 text-orange-500" />
+                      </div>
+                      <span className="text-sm font-bold">{currentStreak}d</span>
+                    </div>
+                    <div className="w-px h-8 bg-border/30 self-center" />
+                    <div className="flex flex-col items-center">
+                      <div className="p-2 rounded-xl bg-emerald-500/10 mb-1">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                      </div>
+                      <span className="text-sm font-bold">{completedHabits}/{totalHabits}</span>
+                    </div>
+                  </div>
+                  <p className="text-xs font-medium text-muted-foreground tracking-wide uppercase">{t("streak")} & {t("habits")}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
 
         {renderTaskSection(t("morning"), "morning", tasks.morning)}
         {renderTaskSection(t("afternoon"), "afternoon", tasks.afternoon)}

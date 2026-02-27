@@ -40,7 +40,9 @@ export default function ProgressRing({
         />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-xl font-semibold font-mono">{progress}%</span>
+        <span className="text-2xl font-black text-foreground flex items-baseline gap-0.5">
+          {progress}<span className="text-[10px] font-bold text-muted-foreground uppercase opacity-70">%</span>
+        </span>
       </div>
     </div>
   );
