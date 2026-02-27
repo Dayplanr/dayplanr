@@ -27,13 +27,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Check active sessions and sets the user
         const initializeAuth = async () => {
             try {
-                // Check if we have any supabase auth token in localStorage (common keys)
-                const storageKeys = [
-                    'sb-vrtlltthcfiagmcwjrhq-auth-token', // default for this project
-                    'supabase.auth.token' // older default
-                ];
-                const hasKey = storageKeys.some(key => typeof window !== 'undefined' && window.localStorage.getItem(key));
-                console.log('[Auth] localStorage session hint:', hasKey ? 'Found' : 'Not found');
+                // Check if we have our permanent auth token in localStorage
+                const storageKey = 'dayplanr-auth-permanent';
+                const hasPermanentHint = typeof window !== 'undefined' && !!window.localStorage.getItem(storageKey);
+                console.log('[Auth] localStorage session hint:', hasPermanentHint ? 'Found' : 'Not found');
 
                 // Try to get session immediately
                 let { data: { session }, error } = await supabase.auth.getSession();
@@ -43,10 +40,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 }
 
                 // If no session found yet, but we saw a hint in localStorage, 
-                // wait a bit longer for Supabase to "warm up" (common on mobile)
-                if (!session && hasKey && mounted) {
-                    console.log('[Auth] Session hint found but no session yet, waiting 500ms...');
-                    await new Promise(resolve => setTimeout(resolve, 500));
+                // wait up to 1000ms for mobile storage to be fully ready (common on cold starts)
+                if (!session && hasPermanentHint && mounted) {
+                    console.log('[Auth] Session hint found but no session yet, waiting 1000ms for mobile storage...');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
                     if (!mounted) return;
 
                     const retryResult = await supabase.auth.getSession();

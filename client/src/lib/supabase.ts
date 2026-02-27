@@ -22,8 +22,10 @@ export const supabase = createClient(
     {
         auth: {
             persistSession: true,
+            storageKey: 'dayplanr-auth-permanent', // Dedicated key for ultra-persistence
+            storage: typeof window !== 'undefined' ? window.localStorage : undefined,
             autoRefreshToken: true,
-            detectSessionInUrl: true,
+            detectSessionInUrl: false,
         }
     }
 );
