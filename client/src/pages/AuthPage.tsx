@@ -13,7 +13,7 @@ import { useAuth } from "@/lib/auth";
 
 export default function AuthPage() {
   const [, navigate] = useLocation();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, signIn, signUp } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -45,7 +45,7 @@ export default function AuthPage() {
 
     try {
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
+        const { error } = await signUp({
           email: formData.email,
           password: formData.password,
           options: {
@@ -58,7 +58,7 @@ export default function AuthPage() {
         if (error) throw error;
         setShowOnboarding(true);
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { error } = await signIn({
           email: formData.email,
           password: formData.password,
         });
