@@ -22,9 +22,8 @@ export const supabase = createClient(
     {
         auth: {
             persistSession: true,
-            storage: typeof window !== 'undefined' ? window.localStorage : undefined,
             autoRefreshToken: true,
-            detectSessionInUrl: false, // Prevents accidental clearing from older hash fragments
+            detectSessionInUrl: true,
         }
     }
 );

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { supabase } from './supabase';
 import { User, Session, SignInWithPasswordCredentials, SignUpWithPasswordCredentials, AuthResponse } from '@supabase/supabase-js';
 
@@ -17,6 +17,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [session, setSession] = useState<Session | null>(null);
     const [loading, setLoading] = useState(true);
+    const isInitialized = useRef(false);
 
     useEffect(() => {
         console.log('[Auth] Initializing auth provider...');
@@ -26,36 +27,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Check active sessions and sets the user
         const initializeAuth = async () => {
             try {
-                // Check if we have an item in localStorage directly for debugging/safety on mobile
-                const localSession = typeof window !== 'undefined' ? window.localStorage.getItem('supabase.auth.token') : null;
-                console.log('[Auth] localStorage check:', localSession ? 'Key found' : 'No key');
+                // Check if we have any supabase auth token in localStorage (common keys)
+                const storageKeys = [
+                    'sb-vrtlltthcfiagmcwjrhq-auth-token', // default for this project
+                    'supabase.auth.token' // older default
+                ];
+                const hasKey = storageKeys.some(key => typeof window !== 'undefined' && window.localStorage.getItem(key));
+                console.log('[Auth] localStorage session hint:', hasKey ? 'Found' : 'Not found');
 
-                const { data: { session }, error } = await supabase.auth.getSession();
+                // Try to get session immediately
+                let { data: { session }, error } = await supabase.auth.getSession();
 
                 if (error) {
                     console.error('[Auth] Error getting session:', error);
-                    if (mounted) setLoading(false);
-                    return;
+                }
+
+                // If no session found yet, but we saw a hint in localStorage, 
+                // wait a bit longer for Supabase to "warm up" (common on mobile)
+                if (!session && hasKey && mounted) {
+                    console.log('[Auth] Session hint found but no session yet, waiting 500ms...');
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    if (!mounted) return;
+
+                    const retryResult = await supabase.auth.getSession();
+                    session = retryResult.data.session;
+                    console.log('[Auth] Retry result:', session ? 'Session recovered' : 'Still no session');
                 }
 
                 if (mounted) {
-                    if (session) {
-                        console.log('[Auth] Initial session found for:', session.user.email);
-                        setSession(session);
-                        setUser(session.user);
-                    } else {
-                        console.log('[Auth] No initial session found');
-                    }
-
-                    // On mobile, sometimes the session is loaded asynchronously after a tiny delay
-                    // even if getSession() returns null initially.
-                    setTimeout(() => {
-                        if (mounted) setLoading(false);
-                    }, 100);
+                    console.log('[Auth] Initialization final state:', session ? 'Authenticated' : 'Unauthenticated');
+                    setSession(session);
+                    setUser(session?.user ?? null);
+                    isInitialized.current = true;
+                    setLoading(false);
                 }
             } catch (err) {
                 console.error('[Auth] Initial check failed:', err);
-                if (mounted) setLoading(false);
+                if (mounted) {
+                    isInitialized.current = true;
+                    setLoading(false);
+                }
             }
         };
 
@@ -68,7 +79,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (mounted) {
                 setSession(session);
                 setUser(session?.user ?? null);
-                setLoading(false);
+                // Only update loading if we've already done our initial check
+                if (isInitialized.current) {
+                    setLoading(false);
+                }
             }
         });
 
