@@ -17,13 +17,11 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 export const supabase = createClient(
-    supabaseUrl || 'https://placeholder.supabase.co', 
-    supabaseAnonKey || 'placeholder-key', 
+    supabaseUrl || 'https://placeholder.supabase.co',
+    supabaseAnonKey || 'placeholder-key',
     {
         auth: {
             persistSession: true,
-            storageKey: 'dayplanr-auth',
-            storage: typeof window !== 'undefined' ? window.localStorage : undefined,
             autoRefreshToken: true,
             detectSessionInUrl: true,
         }

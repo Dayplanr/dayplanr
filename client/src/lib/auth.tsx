@@ -21,34 +21,54 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         console.log('[Auth] Initializing auth provider...');
 
+        let mounted = true;
+
         // Check active sessions and sets the user
-        supabase.auth.getSession().then(({ data: { session }, error }) => {
-            console.log('[Auth] Retrieved session from storage:', session ? 'Session found' : 'No session');
-            if (error) console.error('[Auth] Error getting session:', error);
+        const initializeAuth = async () => {
+            try {
+                const { data: { session }, error } = await supabase.auth.getSession();
 
-            setSession(session);
-            setUser(session?.user ?? null);
-            setLoading(false);
+                if (error) {
+                    console.error('[Auth] Error getting session:', error);
+                    if (mounted) setLoading(false);
+                    return;
+                }
 
-            if (session) {
-                console.log('[Auth] User logged in:', session.user.email);
-                console.log('[Auth] Session expires at:', new Date(session.expires_at! * 1000));
-            } else {
-                console.log('[Auth] No active session found');
+                console.log('[Auth] Initial session check:', session ? 'Session found' : 'No session');
+
+                if (mounted) {
+                    setSession(session);
+                    setUser(session?.user ?? null);
+                    // We don't set loading to false here yet, we wait for onAuthStateChange 
+                    // to confirm or just set it if we have a session
+                    if (session) {
+                        console.log('[Auth] User identified:', session.user.email);
+                    }
+                    setLoading(false);
+                }
+            } catch (err) {
+                console.error('[Auth] Initial check failed:', err);
+                if (mounted) setLoading(false);
             }
-        });
+        };
+
+        initializeAuth();
 
         // Listen for changes on auth state (logged in, signed out, etc.)
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-            console.log('[Auth] Auth state changed:', event);
-            console.log('[Auth] New session:', session ? 'Active' : 'None');
+            console.log('[Auth] Auth state changed:', event, session ? 'Session active' : 'No session');
 
-            setSession(session);
-            setUser(session?.user ?? null);
-            setLoading(false);
+            if (mounted) {
+                setSession(session);
+                setUser(session?.user ?? null);
+                setLoading(false);
+            }
         });
 
-        return () => subscription.unsubscribe();
+        return () => {
+            mounted = false;
+            subscription.unsubscribe();
+        };
     }, []);
 
     const signIn = async (credentials: SignInWithPasswordCredentials) => {
