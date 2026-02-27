@@ -9,9 +9,11 @@ import { Calendar, ArrowLeft, Mail, Lock, User, ArrowRight, Eye, EyeOff } from "
 import { OnboardingModal } from "@/components/OnboardingModal";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/lib/auth";
 
 export default function AuthPage() {
   const [, navigate] = useLocation();
+  const { user, loading: authLoading } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -22,6 +24,13 @@ export default function AuthPage() {
   });
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user && !authLoading) {
+      navigate("/app");
+    }
+  }, [user, authLoading, navigate]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
