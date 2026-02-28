@@ -93,7 +93,8 @@ export default function ModernTaskCard({
                         )}
                     </div>
                     {description && (
-                        <p className={`text-xs mt-0.5 truncate transition-all duration-300 ${completed ? "text-muted-foreground/60 line-through" : "text-muted-foreground"}`}>
+                        <p className={`text-xs mt-0.5 line-clamp-2 transition-all duration-300 ${completed ? "text-muted-foreground/50 line-through" : "text-muted-foreground"
+                            }`}>
                             {description}
                         </p>
                     )}

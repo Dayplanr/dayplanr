@@ -67,7 +67,7 @@ export default function DashboardCustomizer({ config, onUpdate }: DashboardCusto
                 <Button
                     variant="outline"
                     size="sm"
-                    className="rounded-full gap-2 border-border/50 bg-background/50 hover:bg-accent backdrop-blur-sm"
+                    className="w-full rounded-full gap-2 border-border/50 bg-background/50 hover:bg-accent backdrop-blur-sm"
                 >
                     <Settings2 className="w-4 h-4" />
                     <span className="text-xs font-semibold">{t("customize")}</span>

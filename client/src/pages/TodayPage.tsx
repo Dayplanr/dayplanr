@@ -635,23 +635,27 @@ export default function TodayPage() {
                 <p className="text-sm capitalize">{formattedDate}</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <DashboardCustomizer config={dashboardConfig} onUpdate={saveDashboardConfig} />
+            <div className="flex items-start gap-2">
               {dashboardConfig.modules.insights && (
                 <Button
                   onClick={() => setShowInsights(true)}
                   variant="outline"
                   size="icon"
-                  className="rounded-full h-10 w-10 border-border/50 bg-background/50 hover:bg-accent backdrop-blur-sm"
+                  className="rounded-full h-11 w-11 border-border/50 bg-background/50 hover:bg-accent backdrop-blur-sm shadow-sm"
                   data-testid="button-today-insights-header"
                 >
-                  <TrendingUp className="w-4 h-4" />
+                  <TrendingUp className="w-5 h-5" />
                 </Button>
               )}
-              <Button onClick={handleAddTask} className="rounded-full h-11 px-6 gap-2 shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95" data-testid="button-add-task-header">
-                <Plus className="w-5 h-5" />
-                <span className="font-bold">{t("addTask")}</span>
-              </Button>
+              <div className="flex flex-col gap-2 w-full sm:w-auto">
+                <Button onClick={handleAddTask} className="w-full sm:w-auto rounded-full h-11 px-6 gap-2 shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95" data-testid="button-add-task-header">
+                  <Plus className="w-5 h-5" />
+                  <span className="font-bold">{t("addTask")}</span>
+                </Button>
+                <div className="w-full">
+                  <DashboardCustomizer config={dashboardConfig} onUpdate={saveDashboardConfig} />
+                </div>
+              </div>
             </div>
           </div>
 
