@@ -82,13 +82,20 @@ export default function ModernTaskCard({
 
             {/* Content Area */}
             <div className="flex-1 min-w-0" onClick={onToggle}>
-                <div className="flex items-center gap-2 mb-1">
-                    <p className={`font-medium truncate transition-all duration-300 ${completed ? "text-muted-foreground line-through" : "text-foreground"
-                        }`}>
-                        {title}
-                    </p>
-                    {priority === "high" && !completed && (
-                        <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                <div className="flex flex-col mb-1.5">
+                    <div className="flex items-center gap-2">
+                        <p className={`font-medium truncate transition-all duration-300 ${completed ? "text-muted-foreground line-through" : "text-foreground"
+                            }`}>
+                            {title}
+                        </p>
+                        {priority === "high" && !completed && (
+                            <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                        )}
+                    </div>
+                    {description && (
+                        <p className={`text-xs mt-0.5 truncate transition-all duration-300 ${completed ? "text-muted-foreground/60 line-through" : "text-muted-foreground"}`}>
+                            {description}
+                        </p>
                     )}
                 </div>
 
