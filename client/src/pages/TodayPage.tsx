@@ -21,6 +21,7 @@ import CalendarScrubber from "@/components/CalendarScrubber";
 import TodayInsights from "@/components/TodayInsights";
 import ModernTaskCard from "@/components/ModernTaskCard";
 import ProgressRing from "@/components/ProgressRing";
+import DashboardCustomizer, { type DashboardConfig } from "@/components/DashboardCustomizer";
 import { useTranslation } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
@@ -89,6 +90,15 @@ export default function TodayPage() {
     completedHabits: 0,
     totalHabits: 0,
     streak: 0,
+  });
+  const [dashboardConfig, setDashboardConfig] = useState<DashboardConfig>({
+    modules: {
+      summary: true,
+      focus: true,
+      habits: true,
+      insights: true,
+    },
+    order: ["summary", "focus", "habits", "insights"],
   });
 
   const [tasks, setTasks] = useState<TaskGroups>({
@@ -195,6 +205,44 @@ export default function TodayPage() {
     }
   };
 
+  const fetchDashboardConfig = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from("user_settings")
+        .select("dashboard_config")
+        .eq("user_id", user.id)
+        .single();
+
+      if (data?.dashboard_config) {
+        setDashboardConfig(data.dashboard_config as DashboardConfig);
+      }
+    } catch (err) {
+      console.error("Error fetching dashboard config:", err);
+    }
+  };
+
+  const saveDashboardConfig = async (newConfig: DashboardConfig) => {
+    if (!user) return;
+    setDashboardConfig(newConfig);
+    try {
+      const { error } = await supabase
+        .from("user_settings")
+        .upsert({
+          user_id: user.id,
+          dashboard_config: newConfig,
+        });
+
+      if (error) throw error;
+    } catch (err) {
+      toast({
+        title: "Error saving configuration",
+        description: (err as any).message,
+        variant: "destructive",
+      });
+    }
+  };
+
   const fetchStats = async () => {
     if (!user) return;
 
@@ -241,6 +289,7 @@ export default function TodayPage() {
   useEffect(() => {
     fetchTasks();
     fetchStats();
+    fetchDashboardConfig();
   }, [user, selectedDate, location]);
 
   useEffect(() => {
@@ -587,15 +636,18 @@ export default function TodayPage() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button
-                onClick={() => setShowInsights(true)}
-                variant="outline"
-                size="icon"
-                className="rounded-full h-10 w-10 border-border/50 bg-background/50 hover:bg-accent"
-                data-testid="button-today-insights-header"
-              >
-                <TrendingUp className="w-4 h-4" />
-              </Button>
+              <DashboardCustomizer config={dashboardConfig} onUpdate={saveDashboardConfig} />
+              {dashboardConfig.modules.insights && (
+                <Button
+                  onClick={() => setShowInsights(true)}
+                  variant="outline"
+                  size="icon"
+                  className="rounded-full h-10 w-10 border-border/50 bg-background/50 hover:bg-accent backdrop-blur-sm"
+                  data-testid="button-today-insights-header"
+                >
+                  <TrendingUp className="w-4 h-4" />
+                </Button>
+              )}
               <Button onClick={handleAddTask} className="rounded-full h-11 px-6 gap-2 shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95" data-testid="button-add-task-header">
                 <Plus className="w-5 h-5" />
                 <span className="font-bold">{t("addTask")}</span>
@@ -612,61 +664,88 @@ export default function TodayPage() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.1 }}
+          className="space-y-8"
         >
-          <Card className="overflow-hidden border-none shadow-soft glass-card">
-            <CardContent className="p-0">
-              <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-border/30">
-                {/* Main Progress Ring */}
-                <div className="p-6 flex flex-col items-center justify-center text-center bg-primary/5">
-                  <ProgressRing progress={progressPercent} size={120} strokeWidth={10} color="hsl(var(--primary))" />
-                  <div className="mt-4">
-                    <p className="text-xs font-medium text-muted-foreground tracking-wide uppercase">{t("dailyProgress")}</p>
-                    <p className="text-sm font-black text-foreground mt-1">
-                      {completedTasks} <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-70">of</span> {totalTasks}
-                    </p>
-                  </div>
-                </div>
+          {(dashboardConfig.modules.summary || dashboardConfig.modules.focus || dashboardConfig.modules.habits) && (
+            <Card className="overflow-hidden border-none shadow-soft glass-card">
+              <CardContent className="p-0">
+                <div className={`grid grid-cols-1 md:grid-cols-${[dashboardConfig.modules.summary, dashboardConfig.modules.focus, dashboardConfig.modules.habits].filter(Boolean).length
+                  } divide-y md:divide-y-0 md:divide-x divide-border/30`}>
+                  {dashboardConfig.order.filter(id => id !== 'insights').map((moduleId) => {
+                    if (!dashboardConfig.modules[moduleId as keyof DashboardConfig["modules"]]) return null;
 
-                {/* Focus Time */}
-                <div className="p-6 flex flex-col items-center justify-center text-center">
-                  <div className="p-3 rounded-2xl bg-blue-500/10 mb-3 group-hover:scale-110 transition-transform">
-                    <Clock className="w-6 h-6 text-blue-500" />
-                  </div>
-                  <p className="text-2xl font-black text-foreground">
-                    {todayFocusMinutes}<span className="text-sm font-bold text-muted-foreground ml-1">m</span>
-                  </p>
-                  <p className="text-xs font-medium text-muted-foreground tracking-wide uppercase mt-1">{t("focusTime")}</p>
-                </div>
+                    if (moduleId === "summary") {
+                      return (
+                        <div key="summary" className="p-6 flex flex-col items-center justify-center text-center bg-primary/5">
+                          <ProgressRing progress={progressPercent} size={120} strokeWidth={10} color="hsl(var(--primary))" />
+                          <div className="mt-4">
+                            <p className="text-xs font-medium text-muted-foreground tracking-wide uppercase">{t("dailyProgress")}</p>
+                            <p className="text-sm font-black text-foreground mt-1">
+                              {completedTasks} <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-70">of</span> {totalTasks}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    }
 
-                {/* Streak & Habits */}
-                <div className="p-6 flex flex-col items-center justify-center text-center">
-                  <div className="flex gap-4 mb-4">
-                    <div className="flex flex-col items-center">
-                      <div className="p-2 rounded-xl bg-orange-500/10 mb-1">
-                        <Flame className="w-4 h-4 text-orange-500" />
-                      </div>
-                      <span className="text-sm font-bold">{currentStreak}d</span>
-                    </div>
-                    <div className="w-px h-8 bg-border/30 self-center" />
-                    <div className="flex flex-col items-center">
-                      <div className="p-2 rounded-xl bg-emerald-500/10 mb-1">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                      </div>
-                      <span className="text-sm font-bold">{completedHabits}/{totalHabits}</span>
-                    </div>
-                  </div>
-                  <p className="text-xs font-medium text-muted-foreground tracking-wide uppercase">{t("streak")} & {t("habits")}</p>
+                    if (moduleId === "focus") {
+                      return (
+                        <div key="focus" className="p-6 flex flex-col items-center justify-center text-center hover:bg-accent/5 transition-colors cursor-pointer" onClick={() => navigate("/focus")}>
+                          <div className="relative">
+                            <div className="absolute inset-0 bg-blue-500/10 blur-2xl rounded-full" />
+                            <div className="w-16 h-16 rounded-2xl bg-blue-500/10 flex items-center justify-center mb-4 relative ring-1 ring-blue-500/20">
+                              <Clock className="w-8 h-8 text-blue-500" />
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-xs font-medium text-muted-foreground tracking-wide uppercase">{t("focusTime")}</p>
+                            <p className="text-2xl font-black text-foreground mt-1">
+                              {todayFocusMinutes}<span className="text-sm font-bold ml-1 text-muted-foreground">m</span>
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    if (moduleId === "habits") {
+                      return (
+                        <div key="habits" className="p-6 flex flex-col items-center justify-center text-center hover:bg-accent/5 transition-colors cursor-pointer" onClick={() => navigate("/habits")}>
+                          <div className="relative">
+                            <div className="absolute inset-0 bg-orange-500/10 blur-2xl rounded-full" />
+                            <div className="w-16 h-16 rounded-2xl bg-orange-500/10 flex items-center justify-center mb-4 relative ring-1 ring-orange-500/20">
+                              <Flame className="w-8 h-8 text-orange-500" />
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-xs font-medium text-muted-foreground tracking-wide uppercase">{t("habits")}</p>
+                            <div className="flex items-center justify-center gap-2 mt-1">
+                              <p className="text-2xl font-black text-foreground">
+                                {currentStreak}<span className="text-sm font-bold ml-1 text-muted-foreground uppercase tracking-tight">d</span>
+                              </p>
+                              <div className="h-4 w-px bg-border/50 mx-1" />
+                              <p className="text-lg font-bold text-muted-foreground">
+                                {completedHabits}<span className="text-xs font-semibold">/{totalHabits}</span>
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    return null;
+                  })}
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
+
+          <div className="space-y-2">
+            {renderTaskSection(t("morning"), "morning", tasks.morning)}
+            {renderTaskSection(t("afternoon"), "afternoon", tasks.afternoon)}
+            {renderTaskSection(t("evening"), "evening", tasks.evening)}
+            {renderTaskSection(t("night"), "night", tasks.night)}
+          </div>
         </motion.div>
-
-
-        {renderTaskSection(t("morning"), "morning", tasks.morning)}
-        {renderTaskSection(t("afternoon"), "afternoon", tasks.afternoon)}
-        {renderTaskSection(t("evening"), "evening", tasks.evening)}
-        {renderTaskSection(t("night"), "night", tasks.night)}
 
       </div>
 

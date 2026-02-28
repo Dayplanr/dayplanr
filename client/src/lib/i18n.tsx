@@ -140,7 +140,12 @@ export type TranslationKey =
   | "other"
   | "taskDeleted"
   | "activeGoals"
-  | "progress";
+  | "progress"
+  | "customize"
+  | "customizeDashboard"
+  | "customizeDashboardDescription"
+  | "moduleVisible"
+  | "moduleHidden";
 
 type Translations = Record<TranslationKey, string>;
 
@@ -279,6 +284,11 @@ const translations: Record<Language, Translations> = {
     taskDeleted: "Task Deleted",
     activeGoals: "Active Goals",
     progress: "Daily Progress",
+    customize: "Customize",
+    customizeDashboard: "Customize Dashboard",
+    customizeDashboardDescription: "Toggle and reorder your dashboard modules to fit your flow.",
+    moduleVisible: "Visible",
+    moduleHidden: "Hidden",
   },
   de: {
     today: "Heute",
@@ -406,6 +416,11 @@ const translations: Record<Language, Translations> = {
     taskDeleted: "Aufgabe gelöscht",
     activeGoals: "Aktive Ziele",
     progress: "Täglicher Fortschritt",
+    customize: "Anpassen",
+    customizeDashboard: "Dashboard anpassen",
+    customizeDashboardDescription: "Schalte deine Dashboard-Module um und ordne sie neu an.",
+    moduleVisible: "Sichtbar",
+    moduleHidden: "Verborgen",
   },
   es: {
     today: "Hoy",
@@ -533,6 +548,11 @@ const translations: Record<Language, Translations> = {
     taskDeleted: "Tarea eliminada",
     activeGoals: "Metas Activas",
     progress: "Progreso Diario",
+    customize: "Personalizar",
+    customizeDashboard: "Personalizar Panel",
+    customizeDashboardDescription: "Activa y reordena los módulos de tu panel para que se adapten a tu ritmo.",
+    moduleVisible: "Visible",
+    moduleHidden: "Oculto",
   },
   fr: {
     today: "Aujourd'hui",
@@ -660,6 +680,11 @@ const translations: Record<Language, Translations> = {
     taskDeleted: "Tâche supprimée",
     activeGoals: "Objectifs Actifs",
     progress: "Progrès Quotidien",
+    customize: "Personnaliser",
+    customizeDashboard: "Personnaliser le Tableau de Bord",
+    customizeDashboardDescription: "Activez et réorganisez les modules de votre tableau de bord selon vos besoins.",
+    moduleVisible: "Visible",
+    moduleHidden: "Masqué",
   },
   it: {
     today: "Oggi",
@@ -787,6 +812,11 @@ const translations: Record<Language, Translations> = {
     taskDeleted: "Attività eliminata",
     activeGoals: "Obiettivi Attivi",
     progress: "Progresso Giornaliero",
+    customize: "Personalizza",
+    customizeDashboard: "Personalizza Dashboard",
+    customizeDashboardDescription: "Attiva e riordina i moduli della tua dashboard in base al tuo flusso.",
+    moduleVisible: "Visibile",
+    moduleHidden: "Nascosto",
   },
   pt: {
     today: "Hoje",
@@ -914,6 +944,11 @@ const translations: Record<Language, Translations> = {
     taskDeleted: "Tarefa excluída",
     activeGoals: "Metas Ativas",
     progress: "Progresso Diário",
+    customize: "Personalizar",
+    customizeDashboard: "Personalizar Painel",
+    customizeDashboardDescription: "Ative e reordene os módulos do seu painel para se adequar ao seu fluxo.",
+    moduleVisible: "Visível",
+    moduleHidden: "Oculto",
   },
   nl: {
     today: "Vandaag",
@@ -1041,6 +1076,11 @@ const translations: Record<Language, Translations> = {
     taskDeleted: "Taak Verwijderd",
     activeGoals: "Actieve Doelen",
     progress: "Dagelijkse Voortgang",
+    customize: "Aanpassen",
+    customizeDashboard: "Dashboard Aanpassen",
+    customizeDashboardDescription: "Schakel dashboardmodules in en wijzig de volgorde naar wens.",
+    moduleVisible: "Zichtbaar",
+    moduleHidden: "Verborgen",
   },
   pl: {
     today: "Dzisiaj",
@@ -1168,6 +1208,11 @@ const translations: Record<Language, Translations> = {
     taskDeleted: "Zadanie usunięte",
     activeGoals: "Aktywne Cele",
     progress: "Dzienny Postęp",
+    customize: "Dostosuj",
+    customizeDashboard: "Dostosuj Pulpit",
+    customizeDashboardDescription: "Przełączaj i zmieniaj kolejność modułów pulpitu, aby dopasować je do swojego rytmu.",
+    moduleVisible: "Widoczny",
+    moduleHidden: "Ukryty",
   },
 };
 

@@ -11,6 +11,7 @@ import { useTheme } from "@/lib/theme";
 import { useToast } from "@/hooks/use-toast";
 import { useTimerSound } from "@/hooks/useTimerSound";
 import { timerSounds } from "@/lib/timerSounds";
+import DashboardCustomizer, { type DashboardConfig } from "@/components/DashboardCustomizer";
 import {
   Select,
   SelectContent,
@@ -41,6 +42,7 @@ import {
   Check,
   Volume2,
   Play,
+  Settings2,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -60,10 +62,10 @@ export default function SettingsPage() {
   const { darkMode, setDarkMode, themeColor, setThemeColor } = useTheme();
   const { toast } = useToast();
   const { timerSound: hookTimerSound, refreshTimerSound } = useTimerSound();
-  
+
   // Use local state for immediate UI updates
   const [localTimerSound, setLocalTimerSound] = useState(hookTimerSound);
-  
+
   // Sync local state with hook state
   useEffect(() => {
     setLocalTimerSound(hookTimerSound);
@@ -76,6 +78,15 @@ export default function SettingsPage() {
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isTimerSettingsOpen, setIsTimerSettingsOpen] = useState(false);
+  const [dashboardConfig, setDashboardConfig] = useState<DashboardConfig>({
+    modules: {
+      summary: true,
+      focus: true,
+      habits: true,
+      insights: true,
+    },
+    order: ["summary", "focus", "habits", "insights"],
+  });
 
   const themeColors = [
     { name: "Violet", value: "#8b5cf6" },
@@ -95,7 +106,7 @@ export default function SettingsPage() {
   const loadSettings = async () => {
     try {
       console.log("🔧 Loading user settings...");
-      
+
       // First try to get existing settings
       const { data, error } = await supabase
         .from("user_settings")
@@ -114,7 +125,7 @@ export default function SettingsPage() {
           })
           .select()
           .single();
-          
+
         if (insertError) {
           console.error("Error creating default settings:", insertError);
         } else {
@@ -124,6 +135,9 @@ export default function SettingsPage() {
       } else if (data) {
         console.log("🔧 Loaded existing settings:", data);
         setDisplayName(user?.user_metadata?.full_name || "");
+        if (data.dashboard_config) {
+          setDashboardConfig(data.dashboard_config as DashboardConfig);
+        }
       }
     } catch (error) {
       console.error("Error loading settings:", error);
@@ -137,19 +151,19 @@ export default function SettingsPage() {
   const playPreviewSound = async (soundValue: string) => {
     try {
       console.log(`🔊 Playing preview sound: ${soundValue}`);
-      
+
       // Import the continuous sound function
       const { startContinuousTimerSound } = await import("@/lib/timerSounds");
-      
+
       // Create a short preview (3 seconds)
       const continuousSound = await startContinuousTimerSound(soundValue);
-      
+
       // Stop after 3 seconds for preview
       setTimeout(() => {
         continuousSound.stop();
         console.log(`🔇 Preview sound stopped after 3 seconds`);
       }, 3000);
-      
+
       console.log("Preview sound started successfully");
     } catch (error) {
       console.error("Error playing preview sound:", error);
@@ -164,21 +178,21 @@ export default function SettingsPage() {
   const handleTimerSoundChange = async (soundValue: string) => {
     // Update local state immediately for responsive UI
     setLocalTimerSound(soundValue);
-    
+
     try {
       if (!user?.id) {
         throw new Error("No user ID available");
       }
-      
+
       // First try to check if user_settings record exists
       const { data: existingData, error: selectError } = await supabase
         .from("user_settings")
         .select("id, timer_sound")
         .eq("user_id", user.id)
         .single();
-      
+
       let updateError = null;
-      
+
       if (selectError && selectError.code === 'PGRST116') {
         // Record doesn't exist, create it
         const { error } = await supabase
@@ -199,27 +213,27 @@ export default function SettingsPage() {
         // Some other error occurred
         updateError = selectError;
       }
-      
+
       if (updateError) {
         throw updateError;
       }
-      
+
       // Store in localStorage as backup
       localStorage.setItem(`timer_sound_${user.id}`, soundValue);
-      
+
       // Refresh the hook to sync with database
       setTimeout(() => refreshTimerSound(), 100);
-      
+
       toast({
         title: "Timer Sound Updated",
         description: `Changed to ${timerSounds.find(s => s.value === soundValue)?.name || soundValue}`,
       });
-      
+
     } catch (error) {
       // Fallback to localStorage
       try {
         localStorage.setItem(`timer_sound_${user?.id}`, soundValue);
-        
+
         toast({
           title: "Timer Sound Updated (Local)",
           description: `Changed to ${timerSounds.find(s => s.value === soundValue)?.name || soundValue} (saved locally)`,
@@ -227,7 +241,7 @@ export default function SettingsPage() {
       } catch (localError) {
         // Revert local state on complete failure
         setLocalTimerSound(hookTimerSound);
-        
+
         toast({
           title: "Error",
           description: `Failed to save timer sound: ${error instanceof Error ? error.message : String(error)}`,
@@ -241,7 +255,7 @@ export default function SettingsPage() {
     if (!user) return;
     try {
       console.log(`🔧 Updating setting ${key} to:`, value);
-      
+
       // Use upsert to handle cases where user_settings doesn't exist yet
       const { error } = await supabase
         .from("user_settings")
@@ -262,6 +276,12 @@ export default function SettingsPage() {
         variant: "destructive",
       });
     }
+  };
+
+  const saveDashboardConfig = async (newConfig: DashboardConfig) => {
+    if (!user) return;
+    setDashboardConfig(newConfig);
+    await updateSetting("dashboard_config", newConfig);
   };
 
   const handleUpdateProfile = async () => {
@@ -481,7 +501,7 @@ export default function SettingsPage() {
                     </div>
                   </button>
                 </CollapsibleTrigger>
-                
+
                 <CollapsibleContent>
                   <CardContent className="pt-0 pb-4">
                     <div className="space-y-2">
@@ -490,15 +510,14 @@ export default function SettingsPage() {
                       </p>
                       {timerSounds.map((sound) => {
                         const isSelected = localTimerSound === sound.value;
-                        
+
                         return (
                           <div
                             key={sound.value}
-                            className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all ${
-                              isSelected
-                                ? "border-primary bg-primary/10 ring-2 ring-primary/20" 
-                                : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                            }`}
+                            className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all ${isSelected
+                              ? "border-primary bg-primary/10 ring-2 ring-primary/20"
+                              : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                              }`}
                             onClick={() => handleTimerSoundChange(sound.value)}
                           >
                             <div className="flex-1">
@@ -584,6 +603,21 @@ export default function SettingsPage() {
                 onCheckedChange={setDarkMode}
                 data-testid="switch-dark-mode"
               />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-card">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base font-semibold">{t("customizeDashboard")}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1 p-0">
+            <div className="flex items-center justify-between px-4 py-3">
+              <div className="flex items-center gap-3">
+                <Settings2 className="w-5 h-5 text-gray-500" />
+                <span className="text-foreground">{t("customizeDashboard")}</span>
+              </div>
+              <DashboardCustomizer config={dashboardConfig} onUpdate={saveDashboardConfig} />
             </div>
           </CardContent>
         </Card>
