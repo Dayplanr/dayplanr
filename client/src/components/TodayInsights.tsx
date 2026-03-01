@@ -87,18 +87,28 @@ export default function TodayInsights({
   const [loading, setLoading] = useState(false);
   const [taskHistory, setTaskHistory] = useState<any[]>([]);
   const [sessionHistory, setSessionHistory] = useState<any[]>([]);
+  const [rawLinkedTasks, setRawLinkedTasks] = useState<any[]>([]);
+  const [goalTitleMap, setGoalTitleMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (open && user) {
       const fetchData = async () => {
         setLoading(true);
-        const [tasksRes, focusRes] = await Promise.all([
+        const [tasksRes, focusRes, goalsRes, linkedTasksRes] = await Promise.all([
           supabase.from("tasks").select("scheduled_date, completed").eq("user_id", user.id).eq("completed", true),
-          supabase.from("focus_sessions").select("completed_at, duration").eq("user_id", user.id)
+          supabase.from("focus_sessions").select("completed_at, duration").eq("user_id", user.id),
+          supabase.from("goals").select("id, title").eq("user_id", user.id),
+          supabase.from("tasks").select("goal_id, completed, scheduled_date").eq("user_id", user.id).not("goal_id", "is", null),
         ]);
 
         if (tasksRes.data) setTaskHistory(tasksRes.data);
         if (focusRes.data) setSessionHistory(focusRes.data);
+        if (linkedTasksRes.data) setRawLinkedTasks(linkedTasksRes.data);
+        if (goalsRes.data) {
+          const map: Record<string, string> = {};
+          goalsRes.data.forEach((g: any) => { map[g.id] = g.title; });
+          setGoalTitleMap(map);
+        }
         setLoading(false);
       };
       fetchData();
@@ -174,6 +184,53 @@ export default function TodayInsights({
   };
 
   const yearlyData = getYearlyData();
+
+  // Period-scoped goal stats
+  const getGoalStatsForPeriod = (start: Date, end: Date) => {
+    const periodTasks = rawLinkedTasks.filter(t => {
+      if (!t.scheduled_date) return false;
+      const d = new Date(t.scheduled_date);
+      return d >= start && d <= end;
+    });
+    const statsMap: Record<string, { title: string; done: number; total: number }> = {};
+    periodTasks.forEach((t: any) => {
+      if (!t.goal_id || !goalTitleMap[t.goal_id]) return;
+      if (!statsMap[t.goal_id]) statsMap[t.goal_id] = { title: goalTitleMap[t.goal_id], done: 0, total: 0 };
+      statsMap[t.goal_id].total += 1;
+      if (t.completed) statsMap[t.goal_id].done += 1;
+    });
+    return Object.values(statsMap);
+  };
+
+  const renderGoalRows = (stats: { title: string; done: number; total: number }[]) => {
+    if (stats.length === 0) return null;
+    return (
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Target className="w-4 h-4 text-violet-500" />
+            Goal Progress
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {stats.map(g => (
+            <div key={g.title}>
+              <div className="flex justify-between text-xs mb-1">
+                <span className="font-medium truncate max-w-[65%]">{g.title}</span>
+                <span className="text-muted-foreground">{g.done}/{g.total} tasks</span>
+              </div>
+              <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-violet-500 transition-all"
+                  style={{ width: `${g.total > 0 ? Math.round((g.done / g.total) * 100) : 0}%` }}
+                />
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    );
+  };
 
   const weeklyProductivityScore = Math.round(
     ((weeklyData.reduce((sum, d) => sum + d.tasks, 0) / 50) * 50) +
@@ -376,6 +433,12 @@ export default function TodayInsights({
                   <p className="text-xs text-muted-foreground">Best Day</p>
                 </div>
               </div>
+              {(() => {
+                const weeks = generateWeeks(selectedYear);
+                const w = weeks.find(wk => wk.value === selectedWeek);
+                if (!w) return null;
+                return renderGoalRows(getGoalStatsForPeriod(w.startDate, w.endDate));
+              })()}
             </TabsContent>
 
             <TabsContent value="monthly" className="space-y-4 mt-4">
@@ -484,6 +547,10 @@ export default function TodayInsights({
                   <p className="text-xs text-muted-foreground">Avg/Day</p>
                 </div>
               </div>
+              {renderGoalRows(getGoalStatsForPeriod(
+                new Date(selectedYear, months.indexOf(selectedMonth), 1),
+                new Date(selectedYear, months.indexOf(selectedMonth) + 1, 0)
+              ))}
             </TabsContent>
 
             <TabsContent value="yearly" className="space-y-4 mt-4">
@@ -570,6 +637,10 @@ export default function TodayInsights({
                   <p className="text-xs text-muted-foreground">Best Month</p>
                 </div>
               </div>
+              {renderGoalRows(getGoalStatsForPeriod(
+                new Date(selectedYear, 0, 1),
+                new Date(selectedYear, 11, 31)
+              ))}
             </TabsContent>
           </Tabs>
         </div>

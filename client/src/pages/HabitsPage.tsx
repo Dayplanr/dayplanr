@@ -23,7 +23,7 @@ import EditHabitDialog from "@/components/EditHabitDialog";
 import HabitInsights from "@/components/HabitInsights";
 import { useTranslation } from "@/lib/i18n";
 import { format, subDays } from "date-fns";
-import type { Habit } from "@/types/habits";
+import { calculateHabitStreak, type Habit } from "@/types/habits";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
@@ -40,33 +40,6 @@ export default function HabitsPage() {
 
   const [habits, setHabits] = useState<Habit[]>([]);
 
-  const calculateStreak = (completedDates: string[]): number => {
-    if (completedDates.length === 0) return 0;
-
-    const sortedDates = [...completedDates].sort().reverse();
-    const today = format(new Date(), "yyyy-MM-dd");
-    const yesterday = format(subDays(new Date(), 1), "yyyy-MM-dd");
-
-    if (sortedDates[0] !== today && sortedDates[0] !== yesterday) {
-      return 0;
-    }
-
-    let streak = 1;
-    for (let i = 0; i < sortedDates.length - 1; i++) {
-      const current = new Date(sortedDates[i]);
-      const next = new Date(sortedDates[i + 1]);
-      const diff = (current.getTime() - next.getTime()) / (1000 * 60 * 60 * 24);
-
-      if (diff === 1) {
-        streak++;
-      } else {
-        break;
-      }
-    }
-
-    return streak;
-  };
-
   const fetchHabits = async () => {
     if (!user) return;
     setLoading(true);
@@ -80,25 +53,30 @@ export default function HabitsPage() {
 
       if (habitsError) throw habitsError;
 
-      const formattedHabits: Habit[] = habitsData?.map((h: any) => ({
-        id: h.id,
-        title: h.title,
-        category: h.category,
-        tags: h.tags || [],
-        scheduleType: h.schedule_type,
-        selectedDays: h.selected_days || [],
-        challengeDays: h.challenge_days || 0,
-        challengeType: h.challenge_type,
-        challengeCompleted: h.challenge_completed || 0,
-        streak: calculateStreak(h.completed_dates || []),
-        bestStreak: h.best_streak || 0,
-        successRate: h.success_rate || 0,
-        weeklyConsistency: h.weekly_consistency || 0,
-        monthlyConsistency: h.monthly_consistency || 0,
-        completedDates: h.completed_dates || [],
-        hasTimer: false,
-        goal_id: h.goal_id,
-      })) || [];
+      const formattedHabits: Habit[] = habitsData?.map((h: any) => {
+        const habit: Habit = {
+          id: h.id,
+          title: h.title,
+          category: h.category,
+          tags: h.tags || [],
+          scheduleType: h.schedule_type,
+          selectedDays: h.selected_days || [],
+          challengeDays: h.challenge_days || 0,
+          challengeType: h.challenge_type,
+          challengeCompleted: h.challenge_completed || 0,
+          streak: 0, // Temporarily set to 0, will be calculated below
+          bestStreak: h.best_streak || 0,
+          successRate: h.success_rate || 0,
+          weeklyConsistency: h.weekly_consistency || 0,
+          monthlyConsistency: h.monthly_consistency || 0,
+          completedDates: h.completed_dates || [],
+          hasTimer: false,
+          goal_id: h.goal_id,
+        };
+        // Calculate streak after habit object is formed
+        habit.streak = calculateHabitStreak(habit);
+        return habit;
+      }) || [];
 
       setHabits(formattedHabits);
     } catch (error: any) {
@@ -129,22 +107,23 @@ export default function HabitsPage() {
     if (!habit) return;
 
     const isCompleted = habit.completedDates.includes(dateStr);
-    let newCompletedDates: string[];
+    let updatedDates: string[];
 
     if (isCompleted) {
-      newCompletedDates = habit.completedDates.filter((d) => d !== dateStr);
+      updatedDates = habit.completedDates.filter((d) => d !== dateStr);
     } else {
-      newCompletedDates = [...habit.completedDates, dateStr].sort();
+      updatedDates = [...habit.completedDates, dateStr].sort();
     }
 
-    const newStreak = calculateStreak(newCompletedDates);
-    const newBestStreak = Math.max(habit.bestStreak || 0, newStreak);
-
     try {
+      const updatedHabit = { ...habit, completedDates: updatedDates };
+      const newStreak = calculateHabitStreak(updatedHabit);
+      const newBestStreak = Math.max(habit.bestStreak || 0, newStreak);
+
       const { error } = await supabase
         .from("habits")
         .update({
-          completed_dates: newCompletedDates,
+          completed_dates: updatedDates,
           streak: newStreak,
           best_streak: newBestStreak,
         })
@@ -153,16 +132,18 @@ export default function HabitsPage() {
       if (error) throw error;
 
       setHabits((prev) =>
-        prev.map((h) => {
-          if (h.id !== habitId) return h;
-          return {
-            ...h,
-            completedDates: newCompletedDates,
-            streak: newStreak,
-            bestStreak: newBestStreak,
-          };
-        })
+        prev.map((h) =>
+          h.id === habitId
+            ? {
+              ...h,
+              completedDates: updatedDates,
+              streak: newStreak,
+              bestStreak: newBestStreak,
+            }
+            : h
+        )
       );
+      toast({ title: isCompleted ? "Day unmarked" : "Day marked" });
     } catch (error: any) {
       toast({
         title: "Error updating habit",

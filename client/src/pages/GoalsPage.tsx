@@ -30,6 +30,7 @@ export default function GoalsPage() {
   const [loading, setLoading] = useState(true);
 
   const [goals, setGoals] = useState<Goal[]>([]);
+  const [taskStatsMap, setTaskStatsMap] = useState<Record<string, { total: number; done: number }>>({});
 
   const fetchGoals = async () => {
     if (!user) return;
@@ -78,6 +79,24 @@ export default function GoalsPage() {
       }) || [];
 
       setGoals(formattedGoals);
+
+      // Fetch linked task stats per goal
+      const { data: tasksData } = await supabase
+        .from("tasks")
+        .select("goal_id, completed")
+        .eq("user_id", user.id)
+        .not("goal_id", "is", null);
+
+      if (tasksData) {
+        const statsMap: Record<string, { total: number; done: number }> = {};
+        tasksData.forEach((task: any) => {
+          if (!task.goal_id) return;
+          if (!statsMap[task.goal_id]) statsMap[task.goal_id] = { total: 0, done: 0 };
+          statsMap[task.goal_id].total += 1;
+          if (task.completed) statsMap[task.goal_id].done += 1;
+        });
+        setTaskStatsMap(statsMap);
+      }
     } catch (error: any) {
       toast({
         title: "Error fetching goals",
@@ -277,6 +296,8 @@ export default function GoalsPage() {
               tags={goal.tags}
               challengeDuration={goal.challengeDuration}
               daysWithProgress={goal.daysWithProgress}
+              linkedTasksTotal={taskStatsMap[goal.id]?.total ?? 0}
+              linkedTasksDone={taskStatsMap[goal.id]?.done ?? 0}
               onToggleMilestone={(milestoneId) => handleToggleMilestone(goal.id, milestoneId)}
               onEdit={() => handleEditGoal(goal)}
               onDelete={() => handleDeleteGoal(goal.id)}

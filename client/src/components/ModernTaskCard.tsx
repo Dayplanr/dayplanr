@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { CheckCircle2, Circle, Clock, Bell, Tag, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { CheckCircle2, Circle, Clock, Bell, Tag, MoreVertical, Pencil, Trash2, Target } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { type TranslationKey } from "@/lib/i18n";
@@ -20,6 +20,7 @@ interface ModernTaskCardProps {
     hasReminder?: boolean;
     duration?: string;
     category?: string;
+    goalName?: string;
     onToggle: () => void;
     onEdit: () => void;
     onDelete: () => void;
@@ -42,6 +43,7 @@ export default function ModernTaskCard({
     hasReminder,
     duration,
     category,
+    goalName,
     onToggle,
     onEdit,
     onDelete,
@@ -119,6 +121,14 @@ export default function ModernTaskCard({
                             <Tag className="w-3 h-3 text-primary/70" />
                             <span className="text-[10px] font-medium text-primary/80 capitalize">
                                 {category}
+                            </span>
+                        </div>
+                    )}
+                    {goalName && !completed && (
+                        <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-violet-500/10 border border-violet-500/20">
+                            <Target className="w-3 h-3 text-violet-500" />
+                            <span className="text-[10px] font-medium text-violet-600 dark:text-violet-400 truncate max-w-[120px]">
+                                {goalName}
                             </span>
                         </div>
                     )}

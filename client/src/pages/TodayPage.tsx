@@ -28,7 +28,7 @@ import { useAuth } from "@/lib/auth";
 import { useNotifications } from "@/hooks/useNotifications";
 import { format, type Locale, startOfDay, endOfDay, subDays } from "date-fns";
 import { enUS, de, es, fr, it, pt, nl, pl } from "date-fns/locale";
-import { isHabitScheduledForDate, type Habit as HabitType } from "@/types/habits";
+import { isHabitScheduledForDate, calculateHabitStreak, type Habit as HabitType } from "@/types/habits";
 
 interface Task {
   id: string;
@@ -107,6 +107,8 @@ export default function TodayPage() {
     evening: [],
     night: [],
   });
+
+  const [goalMap, setGoalMap] = useState<Record<string, string>>({});
 
   const fetchTasks = async () => {
     if (!user) return;
@@ -205,6 +207,19 @@ export default function TodayPage() {
     }
   };
 
+  const fetchGoals = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("goals")
+      .select("id, title")
+      .eq("user_id", user.id);
+    if (data) {
+      const map: Record<string, string> = {};
+      data.forEach((g: any) => { map[g.id] = g.title; });
+      setGoalMap(map);
+    }
+  };
+
   const fetchDashboardConfig = async () => {
     if (!user) return;
     try {
@@ -290,6 +305,7 @@ export default function TodayPage() {
     fetchTasks();
     fetchStats();
     fetchDashboardConfig();
+    fetchGoals();
   }, [user, selectedDate, location]);
 
   useEffect(() => {
@@ -326,14 +342,21 @@ export default function TodayPage() {
       const today = format(selectedDate, "yyyy-MM-dd");
 
       // Fetch current habit data
-      const { data: habit } = await supabase
+      const { data: habitData } = await supabase
         .from("habits")
-        .select("completed_dates, streak, best_streak")
+        .select("completed_dates, streak, best_streak, schedule_type, selected_days")
         .eq("id", task.habit_id)
         .single();
 
-      if (habit) {
-        let updatedDates = habit.completed_dates || [];
+      if (habitData) {
+        let updatedDates = habitData.completed_dates || [];
+        const habit: HabitType = {
+          ...habitData,
+          id: task.habit_id,
+          scheduleType: habitData.schedule_type,
+          selectedDays: habitData.selected_days || [],
+          completedDates: updatedDates,
+        } as any;
 
         if (newCompleted) {
           if (!updatedDates.includes(today)) {
@@ -350,8 +373,10 @@ export default function TodayPage() {
           }
         }
 
-        const newStreak = calculateStreak(updatedDates);
-        const newBestStreak = Math.max(habit.best_streak || 0, newStreak);
+        // Update habit object with new dates for streak calculation
+        habit.completedDates = updatedDates;
+        const newStreak = calculateHabitStreak(habit);
+        const newBestStreak = Math.max(habitData.best_streak || 0, newStreak);
 
         await supabase
           .from("habits")
@@ -393,33 +418,6 @@ export default function TodayPage() {
 
   const toggleSection = (section: keyof typeof openSections) => {
     setOpenSections((prev: typeof openSections) => ({ ...prev, [section]: !prev[section] }));
-  };
-
-  const calculateStreak = (completedDates: string[]): number => {
-    if (completedDates.length === 0) return 0;
-
-    const sortedDates = [...completedDates].sort().reverse();
-    const today = format(new Date(), "yyyy-MM-dd");
-    const yesterday = format(subDays(new Date(), 1), "yyyy-MM-dd");
-
-    if (sortedDates[0] !== today && sortedDates[0] !== yesterday) {
-      return 0;
-    }
-
-    let streak = 1;
-    for (let i = 0; i < sortedDates.length - 1; i++) {
-      const current = new Date(sortedDates[i]);
-      const next = new Date(sortedDates[i + 1]);
-      const diff = Math.round((current.getTime() - next.getTime()) / (1000 * 60 * 60 * 24));
-
-      if (diff === 1) {
-        streak++;
-      } else {
-        break;
-      }
-    }
-
-    return streak;
   };
 
   useEffect(() => {
@@ -496,16 +494,24 @@ export default function TodayPage() {
 
       if (!otherCompleted) {
         // Fetch current habit data to get current completed_dates
-        const { data: habit } = await supabase
+        const { data: habitData } = await supabase
           .from("habits")
-          .select("completed_dates, streak, best_streak")
+          .select("completed_dates, streak, best_streak, schedule_type, selected_days")
           .eq("id", task.habit_id)
           .single();
 
-        if (habit) {
-          const updatedDates = (habit.completed_dates || []).filter((d: string) => d !== today);
-          const newStreak = calculateStreak(updatedDates);
-          const newBestStreak = Math.max(habit.best_streak || 0, newStreak);
+        if (habitData) {
+          const updatedDates = (habitData.completed_dates || []).filter((d: string) => d !== today);
+          const habit: HabitType = {
+            ...habitData,
+            id: task.habit_id,
+            scheduleType: habitData.schedule_type,
+            selectedDays: habitData.selected_days || [],
+            completedDates: updatedDates,
+          } as any;
+
+          const newStreak = calculateHabitStreak(habit);
+          const newBestStreak = Math.max(habitData.best_streak || 0, newStreak);
 
           await supabase
             .from("habits")
@@ -584,6 +590,7 @@ export default function TodayPage() {
                   hasReminder={task.hasReminder}
                   duration={task.duration}
                   category={task.category}
+                  goalName={task.goal_id ? goalMap[task.goal_id] : undefined}
                   onToggle={() => handleToggleTask(period, task.id)}
                   onEdit={() => handleEditTask(period, task)}
                   onDelete={() => handleDeleteTask(period, task.id)}

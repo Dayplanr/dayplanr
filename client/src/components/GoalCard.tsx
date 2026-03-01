@@ -13,7 +13,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { MoreVertical, Pencil, Trash2, ChevronUp, ChevronDown } from "lucide-react";
+import { MoreVertical, Pencil, Trash2, ChevronUp, ChevronDown, CheckCircle2, Circle } from "lucide-react";
 import { useState } from "react";
 import type { Milestone } from "@/types/goals";
 
@@ -69,6 +69,8 @@ interface GoalCardProps {
   onToggleMilestone: (milestoneId: string) => void;
   onEdit: () => void;
   onDelete: () => void;
+  linkedTasksTotal?: number;
+  linkedTasksDone?: number;
 }
 
 export default function GoalCard({
@@ -85,6 +87,8 @@ export default function GoalCard({
   onToggleMilestone,
   onEdit,
   onDelete,
+  linkedTasksTotal = 0,
+  linkedTasksDone = 0,
 }: GoalCardProps) {
   const [isOpen, setIsOpen] = useState(false);
   const completedMilestones = milestones.filter(m => m.completed).length;
@@ -166,6 +170,25 @@ export default function GoalCard({
           </div>
 
           <CollapsibleContent className="space-y-4 mt-4">
+            {/* Linked Tasks */}
+            {linkedTasksTotal > 0 && (
+              <div className="flex items-center justify-between py-2 border-t border-border/50">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-violet-500" />
+                  <span className="text-sm font-medium text-muted-foreground">Linked Tasks</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-bold text-foreground">{linkedTasksDone}/{linkedTasksTotal}</span>
+                  <div className="h-1.5 w-16 rounded-full bg-muted overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-violet-500 transition-all"
+                      style={{ width: `${linkedTasksTotal > 0 ? Math.round((linkedTasksDone / linkedTasksTotal) * 100) : 0}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Vision Statement */}
             {visionText && (
               <div className="bg-primary/5 border border-primary/10 rounded-xl p-3">

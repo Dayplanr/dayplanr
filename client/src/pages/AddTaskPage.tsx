@@ -424,7 +424,7 @@ export default function AddTaskPage() {
                     type="button"
                     variant={linkedGoal === goal.id ? "default" : "outline"}
                     size="sm"
-                    onClick={() => setLinkedGoal(goal.id)}
+                    onClick={() => setLinkedGoal(linkedGoal === goal.id ? "none" : goal.id)}
                     className="rounded-full"
                     data-testid={`button-goal-${goal.id}`}
                   >
