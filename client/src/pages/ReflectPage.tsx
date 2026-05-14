@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/lib/i18n";
-import { Check, Sparkles } from "lucide-react";
+import { Check, Sparkles, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/lib/auth";
+import { format } from "date-fns";
 
 const MOODS = [
   { id: "great", emoji: "✨", label: "Great" },
@@ -12,38 +15,94 @@ const MOODS = [
   { id: "tired", emoji: "😴", label: "Tired" },
 ];
 
+interface Reflection {
+  id: string;
+  mood: string | null;
+  progress: string | null;
+  challenge: string | null;
+  next_step: string | null;
+  created_at: string;
+}
+
 export default function ReflectPage() {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const { user } = useAuth();
+  
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
   const [progress, setProgress] = useState("");
   const [challenge, setChallenge] = useState("");
   const [nextStep, setNextStep] = useState("");
+  
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  
+  const [history, setHistory] = useState<Reflection[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(true);
+
+  const fetchHistory = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from("reflections")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setHistory(data || []);
+    } catch (error) {
+      console.error("Error fetching reflections:", error);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchHistory();
+  }, [user]);
 
   const handleSave = async () => {
+    if (!user) {
+      toast({ title: "Please sign in to save reflections", variant: "destructive" });
+      return;
+    }
     if (!selectedMood && !progress && !challenge && !nextStep) return;
     
     setIsSaving(true);
-    // Simulate network request
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    setIsSaving(false);
-    setIsSaved(true);
     
-    toast({
-      title: t("reflectSaved"),
-      description: t("reflectDescription"),
-    });
+    try {
+      const { error } = await supabase.from("reflections").insert({
+        user_id: user.id,
+        mood: selectedMood,
+        progress: progress.trim() || null,
+        challenge: challenge.trim() || null,
+        next_step: nextStep.trim() || null,
+      });
 
-    // Reset saved state after 3 seconds
-    setTimeout(() => {
-      setIsSaved(false);
-      setSelectedMood(null);
-      setProgress("");
-      setChallenge("");
-      setNextStep("");
-    }, 3000);
+      if (error) throw error;
+
+      setIsSaved(true);
+      toast({
+        title: t("reflectSaved"),
+        description: t("reflectDescription"),
+      });
+
+      fetchHistory();
+
+      // Reset saved state after 3 seconds
+      setTimeout(() => {
+        setIsSaved(false);
+        setSelectedMood(null);
+        setProgress("");
+        setChallenge("");
+        setNextStep("");
+      }, 3000);
+    } catch (error: any) {
+      toast({ title: "Error saving reflection", description: error.message, variant: "destructive" });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -167,6 +226,62 @@ export default function ReflectPage() {
               </span>
             )}
           </Button>
+        </div>
+
+        {/* History Section */}
+        <div className="pt-8 pb-12 animate-in fade-in duration-700 delay-700 fill-mode-both">
+          <div className="flex items-center gap-2 mb-6">
+            <Clock className="w-5 h-5 text-muted-foreground" />
+            <h2 className="text-lg font-semibold text-foreground">Past Reflections</h2>
+          </div>
+          
+          {loadingHistory ? (
+            <div className="flex justify-center p-8">
+              <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+            </div>
+          ) : history.length === 0 ? (
+            <p className="text-muted-foreground text-sm italic text-center p-8 bg-card rounded-2xl border border-border/50">
+              No reflections yet. Start checking in to build your history.
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {history.map((item) => {
+                const moodData = MOODS.find(m => m.id === item.mood);
+                return (
+                  <div key={item.id} className="bg-card p-[20px] rounded-2xl shadow-sm border border-border/50 flex flex-col gap-3">
+                    <div className="flex items-center justify-between border-b border-border/30 pb-3">
+                      <span className="text-sm font-medium text-foreground">
+                        {format(new Date(item.created_at), "EEEE, MMMM d, yyyy")}
+                      </span>
+                      {moodData && (
+                        <span className="bg-muted px-3 py-1 rounded-full text-sm flex items-center gap-1.5">
+                          {moodData.emoji} {moodData.label}
+                        </span>
+                      )}
+                    </div>
+                    {item.progress && (
+                      <div>
+                        <p className="text-xs uppercase text-muted-foreground font-semibold mb-1">{t("reflectProgress")}</p>
+                        <p className="text-[14px] text-foreground/90 whitespace-pre-wrap">{item.progress}</p>
+                      </div>
+                    )}
+                    {item.challenge && (
+                      <div className="mt-1">
+                        <p className="text-xs uppercase text-muted-foreground font-semibold mb-1">{t("reflectChallenge")}</p>
+                        <p className="text-[14px] text-foreground/90 whitespace-pre-wrap">{item.challenge}</p>
+                      </div>
+                    )}
+                    {item.next_step && (
+                      <div className="mt-1">
+                        <p className="text-xs uppercase text-muted-foreground font-semibold mb-1">{t("reflectNextStep")}</p>
+                        <p className="text-[14px] text-foreground/90 whitespace-pre-wrap">{item.next_step}</p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
       </div>
