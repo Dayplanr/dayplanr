@@ -16,7 +16,7 @@ import CreateGoalPage from "@/pages/CreateGoalPage";
 import HabitsPage from "@/pages/HabitsPage";
 import AddHabitPage from "@/pages/AddHabitPage";
 import AddTaskPage from "@/pages/AddTaskPage";
-import FocusPage from "@/pages/FocusPage";
+import ReflectPage from "@/pages/ReflectPage";
 import SettingsPage from "@/pages/SettingsPage";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { AuthProvider, useAuth } from "./lib/auth";
@@ -53,7 +53,7 @@ function AppRouter() {
         <ProtectedRoute component={AddHabitPage} />
       </Route>
       <Route path="/app/focus">
-        <ProtectedRoute component={FocusPage} />
+        <ProtectedRoute component={ReflectPage} />
       </Route>
       <Route path="/app/settings">
         <ProtectedRoute component={SettingsPage} />

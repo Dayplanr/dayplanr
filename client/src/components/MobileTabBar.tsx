@@ -1,4 +1,4 @@
-import { Calendar, Target, TrendingUp, Timer, Settings } from "lucide-react";
+import { Calendar, Target, TrendingUp, Leaf, Settings } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useTranslation } from "@/lib/i18n";
 
@@ -10,7 +10,7 @@ export default function MobileTabBar() {
     { icon: Calendar, label: t("today"), path: "/app" },
     { icon: Target, label: t("goals"), path: "/app/goals" },
     { icon: TrendingUp, label: t("habits"), path: "/app/habits" },
-    { icon: Timer, label: t("focus"), path: "/app/focus" },
+    { icon: Leaf, label: t("reflect"), path: "/app/focus" },
     { icon: Settings, label: t("settings"), path: "/app/settings" },
   ];
 

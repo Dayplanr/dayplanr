@@ -1,4 +1,4 @@
-import { Calendar, Target, TrendingUp, Timer, Settings } from "lucide-react";
+import { Calendar, Target, TrendingUp, Leaf, Settings } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -19,7 +19,7 @@ export function AppSidebar() {
     { title: t("today"), url: "/app", icon: Calendar },
     { title: t("goals"), url: "/app/goals", icon: Target },
     { title: t("habits"), url: "/app/habits", icon: TrendingUp },
-    { title: t("focus"), url: "/app/focus", icon: Timer },
+    { title: t("reflect"), url: "/app/focus", icon: Leaf },
     { title: t("settings"), url: "/app/settings", icon: Settings },
   ];
 

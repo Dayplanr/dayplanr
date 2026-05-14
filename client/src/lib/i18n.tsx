@@ -145,7 +145,18 @@ export type TranslationKey =
   | "customizeDashboard"
   | "customizeDashboardDescription"
   | "moduleVisible"
-  | "moduleHidden";
+  | "moduleHidden"
+  | "reflect"
+  | "reflectProgress"
+  | "reflectChallenge"
+  | "reflectNextStep"
+  | "reflectMood"
+  | "reflectSave"
+  | "reflectSaved"
+  | "reflectProgressPlaceholder"
+  | "reflectChallengePlaceholder"
+  | "reflectNextStepPlaceholder"
+  | "reflectDescription";
 
 type Translations = Record<TranslationKey, string>;
 
@@ -289,6 +300,17 @@ const translations: Record<Language, Translations> = {
     customizeDashboardDescription: "Toggle and reorder your dashboard modules to fit your flow.",
     moduleVisible: "Visible",
     moduleHidden: "Hidden",
+    reflect: "Reflect",
+    reflectProgress: "Progress",
+    reflectChallenge: "Challenge",
+    reflectNextStep: "Next Step",
+    reflectMood: "How are you feeling?",
+    reflectSave: "Save Reflection",
+    reflectSaved: "Reflection saved",
+    reflectProgressPlaceholder: "What went well today?",
+    reflectChallengePlaceholder: "What was difficult?",
+    reflectNextStepPlaceholder: "What's one thing to focus on tomorrow?",
+    reflectDescription: "Take a moment to check in with yourself.",
   },
   de: {
     today: "Heute",
@@ -421,6 +443,17 @@ const translations: Record<Language, Translations> = {
     customizeDashboardDescription: "Schalte deine Dashboard-Module um und ordne sie neu an.",
     moduleVisible: "Sichtbar",
     moduleHidden: "Verborgen",
+    reflect: "Reflektieren",
+    reflectProgress: "Fortschritt",
+    reflectChallenge: "Herausforderung",
+    reflectNextStep: "Nächster Schritt",
+    reflectMood: "Wie fühlst du dich?",
+    reflectSave: "Reflexion speichern",
+    reflectSaved: "Reflexion gespeichert",
+    reflectProgressPlaceholder: "Was lief heute gut?",
+    reflectChallengePlaceholder: "Was war schwierig?",
+    reflectNextStepPlaceholder: "Worauf möchtest du dich morgen konzentrieren?",
+    reflectDescription: "Nimm dir einen Moment Zeit für dich.",
   },
   es: {
     today: "Hoy",
@@ -553,6 +586,17 @@ const translations: Record<Language, Translations> = {
     customizeDashboardDescription: "Activa y reordena los módulos de tu panel para que se adapten a tu ritmo.",
     moduleVisible: "Visible",
     moduleHidden: "Oculto",
+    reflect: "Reflexionar",
+    reflectProgress: "Progreso",
+    reflectChallenge: "Desafío",
+    reflectNextStep: "Siguiente Paso",
+    reflectMood: "¿Cómo te sientes?",
+    reflectSave: "Guardar Reflexión",
+    reflectSaved: "Reflexión guardada",
+    reflectProgressPlaceholder: "¿Qué salió bien hoy?",
+    reflectChallengePlaceholder: "¿Qué fue difícil?",
+    reflectNextStepPlaceholder: "¿En qué enfocarte mañana?",
+    reflectDescription: "Tómate un momento para conectar contigo mismo.",
   },
   fr: {
     today: "Aujourd'hui",
@@ -685,6 +729,17 @@ const translations: Record<Language, Translations> = {
     customizeDashboardDescription: "Activez et réorganisez les modules de votre tableau de bord selon vos besoins.",
     moduleVisible: "Visible",
     moduleHidden: "Masqué",
+    reflect: "Réfléchir",
+    reflectProgress: "Progrès",
+    reflectChallenge: "Défi",
+    reflectNextStep: "Prochaine Étape",
+    reflectMood: "Comment vous sentez-vous?",
+    reflectSave: "Enregistrer",
+    reflectSaved: "Réflexion enregistrée",
+    reflectProgressPlaceholder: "Qu'est-ce qui s'est bien passé aujourd'hui?",
+    reflectChallengePlaceholder: "Qu'est-ce qui a été difficile?",
+    reflectNextStepPlaceholder: "Sur quoi vous concentrer demain?",
+    reflectDescription: "Prenez un moment pour faire le point.",
   },
   it: {
     today: "Oggi",
@@ -817,6 +872,17 @@ const translations: Record<Language, Translations> = {
     customizeDashboardDescription: "Attiva e riordina i moduli della tua dashboard in base al tuo flusso.",
     moduleVisible: "Visibile",
     moduleHidden: "Nascosto",
+    reflect: "Rifletti",
+    reflectProgress: "Progresso",
+    reflectChallenge: "Sfida",
+    reflectNextStep: "Prossimo Passo",
+    reflectMood: "Come ti senti?",
+    reflectSave: "Salva Riflessione",
+    reflectSaved: "Riflessione salvata",
+    reflectProgressPlaceholder: "Cosa è andato bene oggi?",
+    reflectChallengePlaceholder: "Cosa è stato difficile?",
+    reflectNextStepPlaceholder: "Su cosa concentrarsi domani?",
+    reflectDescription: "Prenditi un momento per fare il punto.",
   },
   pt: {
     today: "Hoje",
@@ -949,6 +1015,17 @@ const translations: Record<Language, Translations> = {
     customizeDashboardDescription: "Ative e reordene os módulos do seu painel para se adequar ao seu fluxo.",
     moduleVisible: "Visível",
     moduleHidden: "Oculto",
+    reflect: "Refletir",
+    reflectProgress: "Progresso",
+    reflectChallenge: "Desafio",
+    reflectNextStep: "Próximo Passo",
+    reflectMood: "Como você está se sentindo?",
+    reflectSave: "Salvar Reflexão",
+    reflectSaved: "Reflexão salva",
+    reflectProgressPlaceholder: "O que deu certo hoje?",
+    reflectChallengePlaceholder: "O que foi difícil?",
+    reflectNextStepPlaceholder: "No que focar amanhã?",
+    reflectDescription: "Tire um momento para refletir.",
   },
   nl: {
     today: "Vandaag",
@@ -1081,6 +1158,17 @@ const translations: Record<Language, Translations> = {
     customizeDashboardDescription: "Schakel dashboardmodules in en wijzig de volgorde naar wens.",
     moduleVisible: "Zichtbaar",
     moduleHidden: "Verborgen",
+    reflect: "Reflecteren",
+    reflectProgress: "Voortgang",
+    reflectChallenge: "Uitdaging",
+    reflectNextStep: "Volgende Stap",
+    reflectMood: "Hoe voel je je?",
+    reflectSave: "Reflectie Opslaan",
+    reflectSaved: "Reflectie opgeslagen",
+    reflectProgressPlaceholder: "Wat ging er goed vandaag?",
+    reflectChallengePlaceholder: "Wat was moeilijk?",
+    reflectNextStepPlaceholder: "Waar wil je je morgen op focussen?",
+    reflectDescription: "Neem een moment voor jezelf.",
   },
   pl: {
     today: "Dzisiaj",
@@ -1213,6 +1301,17 @@ const translations: Record<Language, Translations> = {
     customizeDashboardDescription: "Przełączaj i zmieniaj kolejność modułów pulpitu, aby dopasować je do swojego rytmu.",
     moduleVisible: "Widoczny",
     moduleHidden: "Ukryty",
+    reflect: "Refleksja",
+    reflectProgress: "Postęp",
+    reflectChallenge: "Wyzwanie",
+    reflectNextStep: "Kolejny Krok",
+    reflectMood: "Jak się czujesz?",
+    reflectSave: "Zapisz Refleksję",
+    reflectSaved: "Refleksja zapisana",
+    reflectProgressPlaceholder: "Co poszło dziś dobrze?",
+    reflectChallengePlaceholder: "Co było trudne?",
+    reflectNextStepPlaceholder: "Na czym skupić się jutro?",
+    reflectDescription: "Poświęć chwilę na refleksję.",
   },
 };
 
