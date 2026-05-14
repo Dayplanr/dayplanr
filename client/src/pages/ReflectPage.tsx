@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/lib/i18n";
-import { Check, Sparkles, Clock } from "lucide-react";
+import { Check, Sparkles, TrendingUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
-import { format } from "date-fns";
+import ReflectInsights from "@/components/ReflectInsights";
 
 const MOODS = [
   { id: "great", emoji: "✨", label: "Great" },
@@ -38,7 +38,7 @@ export default function ReflectPage() {
   const [isSaved, setIsSaved] = useState(false);
   
   const [history, setHistory] = useState<Reflection[]>([]);
-  const [loadingHistory, setLoadingHistory] = useState(true);
+  const [showInsights, setShowInsights] = useState(false);
 
   const fetchHistory = async () => {
     if (!user) return;
@@ -53,8 +53,6 @@ export default function ReflectPage() {
       setHistory(data || []);
     } catch (error) {
       console.error("Error fetching reflections:", error);
-    } finally {
-      setLoadingHistory(false);
     }
   };
 
@@ -110,13 +108,23 @@ export default function ReflectPage() {
       <div className="max-w-3xl mx-auto p-[24px] space-y-8 animate-in fade-in duration-700 ease-out">
         
         {/* Header */}
-        <div className="pt-4 pb-2">
-          <h1 className="text-2xl font-bold text-foreground">
-            {t("reflect")}
-          </h1>
-          <p className="text-[15px] text-muted-foreground mt-2">
-            {t("reflectDescription")}
-          </p>
+        <div className="pt-4 pb-2 flex justify-between items-start">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">
+              {t("reflect")}
+            </h1>
+            <p className="text-[15px] text-muted-foreground mt-2">
+              {t("reflectDescription")}
+            </p>
+          </div>
+          <Button
+            onClick={() => setShowInsights(true)}
+            variant="outline"
+            size="icon"
+            className="rounded-full h-11 w-11 border-border/50 bg-background/50 hover:bg-accent backdrop-blur-sm shadow-sm"
+          >
+            <TrendingUp className="w-5 h-5" />
+          </Button>
         </div>
 
         <div className="flex flex-col gap-[16px]">
@@ -228,63 +236,13 @@ export default function ReflectPage() {
           </Button>
         </div>
 
-        {/* History Section */}
-        <div className="pt-8 pb-12 animate-in fade-in duration-700 delay-700 fill-mode-both">
-          <div className="flex items-center gap-2 mb-6">
-            <Clock className="w-5 h-5 text-muted-foreground" />
-            <h2 className="text-lg font-semibold text-foreground">Past Reflections</h2>
-          </div>
-          
-          {loadingHistory ? (
-            <div className="flex justify-center p-8">
-              <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-            </div>
-          ) : history.length === 0 ? (
-            <p className="text-muted-foreground text-sm italic text-center p-8 bg-card rounded-2xl border border-border/50">
-              No reflections yet. Start checking in to build your history.
-            </p>
-          ) : (
-            <div className="space-y-4">
-              {history.map((item) => {
-                const moodData = MOODS.find(m => m.id === item.mood);
-                return (
-                  <div key={item.id} className="bg-card p-[20px] rounded-2xl shadow-sm border border-border/50 flex flex-col gap-3">
-                    <div className="flex items-center justify-between border-b border-border/30 pb-3">
-                      <span className="text-sm font-medium text-foreground">
-                        {format(new Date(item.created_at), "EEEE, MMMM d, yyyy")}
-                      </span>
-                      {moodData && (
-                        <span className="bg-muted px-3 py-1 rounded-full text-sm flex items-center gap-1.5">
-                          {moodData.emoji} {moodData.label}
-                        </span>
-                      )}
-                    </div>
-                    {item.progress && (
-                      <div>
-                        <p className="text-xs uppercase text-muted-foreground font-semibold mb-1">{t("reflectProgress")}</p>
-                        <p className="text-[14px] text-foreground/90 whitespace-pre-wrap">{item.progress}</p>
-                      </div>
-                    )}
-                    {item.challenge && (
-                      <div className="mt-1">
-                        <p className="text-xs uppercase text-muted-foreground font-semibold mb-1">{t("reflectChallenge")}</p>
-                        <p className="text-[14px] text-foreground/90 whitespace-pre-wrap">{item.challenge}</p>
-                      </div>
-                    )}
-                    {item.next_step && (
-                      <div className="mt-1">
-                        <p className="text-xs uppercase text-muted-foreground font-semibold mb-1">{t("reflectNextStep")}</p>
-                        <p className="text-[14px] text-foreground/90 whitespace-pre-wrap">{item.next_step}</p>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
       </div>
+
+      <ReflectInsights 
+        open={showInsights} 
+        onOpenChange={setShowInsights} 
+        history={history} 
+      />
     </div>
   );
 }
