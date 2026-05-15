@@ -217,7 +217,7 @@ export default function AuthPage() {
                   )}
 
                   {!isSignUp && !isResetPassword && (
-                    <div className="text-right">
+                    <div className="text-center">
                       <button
                         type="button"
                         onClick={() => setIsResetPassword(true)}
