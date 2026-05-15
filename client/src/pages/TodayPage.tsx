@@ -547,22 +547,16 @@ export default function TodayPage() {
     navigate("/app/tasks/new");
   };
 
-  const renderTaskSection = (title: string, period: keyof TaskGroups, periodTasks: Task[]) => (
-    <div key={period} className="mb-6">
-      <div className="flex items-center justify-between w-full py-2 px-1">
-        <div className="flex items-center gap-2">
-          <h2 className="text-sm font-semibold text-muted-foreground/70 uppercase tracking-wider">{title}</h2>
-          {periodTasks.length > 0 && (
-            <span className="text-xs bg-muted px-2 py-0.5 rounded-full text-muted-foreground font-medium">
-              {periodTasks.length}
-            </span>
-          )}
-        </div>
-      </div>
-      <div className="space-y-3 pt-2">
-        <AnimatePresence mode="popLayout">
-          {periodTasks.length > 0 ? (
-            periodTasks.map((task) => (
+  const allTasksEmpty = Object.values(tasks).every(group => group.length === 0);
+
+  const renderTaskSection = (period: keyof TaskGroups, periodTasks: Task[]) => {
+    if (periodTasks.length === 0) return null;
+    
+    return (
+      <div key={period} className="mb-2">
+        <div className="space-y-3">
+          <AnimatePresence mode="popLayout">
+            {periodTasks.map((task) => (
               <ModernTaskCard
                 key={task.id}
                 id={task.id}
@@ -580,20 +574,12 @@ export default function TodayPage() {
                 onDelete={() => handleDeleteTask(period, task.id)}
                 t={t}
               />
-            ))
-          ) : (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="py-8 text-center"
-            >
-              <p className="text-sm text-muted-foreground italic">No tasks for this period</p>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            ))}
+          </AnimatePresence>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="h-full overflow-y-auto pb-24 md:pb-8 bg-background/50">
@@ -734,10 +720,24 @@ export default function TodayPage() {
           )}
 
           <div className="space-y-2">
-            {renderTaskSection(t("morning"), "morning", tasks.morning)}
-            {renderTaskSection(t("afternoon"), "afternoon", tasks.afternoon)}
-            {renderTaskSection(t("evening"), "evening", tasks.evening)}
-            {renderTaskSection(t("night"), "night", tasks.night)}
+            {renderTaskSection("morning", tasks.morning)}
+            {renderTaskSection("afternoon", tasks.afternoon)}
+            {renderTaskSection("evening", tasks.evening)}
+            {renderTaskSection("night", tasks.night)}
+            
+            {allTasksEmpty && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="py-12 text-center"
+              >
+                <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
+                  <ListTodo className="w-8 h-8 text-muted-foreground/50" />
+                </div>
+                <h3 className="text-lg font-medium text-foreground mb-1">{t('noTasks')}</h3>
+                <p className="text-sm text-muted-foreground">{t('noTasksDesc')}</p>
+              </motion.div>
+            )}
           </div>
         </motion.div>
 
