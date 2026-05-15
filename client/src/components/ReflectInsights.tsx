@@ -1,18 +1,21 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { TrendingUp, Clock, PieChart as PieChartIcon, BarChart2 } from "lucide-react";
+import { TrendingUp, PieChart as PieChartIcon, BarChart2, Sparkles, Dumbbell, Smartphone, Moon, Target, CheckCircle2, Clock, Brain, Activity, Apple } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from "recharts";
-import { format, startOfWeek, endOfWeek, eachWeekOfInterval, startOfYear, endOfYear, getMonth, getYear } from "date-fns";
+import { format, startOfWeek, endOfWeek, eachWeekOfInterval, startOfYear, endOfYear } from "date-fns";
 import { useTranslation } from "@/lib/i18n";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/lib/auth";
+import { generateInsights, Insight, Reflection, Task, FocusSession } from "@/lib/insightGenerator";
 
 const MOODS = [
-  { id: "great", emoji: "✨", label: "Great", color: "#10b981" }, // Emerald
-  { id: "okay", emoji: "😐", label: "Okay", color: "#6366f1" }, // Indigo
-  { id: "stressed", emoji: "😰", label: "Stressed", color: "#f59e0b" }, // Amber
-  { id: "tired", emoji: "😴", label: "Tired", color: "#6b7280" }, // Gray
-  { id: "bad", emoji: "👎", label: "Bad", color: "#ef4444" }, // Red
+  { id: "great", emoji: "✨", label: "Great", color: "#10b981" },
+  { id: "okay", emoji: "😐", label: "Okay", color: "#6366f1" },
+  { id: "stressed", emoji: "😰", label: "Stressed", color: "#f59e0b" },
+  { id: "tired", emoji: "😴", label: "Tired", color: "#6b7280" },
+  { id: "bad", emoji: "👎", label: "Bad", color: "#ef4444" },
 ];
 
 const months = [
@@ -41,15 +44,6 @@ const generateWeeks = (year: number) => {
   });
 };
 
-interface Reflection {
-  id: string;
-  mood: string | null;
-  progress: string | null;
-  challenge: string | null;
-  next_step: string | null;
-  created_at: string;
-}
-
 interface ReflectInsightsProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -58,14 +52,44 @@ interface ReflectInsightsProps {
 
 export default function ReflectInsights({ open, onOpenChange, history }: ReflectInsightsProps) {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState("days");
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState("timeline");
   
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [selectedWeek, setSelectedWeek] = useState(1);
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "MMMM"));
 
-  // Calculate weekly data (Mood counts for the selected week)
+  const [patternInsights, setPatternInsights] = useState<Insight[]>([]);
+  const [loadingInsights, setLoadingInsights] = useState(false);
+
+  useEffect(() => {
+    if (open && user && history.length > 0) {
+      const fetchRelatedData = async () => {
+        setLoadingInsights(true);
+        try {
+          const [tasksRes, sessionsRes] = await Promise.all([
+            supabase.from("tasks").select("id, completed, scheduled_date").eq("user_id", user.id),
+            supabase.from("focus_sessions").select("id, duration, completed_at").eq("user_id", user.id)
+          ]);
+          
+          const tasks = (tasksRes.data || []) as Task[];
+          const sessions = (sessionsRes.data || []) as FocusSession[];
+          
+          const generated = generateInsights(history, tasks, sessions);
+          setPatternInsights(generated);
+        } catch (error) {
+          console.error("Error generating insights:", error);
+        } finally {
+          setLoadingInsights(false);
+        }
+      };
+      fetchRelatedData();
+    } else if (open && history.length === 0) {
+      setPatternInsights(generateInsights([], [], []));
+    }
+  }, [open, user, history]);
+
   const weeklyData = useMemo(() => {
     const weeks = generateWeeks(selectedYear);
     const targetWeek = weeks.find(w => w.value === selectedWeek);
@@ -83,7 +107,6 @@ export default function ReflectInsights({ open, onOpenChange, history }: Reflect
     }));
   }, [history, selectedWeek, selectedYear]);
 
-  // Calculate monthly data (Mood counts for the selected month)
   const monthlyData = useMemo(() => {
     const monthIndex = months.indexOf(selectedMonth);
     const monthReflections = history.filter(item => {
@@ -95,8 +118,36 @@ export default function ReflectInsights({ open, onOpenChange, history }: Reflect
       name: mood.emoji + " " + mood.label,
       value: monthReflections.filter(r => r.mood === mood.id).length,
       color: mood.color,
-    })).filter(data => data.value > 0); // Only show moods that occurred
+    })).filter(data => data.value > 0);
   }, [history, selectedMonth, selectedYear]);
+
+  const getInsightIcon = (type: string) => {
+    switch (type) {
+      case "peak": return <Dumbbell className="w-3.5 h-3.5 text-emerald-600" />;
+      case "distraction": return <Smartphone className="w-3.5 h-3.5 text-amber-600" />;
+      case "energy": return <Moon className="w-3.5 h-3.5 text-indigo-600" />;
+      case "consistency": return <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />;
+      case "time": return <Clock className="w-3.5 h-3.5 text-orange-600" />;
+      case "focus": return <Brain className="w-3.5 h-3.5 text-purple-600" />;
+      case "overwhelm": return <Activity className="w-3.5 h-3.5 text-red-600" />;
+      case "health": return <Apple className="w-3.5 h-3.5 text-green-600" />;
+      default: return <Target className="w-3.5 h-3.5 text-violet-600" />;
+    }
+  };
+
+  const getInsightColorClass = (type: string) => {
+    switch (type) {
+      case "peak": return "bg-emerald-500/10";
+      case "distraction": return "bg-amber-500/10";
+      case "energy": return "bg-indigo-500/10";
+      case "consistency": return "bg-blue-500/10";
+      case "time": return "bg-orange-500/10";
+      case "focus": return "bg-purple-500/10";
+      case "overwhelm": return "bg-red-500/10";
+      case "health": return "bg-green-500/10";
+      default: return "bg-violet-500/10";
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -104,63 +155,108 @@ export default function ReflectInsights({ open, onOpenChange, history }: Reflect
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-primary" />
-            Reflection Insights
+            Insights
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="w-full grid grid-cols-3">
-              <TabsTrigger value="days">Days</TabsTrigger>
+              <TabsTrigger value="timeline">Timeline</TabsTrigger>
               <TabsTrigger value="weekly">Weekly</TabsTrigger>
               <TabsTrigger value="monthly">Monthly</TabsTrigger>
             </TabsList>
 
-            {/* DAYS TAB */}
-            <TabsContent value="days" className="mt-4">
-              {history.length === 0 ? (
-                <p className="text-muted-foreground text-sm italic text-center p-8 bg-card rounded-2xl border border-border/50">
-                  No reflections yet. Start checking in to build your history.
-                </p>
-              ) : (
-                <div className="space-y-4">
-                  {history.map((item) => {
-                    const moodData = MOODS.find(m => m.id === item.mood);
-                    return (
-                      <div key={item.id} className="bg-card p-4 rounded-xl shadow-sm border border-border/50 flex flex-col gap-3">
-                        <div className="flex items-center justify-between border-b border-border/30 pb-3">
-                          <span className="text-sm font-medium text-foreground">
-                            {format(new Date(item.created_at), "EEEE, MMM d, yyyy")}
-                          </span>
-                          {moodData && (
-                            <span className="bg-muted px-2.5 py-1 rounded-full text-xs flex items-center gap-1.5 font-medium">
-                              {moodData.emoji} {moodData.label}
-                            </span>
-                          )}
-                        </div>
-                        {item.progress && (
-                          <div>
-                            <p className="text-[11px] uppercase text-muted-foreground font-semibold mb-1">{t("reflectProgress")}</p>
-                            <p className="text-[13px] text-foreground/90 whitespace-pre-wrap">{item.progress}</p>
-                          </div>
-                        )}
-                        {item.challenge && (
-                          <div className="mt-1">
-                            <p className="text-[11px] uppercase text-muted-foreground font-semibold mb-1">{t("reflectChallenge")}</p>
-                            <p className="text-[13px] text-foreground/90 whitespace-pre-wrap">{item.challenge}</p>
-                          </div>
-                        )}
-                        {item.next_step && (
-                          <div className="mt-1">
-                            <p className="text-[11px] uppercase text-muted-foreground font-semibold mb-1">{t("reflectNextStep")}</p>
-                            <p className="text-[13px] text-foreground/90 whitespace-pre-wrap">{item.next_step}</p>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+            {/* TIMELINE TAB */}
+            <TabsContent value="timeline" className="mt-6">
+              
+              {/* Pattern Insights Row */}
+              <div className="mb-8">
+                <div className="flex items-center gap-1.5 mb-3 px-1">
+                  <Sparkles className="w-3.5 h-3.5 text-primary" />
+                  <h3 className="text-xs uppercase font-bold text-muted-foreground tracking-wider">Pattern Insights</h3>
                 </div>
-              )}
+                {loadingInsights ? (
+                  <div className="flex justify-center p-4">
+                    <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                  </div>
+                ) : (
+                  <div className="flex overflow-x-auto gap-3 pb-2 snap-x hide-scrollbar">
+                    {patternInsights.map(insight => (
+                      <div key={insight.id} className="shrink-0 snap-start bg-card border border-border/40 rounded-xl p-3.5 shadow-sm min-w-[200px] max-w-[220px]">
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <div className={`p-1 rounded-md ${getInsightColorClass(insight.iconType)}`}>
+                            {getInsightIcon(insight.iconType)}
+                          </div>
+                          <span className="text-[13px] font-semibold text-foreground">{insight.title}</span>
+                        </div>
+                        <p className="text-[13px] text-muted-foreground leading-snug">{insight.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Reflection History Timeline */}
+              <div>
+                <div className="flex items-center gap-1.5 mb-4 px-1">
+                  <h3 className="text-xs uppercase font-bold text-muted-foreground tracking-wider">Reflection History</h3>
+                </div>
+                {history.length === 0 ? (
+                  <p className="text-muted-foreground text-sm italic text-center p-8 bg-card rounded-2xl border border-border/50">
+                    No reflections yet. Start checking in to build your history.
+                  </p>
+                ) : (
+                  <div className="relative pl-4 space-y-6 before:absolute before:inset-y-2 before:left-[21px] before:w-[2px] before:bg-border/50">
+                    {history.map((item) => {
+                      const moodData = MOODS.find(m => m.id === item.mood);
+                      return (
+                        <div key={item.id} className="relative pl-6">
+                          {/* Timeline Dot */}
+                          <div className="absolute left-[-2px] top-[14px] w-2.5 h-2.5 rounded-full bg-background border-2 border-primary z-10" />
+                          
+                          {/* Compact Card */}
+                          <div className="bg-card p-3.5 rounded-xl shadow-sm border border-border/50 flex flex-col gap-2.5 hover:shadow-md transition-shadow">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[13px] font-semibold text-foreground">
+                                {format(new Date(item.created_at), "EEE, MMM d")}
+                              </span>
+                              {moodData && (
+                                <span className="bg-muted px-2 py-0.5 rounded-full text-[11px] flex items-center gap-1 font-medium text-muted-foreground">
+                                  {moodData.emoji} {moodData.label}
+                                </span>
+                              )}
+                            </div>
+                            
+                            {(item.progress || item.challenge || item.next_step) && (
+                              <div className="space-y-2 pt-2 border-t border-border/30">
+                                {item.progress && (
+                                  <div>
+                                    <span className="text-[10px] uppercase text-muted-foreground font-bold mr-1">Progress:</span>
+                                    <span className="text-[13px] text-foreground/90">{item.progress}</span>
+                                  </div>
+                                )}
+                                {item.challenge && (
+                                  <div>
+                                    <span className="text-[10px] uppercase text-muted-foreground font-bold mr-1">Challenge:</span>
+                                    <span className="text-[13px] text-foreground/90">{item.challenge}</span>
+                                  </div>
+                                )}
+                                {item.next_step && (
+                                  <div>
+                                    <span className="text-[10px] uppercase text-muted-foreground font-bold mr-1">Next:</span>
+                                    <span className="text-[13px] text-foreground/90">{item.next_step}</span>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </TabsContent>
 
             {/* WEEKLY TAB */}
@@ -208,7 +304,7 @@ export default function ReflectInsights({ open, onOpenChange, history }: Reflect
                 );
               })()}
 
-              <div className="bg-card border border-border/50 rounded-xl p-4">
+              <div className="bg-card border border-border/50 rounded-xl p-4 shadow-sm">
                 <div className="flex items-center gap-2 mb-4">
                   <BarChart2 className="w-4 h-4 text-muted-foreground" />
                   <h3 className="text-sm font-medium">Mood Summary</h3>
@@ -265,7 +361,7 @@ export default function ReflectInsights({ open, onOpenChange, history }: Reflect
                 </div>
               </div>
 
-              <div className="bg-card border border-border/50 rounded-xl p-4">
+              <div className="bg-card border border-border/50 rounded-xl p-4 shadow-sm">
                 <div className="flex items-center gap-2 mb-4">
                   <PieChartIcon className="w-4 h-4 text-muted-foreground" />
                   <h3 className="text-sm font-medium">Mood Distribution</h3>
