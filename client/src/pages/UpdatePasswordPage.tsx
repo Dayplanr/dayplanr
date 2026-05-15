@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { Lock, ArrowRight, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Lock, ArrowRight, Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 
@@ -15,38 +15,55 @@ export default function UpdatePasswordPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [sessionReady, setSessionReady] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    // Supabase fires PASSWORD_RECOVERY when it detects a recovery token in the URL hash.
-    // We must wait for this event before calling updateUser, otherwise the session is missing.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "PASSWORD_RECOVERY" || (event === "SIGNED_IN" && session)) {
-        setSessionReady(true);
+    const establishSession = async () => {
+      // PKCE flow: URL contains ?code=... query parameter
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get("code");
+
+      // Implicit flow: URL contains #access_token=...&type=recovery hash
+      const hash = window.location.hash;
+      const hashParams = new URLSearchParams(hash.replace("#", ""));
+      const accessToken = hashParams.get("access_token");
+      const refreshToken = hashParams.get("refresh_token");
+      const type = hashParams.get("type");
+
+      try {
+        if (code) {
+          // PKCE — exchange the code for a session
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (error) throw error;
+          setSessionReady(true);
+        } else if (accessToken && type === "recovery") {
+          // Implicit — set the session directly from the tokens in the hash
+          const { error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken || "",
+          });
+          if (error) throw error;
+          setSessionReady(true);
+        } else {
+          // No token in URL — check if there's already an active session
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session) {
+            setSessionReady(true);
+          } else {
+            setError("Invalid or expired reset link. Please request a new one.");
+          }
+        }
+      } catch (err: any) {
+        setError(err.message || "Failed to verify reset link. Please request a new one.");
       }
-    });
-
-    // Also check if there's already an active session (e.g. user navigated back)
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) setSessionReady(true);
-    });
-
-    return () => {
-      subscription.unsubscribe();
     };
+
+    establishSession();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!sessionReady) {
-      toast({
-        title: "Session not ready",
-        description: "Please use the link from your email to reset your password.",
-        variant: "destructive",
-      });
-      return;
-    }
 
     if (!password || password.length < 6) {
       toast({
@@ -61,7 +78,6 @@ export default function UpdatePasswordPage() {
 
     try {
       const { error } = await supabase.auth.updateUser({ password });
-
       if (error) throw error;
 
       toast({
@@ -100,7 +116,18 @@ export default function UpdatePasswordPage() {
 
           <Card className="border-0 shadow-lg">
             <CardContent className="p-6">
-              {!sessionReady ? (
+              {error ? (
+                <div className="flex flex-col items-center py-6 gap-3 text-center">
+                  <AlertCircle className="w-8 h-8 text-destructive" />
+                  <p className="text-sm text-destructive font-medium">{error}</p>
+                  <button
+                    onClick={() => navigate("/auth")}
+                    className="text-sm text-primary hover:underline mt-1"
+                  >
+                    Back to login
+                  </button>
+                </div>
+              ) : !sessionReady ? (
                 <div className="flex flex-col items-center py-6 gap-3 text-muted-foreground">
                   <Loader2 className="w-6 h-6 animate-spin" />
                   <p className="text-sm">Verifying your reset link…</p>
