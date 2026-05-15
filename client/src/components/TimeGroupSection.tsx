@@ -1,6 +1,3 @@
-import { ChevronDown } from "lucide-react";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { useState } from "react";
 import TaskCard from "./TaskCard";
 
 interface Task {
@@ -20,23 +17,16 @@ interface TimeGroupSectionProps {
 }
 
 export default function TimeGroupSection({ title, tasks, onToggleTask }: TimeGroupSectionProps) {
-  const [isOpen, setIsOpen] = useState(true);
-
   return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <CollapsibleTrigger className="flex items-center justify-between w-full p-2 rounded-md hover-elevate active-elevate-2" data-testid={`button-toggle-${title.toLowerCase()}`}>
+    <div className="mb-2">
+      <div className="flex items-center w-full px-2 py-3 rounded-md">
         <h3 className="text-sm font-semibold text-foreground">{title}</h3>
-        <ChevronDown
-          className={`w-4 h-4 text-muted-foreground transition-transform ${
-            isOpen ? "transform rotate-180" : ""
-          }`}
-        />
-      </CollapsibleTrigger>
-      <CollapsibleContent className="mt-2 space-y-2">
+      </div>
+      <div className="space-y-2">
         {tasks.map((task) => (
           <TaskCard key={task.id} {...task} onToggleComplete={onToggleTask} />
         ))}
-      </CollapsibleContent>
-    </Collapsible>
+      </div>
+    </div>
   );
 }
