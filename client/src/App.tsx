@@ -10,6 +10,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import MobileTabBar from "@/components/MobileTabBar";
 import LandingPage from "@/pages/LandingPage";
 import AuthPage from "@/pages/AuthPage";
+import UpdatePasswordPage from "@/pages/UpdatePasswordPage";
 import TodayPage from "@/pages/TodayPage";
 import GoalsPage from "@/pages/GoalsPage";
 import CreateGoalPage from "@/pages/CreateGoalPage";
@@ -106,7 +107,8 @@ function AppContent() {
   }
 
   // If user is logged in but at root/auth, redirect to app
-  if (user && !isAppRoute) {
+  // Allow them to stay on /update-password so they can set a new password
+  if (user && !isAppRoute && location !== "/update-password") {
     return <Redirect to="/app" />;
   }
 
@@ -116,6 +118,7 @@ function AppContent() {
     <Switch>
       <Route path="/" component={LandingPage} />
       <Route path="/auth" component={AuthPage} />
+      <Route path="/update-password" component={UpdatePasswordPage} />
       <Route>
         <Redirect to="/" />
       </Route>
