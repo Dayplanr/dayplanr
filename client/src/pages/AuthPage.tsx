@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { Calendar, ArrowLeft, Mail, Lock, User, ArrowRight, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Mail, Lock, User, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { OnboardingModal } from "@/components/OnboardingModal";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
@@ -15,6 +15,7 @@ export default function AuthPage() {
   const [, navigate] = useLocation();
   const { user, loading: authLoading, signIn, signUp } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isResetPassword, setIsResetPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [formData, setFormData] = useState({
@@ -44,7 +45,19 @@ export default function AuthPage() {
     setLoading(true);
 
     try {
-      if (isSignUp) {
+      if (isResetPassword) {
+        const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
+          redirectTo: `${window.location.origin}/update-password`,
+        });
+        
+        if (error) throw error;
+        
+        toast({
+          title: "Check your email",
+          description: "We've sent you a password reset link.",
+        });
+        setIsResetPassword(false);
+      } else if (isSignUp) {
         const { error } = await signUp({
           email: formData.email,
           password: formData.password,
@@ -86,9 +99,15 @@ export default function AuthPage() {
       <header className="p-4">
         <Button
           variant="ghost"
-          onClick={() => navigate("/")}
+          onClick={() => {
+            if (isResetPassword) {
+              setIsResetPassword(false);
+            } else {
+              navigate("/");
+            }
+          }}
           className="gap-2"
-          data-testid="button-back-landing"
+          data-testid="button-back"
         >
           <ArrowLeft className="w-4 h-4" />
           Back
@@ -107,10 +126,12 @@ export default function AuthPage() {
               <img src="/logo-new.png?v=4" alt="dayplanr logo" className="w-full h-full object-contain" />
             </div>
             <h1 className="text-2xl font-bold text-foreground">
-              {isSignUp ? "Create your account" : "Create an account"}
+              {isResetPassword ? "Reset password" : isSignUp ? "Create your account" : "Welcome back"}
             </h1>
             <p className="text-muted-foreground mt-2">
-              {isSignUp
+              {isResetPassword
+                ? "Enter your email to receive a reset link"
+                : isSignUp
                 ? "Start your productivity journey with dayplanr"
                 : "Sign in to continue to dayplanr"}
             </p>
@@ -120,7 +141,7 @@ export default function AuthPage() {
             <CardContent className="p-6">
               <AnimatePresence mode="wait">
                 <motion.form
-                  key={isSignUp ? "signup" : "signin"}
+                  key={isResetPassword ? "reset" : isSignUp ? "signup" : "signin"}
                   initial={{ opacity: 0, x: isSignUp ? 20 : -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: isSignUp ? -20 : 20 }}
@@ -128,7 +149,7 @@ export default function AuthPage() {
                   onSubmit={handleSubmit}
                   className="space-y-4"
                 >
-                  {isSignUp && (
+                  {!isResetPassword && isSignUp && (
                     <div className="space-y-2">
                       <Label htmlFor="name">Name</Label>
                       <div className="relative">
@@ -141,6 +162,7 @@ export default function AuthPage() {
                           value={formData.name}
                           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                           data-testid="input-name"
+                          required
                         />
                       </div>
                     </div>
@@ -158,43 +180,48 @@ export default function AuthPage() {
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                         data-testid="input-email"
+                        required
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        id="password"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Enter your password"
-                        className="pl-10 pr-10"
-                        value={formData.password}
-                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                        data-testid="input-password"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                        data-testid="button-toggle-password"
-                      >
-                        {showPassword ? (
-                          <EyeOff className="w-4 h-4" />
-                        ) : (
-                          <Eye className="w-4 h-4" />
-                        )}
-                      </button>
+                  {!isResetPassword && (
+                    <div className="space-y-2">
+                      <Label htmlFor="password">Password</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input
+                          id="password"
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Enter your password"
+                          className="pl-10 pr-10"
+                          value={formData.password}
+                          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                          data-testid="input-password"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                          data-testid="button-toggle-password"
+                        >
+                          {showPassword ? (
+                            <EyeOff className="w-4 h-4" />
+                          ) : (
+                            <Eye className="w-4 h-4" />
+                          )}
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
-                  {!isSignUp && (
+                  {!isSignUp && !isResetPassword && (
                     <div className="text-right">
                       <button
                         type="button"
-                        className="text-sm text-primary hover:underline"
+                        onClick={() => setIsResetPassword(true)}
+                        className="text-sm text-primary hover:underline font-medium"
                         data-testid="link-forgot-password"
                       >
                         Forgot password?
@@ -203,23 +230,25 @@ export default function AuthPage() {
                   )}
 
                   <Button type="submit" className="w-full" size="lg" disabled={loading} data-testid="button-submit-auth">
-                    {loading ? "Please wait..." : (isSignUp ? "Create Account" : "Sign In")}
+                    {loading ? "Please wait..." : isResetPassword ? "Send Reset Link" : isSignUp ? "Create Account" : "Sign In"}
                     {!loading && <ArrowRight className="w-4 h-4 ml-2" />}
                   </Button>
                 </motion.form>
               </AnimatePresence>
 
-              <p className="text-center text-sm text-muted-foreground mt-6">
-                {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
-                <button
-                  type="button"
-                  onClick={() => setIsSignUp(!isSignUp)}
-                  className="text-primary hover:underline font-medium"
-                  data-testid="button-toggle-auth-mode"
-                >
-                  {isSignUp ? "Sign in" : "Sign up"}
-                </button>
-              </p>
+              {!isResetPassword && (
+                <p className="text-center text-sm text-muted-foreground mt-6">
+                  {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
+                  <button
+                    type="button"
+                    onClick={() => setIsSignUp(!isSignUp)}
+                    className="text-primary hover:underline font-medium"
+                    data-testid="button-toggle-auth-mode"
+                  >
+                    {isSignUp ? "Sign in" : "Sign up"}
+                  </button>
+                </p>
+              )}
             </CardContent>
           </Card>
         </motion.div>

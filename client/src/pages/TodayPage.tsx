@@ -548,68 +548,51 @@ export default function TodayPage() {
   };
 
   const renderTaskSection = (title: string, period: keyof TaskGroups, periodTasks: Task[]) => (
-    <Collapsible
-      key={period}
-      open={openSections[period]}
-      onOpenChange={() => toggleSection(period)}
-      className="mb-2"
-    >
-      <CollapsibleTrigger asChild>
-        <button className="flex items-center justify-between w-full py-2 px-1 group">
-          <div className="flex items-center gap-2">
-            <h2 className="text-sm font-semibold text-muted-foreground/70 uppercase tracking-wider">{title}</h2>
-            {periodTasks.length > 0 && (
-              <span className="text-xs bg-muted px-2 py-0.5 rounded-full text-muted-foreground font-medium">
-                {periodTasks.length}
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="h-px w-12 bg-border hidden group-hover:block" />
-            {openSections[period] ? (
-              <ChevronUp className="w-4 h-4 text-muted-foreground/50" />
-            ) : (
-              <ChevronDown className="w-4 h-4 text-muted-foreground/50" />
-            )}
-          </div>
-        </button>
-      </CollapsibleTrigger>
-      <CollapsibleContent>
-        <div className="space-y-3 pt-2">
-          <AnimatePresence mode="popLayout">
-            {periodTasks.length > 0 ? (
-              periodTasks.map((task) => (
-                <ModernTaskCard
-                  key={task.id}
-                  id={task.id}
-                  title={task.title}
-                  description={task.description}
-                  time={task.time}
-                  priority={task.priority}
-                  completed={task.completed}
-                  hasReminder={task.hasReminder}
-                  duration={task.duration}
-                  category={task.category}
-                  goalName={task.goal_id ? goalMap[task.goal_id] : undefined}
-                  onToggle={() => handleToggleTask(period, task.id)}
-                  onEdit={() => handleEditTask(period, task)}
-                  onDelete={() => handleDeleteTask(period, task.id)}
-                  t={t}
-                />
-              ))
-            ) : (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="py-8 text-center"
-              >
-                <p className="text-sm text-muted-foreground italic">No tasks for this period</p>
-              </motion.div>
-            )}
-          </AnimatePresence>
+    <div key={period} className="mb-6">
+      <div className="flex items-center justify-between w-full py-2 px-1">
+        <div className="flex items-center gap-2">
+          <h2 className="text-sm font-semibold text-muted-foreground/70 uppercase tracking-wider">{title}</h2>
+          {periodTasks.length > 0 && (
+            <span className="text-xs bg-muted px-2 py-0.5 rounded-full text-muted-foreground font-medium">
+              {periodTasks.length}
+            </span>
+          )}
         </div>
-      </CollapsibleContent>
-    </Collapsible>
+      </div>
+      <div className="space-y-3 pt-2">
+        <AnimatePresence mode="popLayout">
+          {periodTasks.length > 0 ? (
+            periodTasks.map((task) => (
+              <ModernTaskCard
+                key={task.id}
+                id={task.id}
+                title={task.title}
+                description={task.description}
+                time={task.time}
+                priority={task.priority}
+                completed={task.completed}
+                hasReminder={task.hasReminder}
+                duration={task.duration}
+                category={task.category}
+                goalName={task.goal_id ? goalMap[task.goal_id] : undefined}
+                onToggle={() => handleToggleTask(period, task.id)}
+                onEdit={() => handleEditTask(period, task)}
+                onDelete={() => handleDeleteTask(period, task.id)}
+                t={t}
+              />
+            ))
+          ) : (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="py-8 text-center"
+            >
+              <p className="text-sm text-muted-foreground italic">No tasks for this period</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
   );
 
   return (
