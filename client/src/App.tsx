@@ -18,6 +18,7 @@ import HabitsPage from "@/pages/HabitsPage";
 import AddHabitPage from "@/pages/AddHabitPage";
 import AddTaskPage from "@/pages/AddTaskPage";
 import ReflectPage from "@/pages/ReflectPage";
+import InsightsPage from "@/pages/InsightsPage";
 import SettingsPage from "@/pages/SettingsPage";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { AuthProvider, useAuth } from "./lib/auth";
@@ -58,6 +59,9 @@ function AppRouter() {
       </Route>
       <Route path="/app/settings">
         <ProtectedRoute component={SettingsPage} />
+      </Route>
+      <Route path="/app/insights">
+        <ProtectedRoute component={InsightsPage} />
       </Route>
     </Switch>
   );

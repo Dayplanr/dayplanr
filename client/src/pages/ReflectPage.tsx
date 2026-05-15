@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/lib/i18n";
 import { Check, Sparkles, TrendingUp } from "lucide-react";
@@ -6,6 +6,8 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import ReflectInsights from "@/components/ReflectInsights";
+import InsightCarousel from "@/components/InsightCarousel";
+import { generateReflectInsights } from "@/lib/insightEngine";
 
 const MOODS = [
   { id: "great", emoji: "✨", label: "Great" },
@@ -39,6 +41,13 @@ export default function ReflectPage() {
   
   const [history, setHistory] = useState<Reflection[]>([]);
   const [showInsights, setShowInsights] = useState(false);
+
+  const reflectInsights = useMemo(() =>
+    generateReflectInsights(
+      history.map(r => ({ id: r.id, mood: r.mood, progress: r.progress, challenge: r.challenge, next_step: r.next_step, created_at: r.created_at })),
+      [] // tasks not loaded on this page; insights degrade gracefully
+    ), [history]
+  );
 
   const fetchHistory = async () => {
     if (!user) return;
@@ -205,6 +214,13 @@ export default function ReflectPage() {
             />
           </div>
         </div>
+
+        {/* Reflect Insights Carousel */}
+        {reflectInsights.length > 0 && (
+          <div className="pb-2">
+            <InsightCarousel insights={reflectInsights} label="Emotional Patterns" compact />
+          </div>
+        )}
 
         {/* Sticky Save Button */}
         <div className="sticky bottom-24 md:bottom-8 pt-4 pb-4 bg-gradient-to-t from-background/50 via-background/50 to-transparent z-10 flex justify-end">

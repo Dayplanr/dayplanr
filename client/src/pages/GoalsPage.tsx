@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLocation } from "wouter";
 import { Plus, TrendingUp, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,8 @@ import {
 import GoalCard from "@/components/GoalCard";
 import EditGoalSheet from "@/components/EditGoalSheet";
 import GoalInsights from "@/components/GoalInsights";
+import InsightCarousel from "@/components/InsightCarousel";
+import { generateGoalInsights } from "@/lib/insightEngine";
 import { useTranslation } from "@/lib/i18n";
 import { format, differenceInDays, startOfDay } from "date-fns";
 import type { Goal } from "@/types/goals";
@@ -31,6 +33,15 @@ export default function GoalsPage() {
 
   const [goals, setGoals] = useState<Goal[]>([]);
   const [taskStatsMap, setTaskStatsMap] = useState<Record<string, { total: number; done: number }>>({});
+
+  const goalInsights = useMemo(() => generateGoalInsights(
+    goals.map(g => ({
+      id: g.id,
+      title: g.title,
+      progress: g.progress,
+      lastActivityAt: g.lastActivityAt,
+    }))
+  ), [goals]);
 
   const fetchGoals = async () => {
     if (!user) return;
@@ -283,6 +294,10 @@ export default function GoalsPage() {
         </div>
 
         <div className="space-y-4">
+          {goalInsights.length > 0 && (
+            <InsightCarousel insights={goalInsights} label="Goal Insights" compact />
+          )}
+
           {goals.map((goal) => (
             <GoalCard
               key={goal.id}

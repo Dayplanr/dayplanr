@@ -1,4 +1,4 @@
-import { Calendar, Target, TrendingUp, Leaf, Settings } from "lucide-react";
+import { Calendar, Target, TrendingUp, Leaf, Settings, Brain } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -16,11 +16,12 @@ export function AppSidebar() {
   const { t } = useTranslation();
 
   const items = [
-    { title: t("today"), url: "/app", icon: Calendar },
-    { title: t("goals"), url: "/app/goals", icon: Target },
-    { title: t("habits"), url: "/app/habits", icon: TrendingUp },
-    { title: t("reflect"), url: "/app/focus", icon: Leaf },
-    { title: t("settings"), url: "/app/settings", icon: Settings },
+    { title: t("today"),   url: "/app",           icon: Calendar },
+    { title: t("goals"),   url: "/app/goals",     icon: Target },
+    { title: t("habits"),  url: "/app/habits",    icon: TrendingUp },
+    { title: t("reflect"), url: "/app/focus",     icon: Leaf },
+    { title: "Insights",   url: "/app/insights",  icon: Brain },
+    { title: t("settings"),url: "/app/settings",  icon: Settings },
   ];
 
   return (

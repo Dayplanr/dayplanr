@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLocation } from "wouter";
 import { Plus, TrendingUp, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,8 @@ import {
 import HabitCard from "@/components/HabitCard";
 import EditHabitDialog from "@/components/EditHabitDialog";
 import HabitInsights from "@/components/HabitInsights";
+import InsightCarousel from "@/components/InsightCarousel";
+import { generateHabitInsights } from "@/lib/insightEngine";
 import { useTranslation } from "@/lib/i18n";
 import { format, subDays } from "date-fns";
 import { calculateHabitStreak, type Habit } from "@/types/habits";
@@ -39,6 +41,19 @@ export default function HabitsPage() {
   const [loading, setLoading] = useState(true);
 
   const [habits, setHabits] = useState<Habit[]>([]);
+
+  const habitInsights = useMemo(() => generateHabitInsights(
+    habits.map(h => ({
+      id: h.id,
+      title: h.title,
+      category: h.category,
+      streak: h.streak || 0,
+      bestStreak: h.bestStreak || 0,
+      weeklyConsistency: h.weeklyConsistency || 0,
+      completedDates: h.completedDates || [],
+      selectedDays: h.selectedDays || [],
+    }))
+  ), [habits]);
 
   const fetchHabits = async () => {
     if (!user) return;
@@ -243,6 +258,10 @@ export default function HabitsPage() {
         </div>
 
         <div className="space-y-4">
+          {habitInsights.length > 0 && (
+            <InsightCarousel insights={habitInsights} label="Habit Insights" compact />
+          )}
+
           {habits.map((habit) => (
             <HabitCard
               key={habit.id}
