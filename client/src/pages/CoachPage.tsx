@@ -48,29 +48,28 @@ export default function CoachPage() {
     if (!user) return;
     setLoading(true);
     try {
-      // 1. Update profile
+      // 1. Update profile with the onboarding flag FIRST
       await updateCoachProfile(user.id, {
         onboarding_completed: true,
         ...data
       });
 
-      // 2. Add first user message to history
+      // 2. Prepare the trigger message
       const welcomeContent = `I've shared my vision: ${data.ideal_self || 'to grow intentionally'}. I'm ready to begin this journey.`;
-      await saveCoachMessage(user.id, 'user', welcomeContent);
       
-      // 3. Generate first AI response dynamically
+      // 3. Save user message and get AI response
+      const userMsg = await saveCoachMessage(user.id, 'user', welcomeContent);
+      setIsTyping(true);
       const aiResponse = await generateCoachResponse(user.id, welcomeContent);
       const savedAiMsg = await saveCoachMessage(user.id, 'assistant', aiResponse);
 
-      setMessages([
-        { id: 'initial-user', role: 'user', content: welcomeContent, created_at: new Date().toISOString() },
-        savedAiMsg
-      ]);
+      setMessages([userMsg, savedAiMsg]);
       setOnboardingCompleted(true);
     } catch (err) {
       console.error("Error completing onboarding:", err);
     } finally {
       setLoading(false);
+      setIsTyping(false);
     }
   };
 
