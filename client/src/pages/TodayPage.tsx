@@ -189,6 +189,8 @@ export default function TodayPage() {
     setLoading(false);
 
     // Schedule notifications for all tasks
+    notifications.scheduleMorningSummary(todayStr, data?.length || 0);
+
     data?.forEach((task: any) => {
       if (!task.completed && task.time) {
         notifications.scheduleTaskNotification({
@@ -198,6 +200,16 @@ export default function TodayPage() {
           scheduled_date: task.scheduled_date,
           completed: task.completed,
         });
+      }
+    });
+
+    // Schedule habit reminders
+    habits?.forEach((habit: any) => {
+      const dayOfWeek = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(new Date());
+      const isToday = habit.schedule_type === 'daily' || habit.selected_days?.includes(dayOfWeek);
+
+      if (isToday) {
+        notifications.scheduleHabitReminder(habit, todayStr);
       }
     });
 
