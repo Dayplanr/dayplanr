@@ -158,14 +158,73 @@ export type TranslationKey =
   | "reflectProgressPlaceholder"
   | "reflectChallengePlaceholder"
   | "reflectNextStepPlaceholder"
-  | "reflectDescription";
+  | "reflectDescription"
+  | "insight_streak_title"
+  | "insight_streak_desc"
+  | "insight_all_done_title"
+  | "insight_all_done_desc"
+  | "insight_great_progress_title"
+  | "insight_great_progress_desc"
+  | "insight_weekday_warrior_title"
+  | "insight_weekday_warrior_desc"
+  | "insight_goal_inactive_title"
+  | "insight_goal_inactive_desc_days"
+  | "insight_goal_inactive_desc_none"
+  | "insight_goal_near_done_title"
+  | "insight_goal_near_done_desc"
+  | "insight_goal_fastest_title"
+  | "insight_goal_fastest_desc"
+  | "insight_habit_top_streak_title"
+  | "insight_habit_top_streak_desc"
+  | "insight_habit_low_consistency_title"
+  | "insight_habit_low_consistency_desc"
+  | "insight_habit_weekday_pattern_title"
+  | "insight_habit_weekday_pattern_desc"
+  | "insight_reflect_mood_productive_title"
+  | "insight_reflect_mood_productive_desc"
+  | "insight_reflect_stress_sleep_title"
+  | "insight_reflect_stress_sleep_desc"
+  | "insight_reflect_low_moods_title"
+  | "insight_reflect_low_moods_desc"
+  | "insight_reflect_positive_streak_title"
+  | "insight_reflect_positive_streak_desc"
+  | "insight_pattern_peak_performance_title"
+  | "insight_pattern_peak_performance_desc"
+  | "insight_pattern_habit_champion_title"
+  | "insight_pattern_habit_champion_desc"
+  | "insight_pattern_goal_stall_title"
+  | "insight_pattern_goal_stall_desc"
+  | "insight_cat_distraction_title"
+  | "insight_cat_distraction_desc"
+  | "insight_cat_energy_title"
+  | "insight_cat_energy_desc"
+  | "insight_cat_time_title"
+  | "insight_cat_time_desc"
+  | "insight_cat_focus_title"
+  | "insight_cat_focus_desc"
+  | "insight_cat_overwhelm_title"
+  | "insight_cat_overwhelm_desc"
+  | "insight_cat_health_title"
+  | "insight_cat_health_desc"
+  | "growth_headline_improving" | "growth_headline_declining" | "growth_headline_steady" | "growth_headline_new"
+  | "growth_narrative_improving" | "growth_narrative_declining" | "growth_narrative_steady" | "growth_narrative_generic"
+  | "growth_best_day" | "growth_habit_anchor" | "growth_challenge_blocker" | "growth_dominant_mood"
+  | "growth_month_total" | "growth_month_habit" | "growth_month_mood"
+  | "growth_year_total" | "growth_year_goals" | "growth_year_reflections"
+  | "growth_empty" | "growth_highlight_productive" | "growth_highlight_habit" | "growth_highlight_blocker" | "growth_highlight_mood"
+  | "growth_monthly_headline_improving" | "growth_monthly_headline_declining" | "growth_monthly_headline_steady" | "growth_monthly_headline_new"
+  | "growth_yearly_headline_improving" | "growth_yearly_headline_declining"
+  | "growth_trend_improving" | "growth_trend_steady" | "growth_trend_declining"  | "growth_trend_new"
+  | "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday"
+  | "growth_report" | "growth_report_desc" | "weekly" | "monthly" | "yearly" | "behavioral_trends" | "emotional_tone" | "habit_formation" | "positive" | "mixed"
+  | "mood_great" | "mood_good" | "mood_okay" | "mood_stressed" | "mood_tired" | "mood_bad";
 
 type Translations = Record<TranslationKey, string>;
 
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (key: TranslationKey) => string;
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -313,6 +372,99 @@ const translations: Record<Language, Translations> = {
     reflectChallengePlaceholder: "What was difficult?",
     reflectNextStepPlaceholder: "What's one thing to focus on tomorrow?",
     reflectDescription: "Take a moment to check in with yourself.",
+    insight_streak_title: "{{count}}-Day Streak 🔥",
+    insight_streak_desc: "You've completed tasks for {{count}} days in a row. Keep this momentum going!",
+    insight_all_done_title: "All Tasks Done",
+    insight_all_done_desc: "You've completed everything scheduled for today. Excellent focus!",
+    insight_great_progress_title: "Great Progress",
+    insight_great_progress_desc: "{{count}} of {{total}} tasks done today. You're on track!",
+    insight_weekday_warrior_title: "Weekday Warrior",
+    insight_weekday_warrior_desc: "You complete significantly more tasks on weekdays. Use that weekday energy!",
+    insight_goal_inactive_title: "Goal Needs Attention",
+    insight_goal_inactive_desc_days: "\"{{title}}\" hasn't had activity in {{count}} days. Even one small step counts.",
+    insight_goal_inactive_desc_none: "\"{{title}}\" hasn't been started yet. What's one action you can take today?",
+    insight_goal_near_done_title: "Almost There",
+    insight_goal_near_done_desc: "\"{{title}}\" is {{percent}}% complete. You're in the final stretch!",
+    insight_goal_fastest_title: "Leading Goal",
+    insight_goal_fastest_desc: "\"{{title}}\" is your strongest goal at {{percent}}% complete.",
+    insight_habit_top_streak_title: "Strongest Streak",
+    insight_habit_top_streak_desc: "\"{{title}}\" has a {{count}}-day streak. This is becoming a true habit!",
+    insight_habit_low_consistency_title: "Consistency Opportunity",
+    insight_habit_low_consistency_desc: "\"{{title}}\" has the lowest consistency. Linking it to an existing habit might help.",
+    insight_habit_weekday_pattern_title: "Weekday Consistency",
+    insight_habit_weekday_pattern_desc: "You complete habits {{percent}}% more often on weekdays. Protect your weekend routine too.",
+    insight_reflect_mood_productive_title: "Mood Matters",
+    insight_reflect_mood_productive_desc: "Your most productive days align with feeling \"{{mood}}\". Protect what creates that state.",
+    insight_reflect_stress_sleep_title: "Sleep & Stress Link",
+    insight_reflect_stress_sleep_desc: "Stress and low energy appear together in your reflections. Rest may be your most powerful productivity tool.",
+    insight_reflect_low_moods_title: "Take Care of Yourself",
+    insight_reflect_low_moods_desc: "You've logged lower moods recently. It's okay to slow down. Rest is not wasted time.",
+    insight_reflect_positive_streak_title: "Positive Momentum",
+    insight_reflect_positive_streak_desc: "You've been feeling good lately. Notice what's working and double down on it.",
+    insight_pattern_peak_performance_title: "Peak Performance",
+    insight_pattern_peak_performance_desc: "You complete the most tasks when you feel \"{{mood}}\". Protect the conditions that create this state.",
+    insight_pattern_habit_champion_title: "Habit Champion",
+    insight_pattern_habit_champion_desc: "\"{{title}}\" is your strongest habit with a {{count}}-day streak. Habits like this compound over time.",
+    insight_pattern_goal_stall_title: "Goals Need Attention",
+    insight_pattern_goal_stall_desc: "{{count}} goal{{plural}} stalled. Reconnecting with your 'why' can reignite progress.",
+    insight_cat_distraction_title: "Digital Distractions",
+    insight_cat_distraction_desc: "Digital distractions frequently appear in your challenges. Try setting your phone to Do Not Disturb during focus blocks.",
+    insight_cat_energy_title: "Energy Management",
+    insight_cat_energy_desc: "Sleep or fatigue is a recurring challenge. A consistent bedtime routine could unlock significant energy gains.",
+    insight_cat_time_title: "Time Awareness",
+    insight_cat_time_desc: "Time management comes up repeatedly. Try time-blocking your mornings to protect your most focused hours.",
+    insight_cat_focus_title: "Focus Patterns",
+    insight_cat_focus_desc: "You mention struggling with focus. Starting with just 5 minutes of focused work often breaks the inertia.",
+    insight_cat_overwhelm_title: "Overwhelm Signals",
+    insight_cat_overwhelm_desc: "Feelings of overwhelm appear in your data. Breaking goals into smaller daily actions could reduce this significantly.",
+    insight_cat_health_title: "Energy & Nutrition",
+    insight_cat_health_desc: "Nutrition and hydration appear as challenges. Small habits like keeping water nearby can noticeably lift your energy.",
+    mood_great: "Great",
+    mood_good: "Good",
+    mood_okay: "Okay",
+    mood_stressed: "Stressed",
+    mood_tired: "Tired",
+    mood_bad: "Bad",
+    growth_headline_improving: "A stronger week than the last",
+    growth_headline_declining: "A quieter week — room to rebuild",
+    growth_headline_steady: "Staying consistent this week",
+    growth_headline_new: "Starting to build your patterns",
+    growth_narrative_improving: "You completed {{current}} tasks this week — more than the {{prev}} last week.",
+    growth_narrative_declining: "You completed {{current}} tasks, slightly less than last week's {{prev}}. Every week is a fresh start.",
+    growth_narrative_steady: "Consistent pace: {{current}} tasks completed, similar to last week.",
+    growth_narrative_generic: "You completed {{count}} tasks this week.",
+    growth_best_day: "{{day}} was your most productive day.",
+    growth_habit_anchor: "\"{{title}}\" was consistent — routines compound powerfully.",
+    growth_challenge_blocker: "{{challenge}} appeared as your main obstacle.",
+    growth_dominant_mood: "Your dominant emotional tone was \"{{mood}}\".",
+    growth_month_total: "Over the past 30 days you completed {{count}} tasks.",
+    growth_month_habit: "\"{{title}}\" was your anchor, completed on {{percent}}% of days.",
+    growth_month_mood: "Your dominant emotional tone was \"{{mood}}\".",
+    growth_year_total: "This year you completed {{count}} tasks.",
+    growth_year_goals: "You finished {{count}} goals.",
+    growth_year_reflections: "You've built a record of {{count}} reflections.",
+    growth_empty: "Keep going — patterns take time to form. Every small action builds self-awareness.",
+    growth_highlight_productive: "Most productive: {{day}}",
+    growth_highlight_habit: "Top habit: {{title}}",
+    growth_highlight_blocker: "Main blocker: {{challenge}}",
+    growth_highlight_mood: "Mood: {{mood}}",
+    growth_monthly_headline_improving: "Growing stronger this month",
+    growth_monthly_headline_declining: "A reflective month",
+    growth_monthly_headline_steady: "Reliable consistency",
+    growth_monthly_headline_new: "Your first month of growth",
+    growth_yearly_headline_improving: "A year of meaningful growth",
+    growth_yearly_headline_declining: "Reflecting on your year",
+    growth_trend_improving: "Improving",
+    growth_trend_steady: "Steady",
+    growth_trend_declining: "Declining",
+    growth_trend_new: "Starting",
+    monday: "Monday",
+    tuesday: "Tuesday",
+    wednesday: "Wednesday",
+    thursday: "Thursday",
+    friday: "Friday",
+    saturday: "Saturday",
+    sunday: "Sunday",
   },
   de: {
     today: "Heute",
@@ -1457,6 +1609,99 @@ const translations: Record<Language, Translations> = {
     reflectChallengePlaceholder: "Ne zordu?",
     reflectNextStepPlaceholder: "Yarın odaklanacağın bir şey nedir?",
     reflectDescription: "Kendinizi kontrol etmek için bir dakikanızı ayırın.",
+    insight_streak_title: "{{count}} Günlük Seri 🔥",
+    insight_streak_desc: "Üst üste {{count}} gündür görevlerinizi tamamlıyorsunuz. Bu ivmeyi koruyun!",
+    insight_all_done_title: "Tüm Görevler Tamam",
+    insight_all_done_desc: "Bugün için planlanan her şeyi tamamladınız. Harika odaklanma!",
+    insight_great_progress_title: "Harika İlerleme",
+    insight_great_progress_desc: "Bugün {{total}} görevden {{count}} tanesi tamamlandı. Yolundasınız!",
+    insight_weekday_warrior_title: "Hafta İçi Savaşçısı",
+    insight_weekday_warrior_desc: "Hafta içi çok daha fazla görev tamamlıyorsunuz. Bu hafta içi enerjisini kullanın!",
+    insight_goal_inactive_title: "Hedef İlgi Bekliyor",
+    insight_goal_inactive_desc_days: "\"{{title}}\" hedefinde {{count}} gündür aktivite yok. Küçük bir adım bile önemlidir.",
+    insight_goal_inactive_desc_none: "\"{{title}}\" hedefine henüz başlanmadı. Bugün atabileceğiniz bir adım nedir?",
+    insight_goal_near_done_title: "Neredeyse Bitti",
+    insight_goal_near_done_desc: "\"{{title}}\" hedefi %{{percent}} tamamlandı. Son düzlüktesiniz!",
+    insight_goal_fastest_title: "Lider Hedef",
+    insight_goal_fastest_desc: "\"{{title}}\" hedefi %{{percent}} tamamlama ile en güçlü hedefiniz.",
+    insight_habit_top_streak_title: "En Güçlü Seri",
+    insight_habit_top_streak_desc: "\"{{title}}\" alışkanlığında {{count}} günlük bir seriniz var. Bu artık gerçek bir alışkanlığa dönüşüyor!",
+    insight_habit_low_consistency_title: "İstikrar Fırsatı",
+    insight_habit_low_consistency_desc: "\"{{title}}\" en düşük istikrara sahip. Onu mevcut bir alışkanlığa bağlamak yardımcı olabilir.",
+    insight_habit_weekday_pattern_title: "Hafta İçi İstikrarı",
+    insight_habit_weekday_pattern_desc: "Alışkanlıkları hafta içi %{{percent}} daha sık tamamlıyorsunuz. Hafta sonu rutininizi de korumaya çalışın.",
+    insight_reflect_mood_productive_title: "Modun Önemi",
+    insight_reflect_mood_productive_desc: "En üretken günleriniz kendinizi \"{{mood}}\" hissettiğiniz günlerle uyuşuyor. Bu durumu yaratan koşulları koruyun.",
+    insight_reflect_stress_sleep_title: "Uyku ve Stres Bağlantısı",
+    insight_reflect_stress_sleep_desc: "Yansımalarınızda stres ve düşük enerji bir arada görülüyor. Dinlenmek en güçlü üretkenlik aracınız olabilir.",
+    insight_reflect_low_moods_title: "Kendinize İyi Bakın",
+    insight_reflect_low_moods_desc: "Son zamanlarda modunuz biraz düşük. Yavaşlamanızda bir sorun yok. Dinlenmek boşa harcanan zaman değildir.",
+    insight_reflect_positive_streak_title: "Pozitif İvme",
+    insight_reflect_positive_streak_desc: "Son zamanlarda kendinizi iyi hissediyorsunuz. Neyin işe yaradığını fark edin ve ona odaklanın.",
+    insight_pattern_peak_performance_title: "Zirve Performans",
+    insight_pattern_peak_performance_desc: "En çok görevi kendinizi \"{{mood}}\" hissettiğinizde tamamlıyorsunuz. Bu durumu sağlayan koşulları destekleyin.",
+    insight_pattern_habit_champion_title: "Alışkanlık Şampiyonu",
+    insight_pattern_habit_champion_desc: "\"{{title}}\" {{count}} günlük seri ile en güçlü alışkanlığınız. Bu tür alışkanlıklar zamanla büyük fark yaratır.",
+    insight_pattern_goal_stall_title: "Hedefler İlgi Bekliyor",
+    insight_pattern_goal_stall_desc: "{{count}} hedef{{plural}} duraksadı. Neden başladığınızı hatırlamak ilerlemeyi yeniden ateşleyebilir.",
+    insight_cat_distraction_title: "Dijital Dikkat Dağıtıcılar",
+    insight_cat_distraction_desc: "Zorluklarınızda dijital dikkat dağıtıcılar sıkça görülüyor. Odaklanma blokları sırasında telefonunuzu Rahatsız Etmeyin moduna almayı deneyin.",
+    insight_cat_energy_title: "Enerji Yönetimi",
+    insight_cat_energy_desc: "Uyku veya yorgunluk tekrarlayan bir zorluk. Tutarlı bir uyku rutini önemli enerji kazanımları sağlayabilir.",
+    insight_cat_time_title: "Zaman Farkındalığı",
+    insight_cat_time_desc: "Zaman yönetimi konusu tekrar tekrar karşınıza çıkıyor. En odaklı saatlerinizi korumak için sabahlarınızı zaman bloklarına ayırmayı deneyin.",
+    insight_cat_focus_title: "Odaklanma Modelleri",
+    insight_cat_focus_desc: "Odaklanmakta zorlandığınızı belirtiyorsunuz. Sadece 5 dakikalık odaklı çalışma ile başlamak genellikle ataleti kırar.",
+    insight_cat_overwhelm_title: "Bunalma Sinyalleri",
+    insight_cat_overwhelm_desc: "Verilerinizde bunalma hissi görülüyor. Hedefleri daha küçük günlük eylemlere bölmek bunu önemli ölçüde azaltabilir.",
+    insight_cat_health_title: "Enerji ve Beslenme",
+    insight_cat_health_desc: "Beslenme ve su tüketimi zorluk olarak görülüyor. Yakınınızda su bulundurmak gibi küçük alışkanlıklar enerjinizi fark edilir şekilde yükseltebilir.",
+    mood_great: "Harika",
+    mood_good: "İyi",
+    mood_okay: "Normal",
+    mood_stressed: "Stresli",
+    mood_tired: "Yorgun",
+    mood_bad: "Kötü",
+    growth_headline_improving: "Geçen haftadan daha güçlü bir hafta",
+    growth_headline_declining: "Sakin bir hafta — yeniden inşa zamanı",
+    growth_headline_steady: "Bu hafta istikrarı koruyorsunuz",
+    growth_headline_new: "Modellerinizi oluşturmaya başlıyorsunuz",
+    growth_narrative_improving: "Bu hafta {{current}} görev tamamladınız — geçen haftaki {{prev}} görevden daha fazla.",
+    growth_narrative_declining: "Bu hafta {{current}} görev tamamladınız, geçen haftaki {{prev}} görevden biraz daha az. Her hafta taze bir başlangıçtır.",
+    growth_narrative_steady: "İstikrarlı tempo: Geçen haftaya benzer şekilde {{current}} görev tamamlandı.",
+    growth_narrative_generic: "Bu hafta {{count}} görev tamamladınız.",
+    growth_best_day: "En üretken gününüz {{day}} günüydü.",
+    growth_habit_anchor: "\"{{title}}\" alışkanlığınız istikrarlıydı — rutinler güçlü bir şekilde birleşir.",
+    growth_challenge_blocker: "Ana engeliniz olarak {{challenge}} görüldü.",
+    growth_dominant_mood: "Baskın duygusal tonunuz \"{{mood}}\" şeklindeydi.",
+    growth_month_total: "Son 30 günde {{count}} görev tamamladınız.",
+    growth_month_habit: "\"{{title}}\" çapalanız oldu, günlerin %{{percent}} kadarında tamamlandı.",
+    growth_month_mood: "Baskın duygusal tonunuz \"{{mood}}\" şeklindeydi.",
+    growth_year_total: "Bu yıl {{count}} görev tamamladınız.",
+    growth_year_goals: "{{count}} hedefi tamamladınız.",
+    growth_year_reflections: "{{count}} yansımalık bir kayıt oluşturdunuz.",
+    growth_empty: "Devam edin — modellerin oluşması zaman alır. Her küçük adım öz farkındalık oluşturur.",
+    growth_highlight_productive: "En üretken: {{day}}",
+    growth_highlight_habit: "En iyi alışkanlık: {{title}}",
+    growth_highlight_blocker: "Ana engel: {{challenge}}",
+    growth_highlight_mood: "Mod: {{mood}}",
+    growth_monthly_headline_improving: "Bu ay daha da güçleniyorsunuz",
+    growth_monthly_headline_declining: "Yansıma dolu bir ay",
+    growth_monthly_headline_steady: "Güvenilir istikrar",
+    growth_monthly_headline_new: "Gelişiminizin ilk ayı",
+    growth_yearly_headline_improving: "Anlamlı bir gelişim yılı",
+    growth_yearly_headline_declining: "Yılınızı değerlendirme zamanı",
+    growth_trend_improving: "Gelişiyor",
+    growth_trend_steady: "Stabil",
+    growth_trend_declining: "Azalıyor",
+    growth_trend_new: "Başlıyor",
+    monday: "Pazartesi",
+    tuesday: "Salı",
+    wednesday: "Çarşamba",
+    thursday: "Perşembe",
+    friday: "Cuma",
+    saturday: "Cumartesi",
+    sunday: "Pazar",
   },
   ru: {
     today: "Сегодня",
@@ -1600,6 +1845,99 @@ const translations: Record<Language, Translations> = {
     reflectChallengePlaceholder: "Что было сложным?",
     reflectNextStepPlaceholder: "На чем сфокусироваться завтра?",
     reflectDescription: "Найдите минутку, чтобы прислушаться к себе.",
+    insight_streak_title: "Серия {{count}} дн. 🔥",
+    insight_streak_desc: "Вы выполняете задачи {{count}} дн. подряд. Так держать!",
+    insight_all_done_title: "Все задачи выполнены",
+    insight_all_done_desc: "Вы завершили все запланированные задачи на сегодня. Отличная концентрация!",
+    insight_great_progress_title: "Отличный прогресс",
+    insight_great_progress_desc: "Сегодня выполнено {{count}} из {{total}} задач. Вы на верном пути!",
+    insight_weekday_warrior_title: "Герой будней",
+    insight_weekday_warrior_desc: "В будние дни вы выполняете значительно больше задач. Используйте эту энергию!",
+    insight_goal_inactive_title: "Цель требует внимания",
+    insight_goal_inactive_desc_days: "В цели \"{{title}}\" не было активности {{count}} дн. Даже один маленький шаг имеет значение.",
+    insight_goal_inactive_desc_none: "Работа над целью \"{{title}}\" еще не начата. Какое действие вы можете предпринять сегодня?",
+    insight_goal_near_done_title: "Почти готово",
+    insight_goal_near_done_desc: "Цель \"{{title}}\" выполнена на {{percent}}%. Вы на финишной прямой!",
+    insight_goal_fastest_title: "Ведущая цель",
+    insight_goal_fastest_desc: "\"{{title}}\" — ваша самая сильная цель, она выполнена на {{percent}}%.",
+    insight_habit_top_streak_title: "Самая длинная серия",
+    insight_habit_top_streak_desc: "В привычке \"{{title}}\" у вас серия {{count}} дн. Это становится настоящей привычкой!",
+    insight_habit_low_consistency_title: "Шанс для стабильности",
+    insight_habit_low_consistency_desc: "У привычки \"{{title}}\" самая низкая стабильность. Попробуйте связать ее с другой привычкой.",
+    insight_habit_weekday_pattern_title: "Стабильность в будни",
+    insight_habit_weekday_pattern_desc: "Вы выполняете привычки в будни на {{percent}}% чаще. Постарайтесь не забывать о них и в выходные.",
+    insight_reflect_mood_productive_title: "Настроение важно",
+    insight_reflect_mood_productive_desc: "Ваши самые продуктивные дни совпадают с настроением \"{{mood}}\". Поддерживайте условия для этого состояния.",
+    insight_reflect_stress_sleep_title: "Связь сна и стресса",
+    insight_reflect_stress_sleep_desc: "Стресс и нехватка энергии часто появляются вместе. Отдых может быть вашим лучшим инструментом продуктивности.",
+    insight_reflect_low_moods_title: "Позаботьтесь о себе",
+    insight_reflect_low_moods_desc: "В последнее время вы отмечаете плохое настроение. Замедлиться — это нормально. Отдых — это не пустая трата времени.",
+    insight_reflect_positive_streak_title: "Позитивный импульс",
+    insight_reflect_positive_streak_desc: "В последнее время вы чувствуете себя хорошо. Заметьте, что помогает вам, и продолжайте в том же духе.",
+    insight_pattern_peak_performance_title: "Пиковая производительность",
+    insight_pattern_peak_performance_desc: "Вы выполняете больше всего задач, когда чувствуете себя \"{{mood}}\". Берегите условия, которые создают это состояние.",
+    insight_pattern_habit_champion_title: "Чемпион привычек",
+    insight_pattern_habit_champion_desc: "\"{{title}}\" — ваша самая сильная привычка с серией {{count}} дн. Такие привычки приносят плоды со временем.",
+    insight_pattern_goal_stall_title: "Цели требуют внимания",
+    insight_pattern_goal_stall_desc: "Целей: {{count}} остановилось. Напоминание себе, зачем вы начали, может помочь продолжить.",
+    insight_cat_distraction_title: "Цифровые отвлечения",
+    insight_cat_distraction_desc: "В ваших трудностях часто упоминаются гаджеты. Попробуйте включать режим «Не беспокоить» во время работы.",
+    insight_cat_energy_title: "Управление энергией",
+    insight_cat_energy_desc: "Сон и усталость — ваши частые проблемы. Режим сна может значительно поднять уровень энергии.",
+    insight_cat_time_title: "Осознание времени",
+    insight_cat_time_desc: "Управление временем — частая тема. Попробуйте планировать утро по блокам, чтобы защитить время фокуса.",
+    insight_cat_focus_title: "Шаблоны фокуса",
+    insight_cat_focus_desc: "Вы отмечаете трудности с фокусом. Попробуйте начинать с 5 минут работы — это часто помогает втянуться.",
+    insight_cat_overwhelm_title: "Сигналы перегрузки",
+    insight_cat_overwhelm_desc: "В ваших данных видна перегрузка. Разделение целей на мелкие шаги может значительно помочь.",
+    insight_cat_health_title: "Энергия и питание",
+    insight_cat_health_desc: "Питание и вода важны. Простые привычки, например, стакан воды рядом, могут заметно поднять тонус.",
+    mood_great: "Отлично",
+    mood_good: "Хорошо",
+    mood_okay: "Нормально",
+    mood_stressed: "Стресс",
+    mood_tired: "Усталость",
+    mood_bad: "Плохо",
+    growth_headline_improving: "Эта неделя сильнее предыдущей",
+    growth_headline_declining: "Спокойная неделя — время для восстановления",
+    growth_headline_steady: "Стабильность на этой неделе",
+    growth_headline_new: "Начало формирования ваших шаблонов",
+    growth_narrative_improving: "На этой неделе вы выполнили {{current}} задач — больше, чем {{prev}} на прошлой.",
+    growth_narrative_declining: "Вы выполнили {{current}} задач, чуть меньше, чем {{prev}} на прошлой неделе. Каждая неделя — это новый старт.",
+    growth_narrative_steady: "Стабильный темп: выполнено {{current}} задач, как и на прошлой неделе.",
+    growth_narrative_generic: "На этой неделе вы выполнили {{count}} задач.",
+    growth_best_day: "Самым продуктивным днем был {{day}}.",
+    growth_habit_anchor: "Привычка \"{{title}}\" была стабильной — рутина дает плоды.",
+    growth_challenge_blocker: "Основным препятствием было: {{challenge}}.",
+    growth_dominant_mood: "Вашим преобладающим настроением было \"{{mood}}\".",
+    growth_month_total: "За последние 30 дней вы выполнили {{count}} задач.",
+    growth_month_habit: "Вашим якорем была привычка \"{{title}}\", выполненная в {{percent}}% дней.",
+    growth_month_mood: "Вашим преобладающим настроением было \"{{mood}}\".",
+    growth_year_total: "В этом году вы выполнили {{count}} задач.",
+    growth_year_goals: "Вы достигли {{count}} целей.",
+    growth_year_reflections: "Вы создали историю из {{count}} рефлексий.",
+    growth_empty: "Продолжайте — для формирования шаблонов нужно время. Каждое маленькое действие развивает осознанность.",
+    growth_highlight_productive: "Продуктивность: {{day}}",
+    growth_highlight_habit: "Лучшая привычка: {{title}}",
+    growth_highlight_blocker: "Главная трудность: {{challenge}}",
+    growth_highlight_mood: "Настроение: {{mood}}",
+    growth_monthly_headline_improving: "Вы растете в этом месяце",
+    growth_monthly_headline_declining: "Месяц размышлений",
+    growth_monthly_headline_steady: "Надежная стабильность",
+    growth_monthly_headline_new: "Ваш первый месяц роста",
+    growth_yearly_headline_improving: "Год значимого роста",
+    growth_yearly_headline_declining: "Итоги вашего года",
+    growth_trend_improving: "Улучшение",
+    growth_trend_steady: "Стабильно",
+    growth_trend_declining: "Спад",
+    growth_trend_new: "Начало",
+    monday: "Понедельник",
+    tuesday: "Вторник",
+    wednesday: "Среда",
+    thursday: "Четверг",
+    friday: "Пятница",
+    saturday: "Суббота",
+    sunday: "Воскресенье",
   },
 };
 
@@ -1644,12 +1982,19 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const t = (key: TranslationKey): string => {
-    const translation = translations[language][key];
+  const t = (key: TranslationKey, params?: Record<string, string | number>): string => {
+    let translation = translations[language][key];
     if (!translation) {
       console.warn(`Missing translation for key: ${key} in language: ${language}`);
-      return translations.en[key] || key;
+      translation = translations.en[key] || key;
     }
+    
+    if (params) {
+      Object.entries(params).forEach(([k, v]) => {
+        translation = translation.replace(new RegExp(`{{${k}}}`, 'g'), String(v));
+      });
+    }
+    
     return translation;
   };
 

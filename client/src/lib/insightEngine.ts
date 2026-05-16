@@ -80,7 +80,7 @@ const LOW_MOODS = ["stressed", "tired", "bad"];
 
 // ─── Today Insights ───────────────────────────────────────────────────────────
 
-export function generateTodayInsights(tasks: Task[]): Insight[] {
+export function generateTodayInsights(tasks: Task[], t: (key: any, params?: any) => string): Insight[] {
   const insights: Insight[] = [];
   if (!tasks || tasks.length === 0) return insights;
 
@@ -99,8 +99,8 @@ export function generateTodayInsights(tasks: Task[]): Insight[] {
   if (streak >= 2) {
     insights.push({
       id: "today-streak",
-      title: `${streak}-Day Streak 🔥`,
-      description: `You've completed tasks for ${streak} days in a row. Keep this momentum going!`,
+      title: t("insight_streak_title", { count: streak }),
+      description: t("insight_streak_desc", { count: streak }),
       iconType: "streak",
       category: "today",
     });
@@ -113,16 +113,16 @@ export function generateTodayInsights(tasks: Task[]): Insight[] {
   if (todayTasks.length > 0 && todayDone === todayTasks.length) {
     insights.push({
       id: "today-all-done",
-      title: "All Tasks Done",
-      description: "You've completed everything scheduled for today. Excellent focus!",
+      title: t("insight_all_done_title"),
+      description: t("insight_all_done_desc"),
       iconType: "peak",
       category: "today",
     });
   } else if (todayTasks.length >= 3 && todayDone >= 2) {
     insights.push({
       id: "today-great-progress",
-      title: "Great Progress",
-      description: `${todayDone} of ${todayTasks.length} tasks done today. You're on track!`,
+      title: t("insight_great_progress_title"),
+      description: t("insight_great_progress_desc", { count: todayDone, total: todayTasks.length }),
       iconType: "consistency",
       category: "today",
     });
@@ -144,8 +144,8 @@ export function generateTodayInsights(tasks: Task[]): Insight[] {
   if (weekdayCompletions > weekendCompletions * 2 && weekdayCompletions > 5) {
     insights.push({
       id: "today-weekday",
-      title: "Weekday Warrior",
-      description: "You complete significantly more tasks on weekdays. Use that weekday energy!",
+      title: t("insight_weekday_warrior_title"),
+      description: t("insight_weekday_warrior_desc"),
       iconType: "peak",
       category: "today",
     });
@@ -156,7 +156,7 @@ export function generateTodayInsights(tasks: Task[]): Insight[] {
 
 // ─── Goals Insights ───────────────────────────────────────────────────────────
 
-export function generateGoalInsights(goals: Goal[]): Insight[] {
+export function generateGoalInsights(goals: Goal[], t: (key: any, params?: any) => string): Insight[] {
   const insights: Insight[] = [];
   if (!goals || goals.length === 0) return insights;
 
@@ -175,10 +175,10 @@ export function generateGoalInsights(goals: Goal[]): Insight[] {
       : null;
     insights.push({
       id: "goal-inactive",
-      title: "Goal Needs Attention",
+      title: t("insight_goal_inactive_title"),
       description: days
-        ? `"${inactiveGoal.title}" hasn't had activity in ${days} days. Even one small step counts.`
-        : `"${inactiveGoal.title}" hasn't been started yet. What's one action you can take today?`,
+        ? t("insight_goal_inactive_desc_days", { title: inactiveGoal.title, count: days })
+        : t("insight_goal_inactive_desc_none", { title: inactiveGoal.title }),
       iconType: "warning",
       category: "goals",
     });
@@ -189,8 +189,8 @@ export function generateGoalInsights(goals: Goal[]): Insight[] {
   if (nearDoneGoal) {
     insights.push({
       id: "goal-near-done",
-      title: "Almost There",
-      description: `"${nearDoneGoal.title}" is ${nearDoneGoal.progress}% complete. You're in the final stretch!`,
+      title: t("insight_goal_near_done_title"),
+      description: t("insight_goal_near_done_desc", { title: nearDoneGoal.title, percent: nearDoneGoal.progress }),
       iconType: "peak",
       category: "goals",
     });
@@ -202,8 +202,8 @@ export function generateGoalInsights(goals: Goal[]): Insight[] {
     if (fastest && fastest.progress > 0) {
       insights.push({
         id: "goal-fastest",
-        title: "Leading Goal",
-        description: `"${fastest.title}" is your strongest goal at ${fastest.progress}% complete.`,
+        title: t("insight_goal_fastest_title"),
+        description: t("insight_goal_fastest_desc", { title: fastest.title, percent: fastest.progress }),
         iconType: "goal",
         category: "goals",
       });
@@ -215,7 +215,7 @@ export function generateGoalInsights(goals: Goal[]): Insight[] {
 
 // ─── Habits Insights ──────────────────────────────────────────────────────────
 
-export function generateHabitInsights(habits: Habit[]): Insight[] {
+export function generateHabitInsights(habits: Habit[], t: (key: any, params?: any) => string): Insight[] {
   const insights: Insight[] = [];
   if (!habits || habits.length === 0) return insights;
 
@@ -224,8 +224,8 @@ export function generateHabitInsights(habits: Habit[]): Insight[] {
   if (topStreak && topStreak.streak >= 3) {
     insights.push({
       id: "habit-top-streak",
-      title: "Strongest Streak",
-      description: `"${topStreak.title}" has a ${topStreak.streak}-day streak. This is becoming a true habit!`,
+      title: t("insight_habit_top_streak_title"),
+      description: t("insight_habit_top_streak_desc", { title: topStreak.title, count: topStreak.streak }),
       iconType: "streak",
       category: "habits",
     });
@@ -236,8 +236,8 @@ export function generateHabitInsights(habits: Habit[]): Insight[] {
   if (lowConsistency) {
     insights.push({
       id: "habit-low-consistency",
-      title: "Consistency Opportunity",
-      description: `"${lowConsistency.title}" has the lowest consistency. Linking it to an existing habit might help.`,
+      title: t("insight_habit_low_consistency_title"),
+      description: t("insight_habit_low_consistency_desc", { title: lowConsistency.title }),
       iconType: "focus",
       category: "habits",
     });
@@ -253,8 +253,8 @@ export function generateHabitInsights(habits: Habit[]): Insight[] {
     if (totalWeekdays > 65) {
       insights.push({
         id: "habit-weekday-pattern",
-        title: "Weekday Consistency",
-        description: `You complete habits ${Math.round(totalWeekdays)}% more often on weekdays. Protect your weekend routine too.`,
+        title: t("insight_habit_weekday_pattern_title"),
+        description: t("insight_habit_weekday_pattern_desc", { percent: Math.round(totalWeekdays) }),
         iconType: "consistency",
         category: "habits",
       });
@@ -268,7 +268,8 @@ export function generateHabitInsights(habits: Habit[]): Insight[] {
 
 export function generateReflectInsights(
   reflections: Reflection[],
-  tasks: Task[]
+  tasks: Task[],
+  t: (key: any, params?: any) => string
 ): Insight[] {
   const insights: Insight[] = [];
   if (!reflections || reflections.length < 2) return insights;
@@ -291,8 +292,8 @@ export function generateReflectInsights(
       if (ref?.mood && POSITIVE_MOODS.includes(ref.mood)) {
         insights.push({
           id: "reflect-mood-productive",
-          title: "Mood Matters",
-          description: `Your most productive days align with feeling "${MOOD_LABELS[ref.mood]}". Protect what creates that state.`,
+          title: t("insight_reflect_mood_productive_title"),
+          description: t("insight_reflect_mood_productive_desc", { mood: t(`mood_${ref.mood}` as any) }),
           iconType: "mood",
           category: "reflect",
         });
@@ -306,8 +307,8 @@ export function generateReflectInsights(
   if (hasStress && hasSleep) {
     insights.push({
       id: "reflect-stress-sleep",
-      title: "Sleep & Stress Link",
-      description: "Stress and low energy appear together in your reflections. Rest may be your most powerful productivity tool.",
+      title: t("insight_reflect_stress_sleep_title"),
+      description: t("insight_reflect_stress_sleep_desc"),
       iconType: "energy",
       category: "reflect",
     });
@@ -318,8 +319,8 @@ export function generateReflectInsights(
   if (recentLow.length >= 2) {
     insights.push({
       id: "reflect-low-moods",
-      title: "Take Care of Yourself",
-      description: "You've logged lower moods recently. It's okay to slow down. Rest is not wasted time.",
+      title: t("insight_reflect_low_moods_title"),
+      description: t("insight_reflect_low_moods_desc"),
       iconType: "health",
       category: "reflect",
     });
@@ -330,8 +331,8 @@ export function generateReflectInsights(
   if (recentPositive.length >= 2 && recentLow.length === 0) {
     insights.push({
       id: "reflect-positive-streak",
-      title: "Positive Momentum",
-      description: "You've been feeling good lately. Notice what's working and double down on it.",
+      title: t("insight_reflect_positive_streak_title"),
+      description: t("insight_reflect_positive_streak_desc"),
       iconType: "peak",
       category: "reflect",
     });
@@ -346,7 +347,8 @@ export function generatePatternInsights(
   reflections: Reflection[],
   tasks: Task[],
   habits: Habit[],
-  goals: Goal[]
+  goals: Goal[],
+  t: (key: any, params?: any) => string
 ): Insight[] {
   const insights: Insight[] = [];
 
@@ -359,39 +361,39 @@ export function generatePatternInsights(
   const keywordCategories = [
     {
       type: "distraction" as InsightIconType,
-      title: "Digital Distractions",
+      title: t("insight_cat_distraction_title"),
       keywords: ["phone", "social media", "tiktok", "instagram", "scroll", "screen"],
-      description: "Digital distractions frequently appear in your challenges. Try setting your phone to Do Not Disturb during focus blocks.",
+      description: t("insight_cat_distraction_desc"),
     },
     {
       type: "energy" as InsightIconType,
-      title: "Energy Management",
+      title: t("insight_cat_energy_title"),
       keywords: ["sleep", "tired", "late", "bed", "insomnia", "exhausted"],
-      description: "Sleep or fatigue is a recurring challenge. A consistent bedtime routine could unlock significant energy gains.",
+      description: t("insight_cat_energy_desc"),
     },
     {
       type: "time" as InsightIconType,
-      title: "Time Awareness",
+      title: t("insight_cat_time_title"),
       keywords: ["time", "busy", "rushed", "schedule", "planning", "late"],
-      description: "Time management comes up repeatedly. Try time-blocking your mornings to protect your most focused hours.",
+      description: t("insight_cat_time_desc"),
     },
     {
       type: "focus" as InsightIconType,
-      title: "Focus Patterns",
+      title: t("insight_cat_focus_title"),
       keywords: ["procrastination", "focus", "lazy", "delay", "distracted", "motivation"],
-      description: "You mention struggling with focus. Starting with just 5 minutes of focused work often breaks the inertia.",
+      description: t("insight_cat_focus_desc"),
     },
     {
       type: "overwhelm" as InsightIconType,
-      title: "Overwhelm Signals",
+      title: t("insight_cat_overwhelm_title"),
       keywords: ["overwhelmed", "stress", "anxious", "burnout", "too much"],
-      description: "Feelings of overwhelm appear in your data. Breaking goals into smaller daily actions could reduce this significantly.",
+      description: t("insight_cat_overwhelm_desc"),
     },
     {
       type: "health" as InsightIconType,
-      title: "Energy & Nutrition",
+      title: t("insight_cat_health_title"),
       keywords: ["food", "eat", "diet", "water", "hungry", "skip meal"],
-      description: "Nutrition and hydration appear as challenges. Small habits like keeping water nearby can noticeably lift your energy.",
+      description: t("insight_cat_health_desc"),
     },
   ];
 
@@ -416,11 +418,11 @@ export function generatePatternInsights(
     if (bestDate) {
       const ref = reflections.find(r => r.created_at.startsWith(bestDate));
       if (ref?.mood) {
-        const moodName = MOOD_LABELS[ref.mood] || ref.mood;
+        const moodName = t(`mood_${ref.mood}` as any);
         insights.push({
           id: "pattern-peak-mood",
-          title: "Peak Performance",
-          description: `You complete the most tasks when you feel "${moodName}". Protect the conditions that create this state.`,
+          title: t("insight_pattern_peak_performance_title"),
+          description: t("insight_pattern_peak_performance_desc", { mood: moodName }),
           iconType: "peak",
           category: "pattern",
         });
@@ -433,8 +435,8 @@ export function generatePatternInsights(
   if (topStreakHabit && topStreakHabit.streak >= 5) {
     insights.push({
       id: "pattern-habit-champion",
-      title: "Habit Champion",
-      description: `"${topStreakHabit.title}" is your strongest habit with a ${topStreakHabit.streak}-day streak. Habits like this compound over time.`,
+      title: t("insight_pattern_habit_champion_title"),
+      description: t("insight_pattern_habit_champion_desc", { title: topStreakHabit.title, count: topStreakHabit.streak }),
       iconType: "habit",
       category: "pattern",
     });
@@ -446,8 +448,8 @@ export function generatePatternInsights(
   if (stalledGoals.length > 0) {
     insights.push({
       id: "pattern-goal-stall",
-      title: "Goals Need Attention",
-      description: `${stalledGoals.length} goal${stalledGoals.length > 1 ? "s have" : " has"} stalled. Reconnecting with your 'why' can reignite progress.`,
+      title: t("insight_pattern_goal_stall_title"),
+      description: t("insight_pattern_goal_stall_desc", { count: stalledGoals.length, plural: stalledGoals.length > 1 ? "s have" : " has" }),
       iconType: "goal",
       category: "pattern",
     });
@@ -458,8 +460,8 @@ export function generatePatternInsights(
   if (recentPositive.length >= 3 && insights.filter(i => i.iconType === "peak").length === 0) {
     insights.push({
       id: "pattern-momentum",
-      title: "Positive Momentum",
-      description: "You've had mostly positive moods recently. This is the best time to push toward ambitious goals.",
+      title: t("insight_reflect_positive_streak_title"),
+      description: t("insight_reflect_positive_streak_desc"),
       iconType: "peak",
       category: "pattern",
     });
@@ -474,7 +476,8 @@ export function generatePatternInsights(
 export function generateWeeklySummary(
   reflections: Reflection[],
   tasks: Task[],
-  habits: Habit[]
+  habits: Habit[],
+  t: (key: any, params?: any) => string
 ): WeeklySummary {
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
   const weekEnd = endOfWeek(new Date(), { weekStartsOn: 1 });
@@ -507,11 +510,11 @@ export function generateWeeklySummary(
     .filter(r => r.challenge).map(r => r.challenge!.toLowerCase()).join(" ");
   let biggestChallenge: string | null = null;
   const challengeMap = [
-    { label: "Phone & Social Media", keywords: ["phone", "social", "instagram", "tiktok"] },
-    { label: "Sleep & Energy", keywords: ["sleep", "tired", "exhausted", "bed"] },
-    { label: "Focus & Motivation", keywords: ["focus", "procrastinat", "motivat", "distract"] },
-    { label: "Feeling Overwhelmed", keywords: ["overwhelm", "stress", "anxious", "too much"] },
-    { label: "Time Management", keywords: ["time", "busy", "rushed", "schedule"] },
+    { label: t("insight_cat_distraction_title"), keywords: ["phone", "social", "instagram", "tiktok"] },
+    { label: t("insight_cat_energy_title"), keywords: ["sleep", "tired", "exhausted", "bed"] },
+    { label: t("insight_cat_focus_title"), keywords: ["focus", "procrastinat", "motivat", "distract"] },
+    { label: t("insight_cat_overwhelm_title"), keywords: ["overwhelm", "stress", "anxious", "too much"] },
+    { label: t("insight_cat_time_title"), keywords: ["time", "busy", "rushed", "schedule"] },
   ];
   let maxHits = 0;
   challengeMap.forEach(c => {
@@ -534,7 +537,7 @@ export function generateWeeklySummary(
   }
 
   return {
-    mostProductiveMood: mostProductiveMood ? MOOD_LABELS[mostProductiveMood] || mostProductiveMood : null,
+    mostProductiveMood: mostProductiveMood ? t(`mood_${mostProductiveMood}` as any) : null,
     strongestHabit: (strongestHabit?.score ?? 0) > 0 ? strongestHabit?.title ?? null : null,
     biggestChallenge,
     overallTrend,
@@ -559,7 +562,8 @@ export function generateGrowthSummary(
   tasks: Task[],
   habits: Habit[],
   goals: Goal[],
-  range: TimeRange
+  range: TimeRange,
+  t: (key: any, params?: any) => string
 ): GrowthSummary {
   const now = new Date();
 
@@ -596,14 +600,14 @@ export function generateGrowthSummary(
   }
 
   // ── Best day of week ──
-  const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const DAY_KEYS: any[] = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
   const tasksByDay: Record<number, number> = {};
   windowTasks.filter(t => t.completed && t.scheduled_date).forEach(t => {
     const d = getDay(new Date(t.scheduled_date!));
     tasksByDay[d] = (tasksByDay[d] || 0) + 1;
   });
   const bestDayNum = Object.entries(tasksByDay).sort((a, b) => +b[1] - +a[1])[0];
-  const bestDayName = bestDayNum ? DAY_NAMES[+bestDayNum[0]] : null;
+  const bestDayName = bestDayNum ? t(DAY_KEYS[+bestDayNum[0]]) : null;
 
   // ── Dominant mood ──
   const moodCount: Record<string, number> = {};
@@ -611,7 +615,7 @@ export function generateGrowthSummary(
     moodCount[r.mood!] = (moodCount[r.mood!] || 0) + 1;
   });
   const dominantMood = Object.entries(moodCount).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
-  const dominantMoodLabel = dominantMood ? MOOD_LABELS[dominantMood] || dominantMood : null;
+  const dominantMoodLabel = dominantMood ? t(`mood_${dominantMood}` as any) : null;
 
   // ── Strongest habit ──
   const recentDates = Array.from({ length: windowDays }, (_, i) =>
@@ -628,10 +632,10 @@ export function generateGrowthSummary(
   const allChallengeText = windowReflections
     .filter(r => r.challenge).map(r => r.challenge!.toLowerCase()).join(' ');
   const challengeKeywords = [
-    { label: 'phone & social media', keys: ['phone', 'social', 'instagram', 'tiktok', 'scroll'] },
-    { label: 'sleep & low energy', keys: ['sleep', 'tired', 'exhausted', 'bed', 'fatigue'] },
-    { label: 'focus & procrastination', keys: ['focus', 'procrastinat', 'distract', 'motivat'] },
-    { label: 'feeling overwhelmed', keys: ['overwhelm', 'stress', 'anxious', 'burnout'] },
+    { label: t("insight_cat_distraction_title"), keys: ['phone', 'social', 'instagram', 'tiktok', 'scroll'] },
+    { label: t("insight_cat_energy_title"), keys: ['sleep', 'tired', 'exhausted', 'bed', 'fatigue'] },
+    { label: t("insight_cat_focus_title"), keys: ['focus', 'procrastinat', 'distract', 'motivat'] },
+    { label: t("insight_cat_overwhelm_title"), keys: ['overwhelm', 'stress', 'anxious', 'burnout'] },
   ];
   let topChallenge: string | null = null;
   let maxHits = 0;
@@ -648,65 +652,65 @@ export function generateGrowthSummary(
   const highlights: string[] = [];
 
   if (range === 'weekly') {
-    if (trend === 'improving') headline = 'A stronger week than the last';
-    else if (trend === 'declining') headline = 'A quieter week — room to rebuild';
-    else if (trend === 'steady') headline = 'Staying consistent this week';
-    else headline = 'Starting to build your patterns';
+    if (trend === 'improving') headline = t("growth_headline_improving");
+    else if (trend === 'declining') headline = t("growth_headline_declining");
+    else if (trend === 'steady') headline = t("growth_headline_steady");
+    else headline = t("growth_headline_new");
 
     const parts: string[] = [];
     if (doneCurrent > 0 && donePrev > 0) {
       if (trend === 'improving') {
-        parts.push(`You completed ${doneCurrent} tasks this week — more than the ${donePrev} last week.`);
+        parts.push(t("growth_narrative_improving", { current: doneCurrent, prev: donePrev }));
       } else if (trend === 'declining') {
-        parts.push(`You completed ${doneCurrent} tasks, slightly less than last week's ${donePrev}. Every week is a fresh start.`);
+        parts.push(t("growth_narrative_declining", { current: doneCurrent, prev: donePrev }));
       } else {
-        parts.push(`Consistent pace: ${doneCurrent} tasks completed, similar to last week.`);
+        parts.push(t("growth_narrative_steady", { current: doneCurrent }));
       }
     } else if (doneCurrent > 0) {
-      parts.push(`You completed ${doneCurrent} tasks this week.`);
+      parts.push(t("growth_narrative_generic", { count: doneCurrent }));
     }
 
-    if (bestDayName) parts.push(`${bestDayName} was your most productive day.`);
-    if (topHabit && topHabit.score >= 2) parts.push(`"${topHabit.title}" was consistent — routines compound powerfully.`);
-    if (topChallenge && maxHits > 0) parts.push(`${topChallenge} appeared as your main obstacle.`);
+    if (bestDayName) parts.push(t("growth_best_day", { day: bestDayName }));
+    if (topHabit && topHabit.score >= 2) parts.push(t("growth_habit_anchor", { title: topHabit.title }));
+    if (topChallenge && maxHits > 0) parts.push(t("growth_challenge_blocker", { challenge: topChallenge }));
 
     narrative = parts.slice(0, 3).join(' ');
-    if (bestDayName) highlights.push(`Most productive: ${bestDayName}`);
-    if (topHabit && topHabit.score >= 1) highlights.push(`Top habit: ${topHabit.title}`);
-    if (topChallenge) highlights.push(`Main blocker: ${topChallenge}`);
-    if (dominantMoodLabel) highlights.push(`Mood: ${dominantMoodLabel}`);
+    if (bestDayName) highlights.push(t("growth_highlight_productive", { day: bestDayName }));
+    if (topHabit && topHabit.score >= 1) highlights.push(t("growth_highlight_habit", { title: topHabit.title }));
+    if (topChallenge) highlights.push(t("growth_highlight_blocker", { challenge: topChallenge }));
+    if (dominantMoodLabel) highlights.push(t("growth_highlight_mood", { mood: dominantMoodLabel }));
 
   } else if (range === 'monthly') {
-    if (trend === 'improving') headline = 'Growing stronger this month';
-    else if (trend === 'declining') headline = 'A reflective month';
-    else if (trend === 'steady') headline = 'Reliable consistency';
-    else headline = 'Your first month of growth';
+    if (trend === 'improving') headline = t("growth_monthly_headline_improving");
+    else if (trend === 'declining') headline = t("growth_monthly_headline_declining");
+    else if (trend === 'steady') headline = t("growth_monthly_headline_steady");
+    else headline = t("growth_monthly_headline_new");
 
     const parts: string[] = [];
-    if (doneCurrent > 0) parts.push(`Over the past 30 days you completed ${doneCurrent} tasks.`);
-    if (topHabit && topHabit.pct >= 50) parts.push(`"${topHabit.title}" was your anchor, completed on ${topHabit.pct}% of days.`);
-    if (dominantMoodLabel) parts.push(`Your dominant emotional tone was "${dominantMoodLabel}".`);
+    if (doneCurrent > 0) parts.push(t("growth_month_total", { count: doneCurrent }));
+    if (topHabit && topHabit.pct >= 50) parts.push(t("growth_month_habit", { title: topHabit.title, percent: topHabit.pct }));
+    if (dominantMoodLabel) parts.push(t("growth_month_mood", { mood: dominantMoodLabel }));
 
     narrative = parts.slice(0, 3).join(' ');
     if (topHabit) highlights.push(`${topHabit.title}: ${topHabit.pct}%`);
-    if (doneCurrent > 0) highlights.push(`Tasks done: ${doneCurrent}`);
-    if (topChallenge) highlights.push(`Challenge: ${topChallenge}`);
+    if (doneCurrent > 0) highlights.push(t("tasksComplete") + `: ${doneCurrent}`);
+    if (topChallenge) highlights.push(`${t("reflectChallenge")}: ${topChallenge}`);
 
   } else {
-    headline = trend === 'improving' ? 'A year of meaningful growth' : 'Reflecting on your year';
+    headline = trend === 'improving' ? t("growth_yearly_headline_improving") : t("growth_yearly_headline_declining");
     const parts: string[] = [];
-    if (doneCurrent > 0) parts.push(`This year you completed ${doneCurrent} tasks.`);
+    if (doneCurrent > 0) parts.push(t("growth_year_total", { count: doneCurrent }));
     const completedGoals = goals.filter(g => g.progress >= 100).length;
-    if (completedGoals > 0) parts.push(`You finished ${completedGoals} goals.`);
-    if (reflections.length >= 5) parts.push(`You've built a record of ${reflections.length} reflections.`);
+    if (completedGoals > 0) parts.push(t("growth_year_goals", { count: completedGoals }));
+    if (reflections.length >= 5) parts.push(t("growth_year_reflections", { count: reflections.length }));
 
     narrative = parts.slice(0, 3).join(' ');
-    if (doneCurrent > 0) highlights.push(`Total tasks: ${doneCurrent}`);
-    if (completedGoals > 0) highlights.push(`Goals finished: ${completedGoals}`);
-    if (reflections.length > 0) highlights.push(`Reflections: ${reflections.length}`);
+    if (doneCurrent > 0) highlights.push(`${t("tasksComplete")}: ${doneCurrent}`);
+    if (completedGoals > 0) highlights.push(`${t("goals")}: ${completedGoals}`);
+    if (reflections.length > 0) highlights.push(`${t("reflect")}: ${reflections.length}`);
   }
 
-  if (!narrative) narrative = "Keep going — patterns take time to form. Every small action builds self-awareness.";
+  if (!narrative) narrative = t("growth_empty");
 
   return { headline, narrative, trend, highlights: highlights.slice(0, 4) };
 }
