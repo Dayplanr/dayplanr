@@ -107,6 +107,16 @@ export default function GoalsPage() {
           if (task.completed) statsMap[task.goal_id].done += 1;
         });
         setTaskStatsMap(statsMap);
+
+        // Re-calculate progress for all goals with task stats
+        const goalsWithRealProgress = formattedGoals.map(goal => {
+          const stats = statsMap[goal.id] || { total: 0, done: 0 };
+          const newProgress = calculateGoalProgress(goal.milestones, stats.total, stats.done);
+          return { ...goal, progress: newProgress };
+        });
+        setGoals(goalsWithRealProgress);
+      } else {
+        setGoals(formattedGoals);
       }
     } catch (error: any) {
       toast({
@@ -143,7 +153,9 @@ export default function GoalsPage() {
       const updatedMilestones = goal.milestones.map((m) =>
         m.id === milestoneId ? { ...m, completed: !m.completed } : m
       );
-      const newProgress = calculateGoalProgress(updatedMilestones);
+      
+      const stats = taskStatsMap[goalId] || { total: 0, done: 0 };
+      const newProgress = calculateGoalProgress(updatedMilestones, stats.total, stats.done);
 
       await supabase
         .from("goals")

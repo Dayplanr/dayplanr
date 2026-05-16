@@ -81,7 +81,6 @@ export default function SettingsPage() {
 
   const loadSettings = async () => {
     try {
-      console.log("🔧 Loading user settings...");
 
       // First try to get existing settings
       const { data, error } = await supabase
@@ -92,7 +91,6 @@ export default function SettingsPage() {
 
       if (error && error.code === 'PGRST116') {
         // No settings found, create default settings
-        console.log("🔧 No settings found, creating defaults...");
         const { data: newData, error: insertError } = await supabase
           .from("user_settings")
           .insert({

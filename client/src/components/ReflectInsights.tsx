@@ -8,7 +8,7 @@ import { format, startOfWeek, endOfWeek, eachWeekOfInterval, startOfYear, endOfY
 import { useTranslation } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
-import { generateInsights, Insight, Reflection, Task, FocusSession } from "@/lib/insightGenerator";
+import { generatePatternInsights, Insight, Reflection, Task, FocusSession, Habit, Goal } from "@/lib/insightEngine";
 
 const MOODS = [
   { id: "great", emoji: "✨", label: "Great", color: "#10b981" },
@@ -68,15 +68,19 @@ export default function ReflectInsights({ open, onOpenChange, history }: Reflect
       const fetchRelatedData = async () => {
         setLoadingInsights(true);
         try {
-          const [tasksRes, sessionsRes] = await Promise.all([
+          const [tasksRes, sessionsRes, habitsRes, goalsRes] = await Promise.all([
             supabase.from("tasks").select("id, completed, scheduled_date").eq("user_id", user.id),
-            supabase.from("focus_sessions").select("id, duration, completed_at").eq("user_id", user.id)
+            supabase.from("focus_sessions").select("id, duration, completed_at").eq("user_id", user.id),
+            supabase.from("habits").select("*").eq("user_id", user.id),
+            supabase.from("goals").select("id, title, progress, last_activity_at").eq("user_id", user.id)
           ]);
           
           const tasks = (tasksRes.data || []) as Task[];
           const sessions = (sessionsRes.data || []) as FocusSession[];
+          const habits = (habitsRes.data || []) as Habit[];
+          const goals = (goalsRes.data || []) as Goal[];
           
-          const generated = generateInsights(history, tasks, sessions);
+          const generated = generatePatternInsights(history, tasks, sessions, habits, goals);
           setPatternInsights(generated);
         } catch (error) {
           console.error("Error generating insights:", error);
@@ -86,7 +90,7 @@ export default function ReflectInsights({ open, onOpenChange, history }: Reflect
       };
       fetchRelatedData();
     } else if (open && history.length === 0) {
-      setPatternInsights(generateInsights([], [], []));
+      setPatternInsights(generatePatternInsights([], [], [], [], []));
     }
   }, [open, user, history]);
 

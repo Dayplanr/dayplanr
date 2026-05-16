@@ -255,15 +255,6 @@ export default function TodayInsights({
     const firstDayOfWeek = getDay(monthStart);
     const emptyCells = Array(firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1).fill(null);
 
-    const getHeatmapOpacity = (dayNum: number) => {
-      const value = (dayNum % 7) * 15;
-      if (value === 0) return 0.1;
-      if (value < 30) return 0.3;
-      if (value < 60) return 0.5;
-      if (value < 90) return 0.7;
-      return 1;
-    };
-
     return (
       <div className="grid grid-cols-7 gap-1">
         {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (

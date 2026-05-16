@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { updateGoalProgress } from "@/lib/goalUtils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,7 +27,6 @@ import DashboardCustomizer, { type DashboardConfig } from "@/components/Dashboar
 import { useTranslation } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
-import { useNotifications } from "@/hooks/useNotifications";
 import { generateTodayInsights } from "@/lib/insightEngine";
 import { format, type Locale, startOfDay, endOfDay, subDays } from "date-fns";
 import { enUS, de, es, fr, it, pt, nl, pl } from "date-fns/locale";
@@ -75,8 +75,7 @@ export default function TodayPage() {
   const { toast } = useToast();
   const { t, language } = useTranslation();
   const { user } = useAuth();
-  const notifications = useNotifications();
-  const [location, navigate] = useLocation();
+  const [, navigate] = useLocation();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showInsights, setShowInsights] = useState(false);
   const [openSections, setOpenSections] = useState({
@@ -184,18 +183,6 @@ export default function TodayPage() {
     setTasks(groups);
     setLoading(false);
 
-    // Schedule notifications for all tasks
-    data?.forEach((task: any) => {
-      if (!task.completed && task.time) {
-        notifications.scheduleTaskNotification({
-          id: task.id,
-          title: task.title,
-          time: task.time,
-          scheduled_date: task.scheduled_date,
-          completed: task.completed,
-        });
-      }
-    });
 
   };
 
@@ -401,7 +388,23 @@ export default function TodayPage() {
             best_streak: newBestStreak
           })
           .eq("id", task.habit_id);
+          
+        // If habit is linked to a goal, update goal activity
+        const { data: linkedHabit } = await supabase
+          .from("habits")
+          .select("goal_id")
+          .eq("id", task.habit_id)
+          .single();
+        
+        if (linkedHabit?.goal_id) {
+          await updateGoalProgress(linkedHabit.goal_id, user.id);
+        }
       }
+    }
+
+    // Sync with goal if linked directly
+    if (task.goal_id) {
+      await updateGoalProgress(task.goal_id, user.id);
     }
 
     setTasks((prev: TaskGroups) => ({
@@ -411,21 +414,6 @@ export default function TodayPage() {
       ),
     }));
 
-    // Cancel notification if task is completed, reschedule if uncompleted
-    if (newCompleted) {
-      notifications.cancelNotification(id);
-    } else {
-      const updatedTask = tasks[period].find(t => t.id === id);
-      if (updatedTask && updatedTask.time) {
-        notifications.scheduleTaskNotification({
-          id: updatedTask.id,
-          title: updatedTask.title,
-          time: updatedTask.time,
-          scheduled_date: updatedTask.scheduled_date,
-          completed: false,
-        });
-      }
-    }
 
     // Refresh stats to update habits completed count
     fetchStats();

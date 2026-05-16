@@ -53,10 +53,19 @@ export const CHALLENGE_DURATIONS = [
   { label: "Custom", value: -1 },
 ] as const;
 
-export function calculateGoalProgress(milestones: Milestone[]): number {
-  if (milestones.length === 0) return 0;
-  const completed = milestones.filter((m) => m.completed).length;
-  return Math.round((completed / milestones.length) * 100);
+export function calculateGoalProgress(
+  milestones: Milestone[],
+  linkedTasksTotal: number = 0,
+  linkedTasksDone: number = 0
+): number {
+  const totalMilestones = milestones.length;
+  const completedMilestones = milestones.filter((m) => m.completed).length;
+
+  const totalItems = totalMilestones + linkedTasksTotal;
+  const completedItems = completedMilestones + linkedTasksDone;
+
+  if (totalItems === 0) return 0;
+  return Math.round((completedItems / totalItems) * 100);
 }
 
 export function getGoalsAtRisk(goals: Goal[]): Goal[] {
