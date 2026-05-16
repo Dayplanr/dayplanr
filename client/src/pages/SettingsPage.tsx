@@ -10,10 +10,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
 import { useToast } from "@/hooks/use-toast";
-import { useTimerSound } from "@/hooks/useTimerSound";
 import { useNotifications } from "@/hooks/useNotifications";
-import { timerSounds } from "@/lib/timerSounds";
-import DashboardCustomizer, { type DashboardConfig } from "@/components/DashboardCustomizer";
 import {
   Select,
   SelectContent,
@@ -42,14 +39,10 @@ import {
   ChevronRight,
   ChevronDown,
   Check,
-  Volume2,
-  Play,
-  Settings2,
   Bell,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { notificationService } from "@/lib/notifications";
 import {
   Dialog,
   DialogContent,
@@ -66,32 +59,12 @@ export default function SettingsPage() {
   const { user, signOut } = useAuth();
   const { darkMode, setDarkMode, themeColor, setThemeColor } = useTheme();
   const { toast } = useToast();
-  const { timerSound: hookTimerSound, refreshTimerSound } = useTimerSound();
-
-  // Use local state for immediate UI updates
-  const [localTimerSound, setLocalTimerSound] = useState(hookTimerSound);
-
-  // Sync local state with hook state
-  useEffect(() => {
-    setLocalTimerSound(hookTimerSound);
-  }, [hookTimerSound]);
-
   const [displayName, setDisplayName] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(true);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isTimerSettingsOpen, setIsTimerSettingsOpen] = useState(false);
-  const [dashboardConfig, setDashboardConfig] = useState<DashboardConfig>({
-    modules: {
-      summary: true,
-      focus: true,
-      habits: true,
-      insights: true,
-    },
-    order: ["summary", "focus", "habits", "insights"],
-  });
 
   const [notifSettings, setNotifSettings] = useState({
     enabled: true,

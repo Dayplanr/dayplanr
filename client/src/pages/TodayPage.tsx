@@ -696,7 +696,7 @@ export default function TodayPage() {
           >
             <div className="flex items-center justify-between">
               <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Awareness</p>
-              <Button variant="link" onClick={() => navigate("/app/focus")} className="text-[10px] font-bold h-auto p-0 opacity-60 hover:opacity-100">Full Reflection</Button>
+              <Button variant="ghost" onClick={() => navigate("/app/focus")} className="text-[10px] font-bold h-auto p-0 opacity-60 hover:opacity-100 hover:bg-transparent">Full Reflection</Button>
             </div>
             <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
               {['✨ Great', '😌 Calm', '🔋 Productive', '🧘 Focused', '😴 Tired', '😟 Stressed'].map((mood) => (
@@ -805,7 +805,7 @@ export default function TodayPage() {
               <p className="text-muted-foreground text-sm max-w-[240px] mx-auto leading-relaxed">
                 No tasks planned yet. Small intentional actions create long-term growth.
               </p>
-              <Button onClick={handleAddTask} variant="link" className="text-primary mt-2 font-bold p-0 h-auto">
+              <Button onClick={handleAddTask} variant="ghost" className="text-primary mt-2 font-bold p-0 h-auto hover:bg-transparent">
                 Start your day intentionally
               </Button>
             </div>
