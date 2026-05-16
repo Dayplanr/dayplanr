@@ -2,17 +2,19 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Sparkles, User } from "lucide-react";
-import type { CoachMessage } from "@/types/coach";
+import { Send, Sparkles, User, Plus, Check } from "lucide-react";
+import type { CoachMessage, CoachAction } from "@/types/coach";
 
 interface CoachChatProps {
   messages: CoachMessage[];
   onSendMessage: (message: string) => void;
+  onAction?: (action: CoachAction) => void;
   isTyping?: boolean;
 }
 
-export default function CoachChat({ messages, onSendMessage, isTyping }: CoachChatProps) {
+export default function CoachChat({ messages, onSendMessage, onAction, isTyping }: CoachChatProps) {
   const [input, setInput] = useState("");
+  const [executedActions, setExecutedActions] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -26,6 +28,14 @@ export default function CoachChat({ messages, onSendMessage, isTyping }: CoachCh
     if (!input.trim()) return;
     onSendMessage(input.trim());
     setInput("");
+  };
+
+  const handleActionClick = (action: CoachAction, msgId: string) => {
+    const actionKey = `${msgId}-${action.label}`;
+    if (executedActions.includes(actionKey)) return;
+    
+    onAction?.(action);
+    setExecutedActions(prev => [...prev, actionKey]);
   };
 
   return (
@@ -55,6 +65,27 @@ export default function CoachChat({ messages, onSendMessage, isTyping }: CoachCh
                 <div className={`text-lg leading-relaxed ${msg.role === 'user' ? 'text-foreground font-medium' : 'text-foreground/90 font-serif italic'}`}>
                   {msg.content}
                 </div>
+
+                {msg.role === 'assistant' && msg.actions && msg.actions.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-6">
+                    {msg.actions.map((action, i) => {
+                      const isExecuted = executedActions.includes(`${msg.id}-${action.label}`);
+                      return (
+                        <Button
+                          key={i}
+                          variant="outline"
+                          size="sm"
+                          disabled={isExecuted}
+                          className={`rounded-full border-primary/20 transition-all ${isExecuted ? 'bg-green-500/10 border-green-500/20 text-green-600' : 'bg-primary/5 hover:bg-primary/10'}`}
+                          onClick={() => handleActionClick(action, msg.id)}
+                        >
+                          {isExecuted ? <Check className="w-4 h-4 mr-1.5" /> : <Plus className="w-4 h-4 mr-1.5" />}
+                          {isExecuted ? 'Added to List' : action.label}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {msg.role === 'user' && (

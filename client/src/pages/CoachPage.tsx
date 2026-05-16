@@ -6,15 +6,18 @@ import {
   getCoachProfile, 
   saveCoachMessage, 
   updateCoachProfile, 
-  generateCoachResponse 
+  generateCoachResponse,
+  executeCoachAction
 } from "@/lib/coachEngine";
 import CoachOnboarding from "@/components/CoachOnboarding";
 import CoachChat from "@/components/CoachChat";
 import { LoadingScreen } from "@/components/LoadingScreen";
-import type { CoachMessage } from "@/types/coach";
+import { useToast } from "@/hooks/use-toast";
+import type { CoachMessage, CoachAction } from "@/types/coach";
 
 export default function CoachPage() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [onboardingCompleted, setOnboardingCompleted] = useState(false);
   const [messages, setMessages] = useState<CoachMessage[]>([]);
@@ -48,20 +51,17 @@ export default function CoachPage() {
     if (!user) return;
     setLoading(true);
     try {
-      // 1. Update profile with the onboarding flag FIRST
       await updateCoachProfile(user.id, {
         onboarding_completed: true,
         ...data
       });
 
-      // 2. Prepare the trigger message
       const welcomeContent = `I've shared my vision: ${data.ideal_self || 'to grow intentionally'}. I'm ready to begin this journey.`;
-      
-      // 3. Save user message and get AI response
       const userMsg = await saveCoachMessage(user.id, 'user', welcomeContent);
+      
       setIsTyping(true);
       const aiResponse = await generateCoachResponse(user.id, welcomeContent);
-      const savedAiMsg = await saveCoachMessage(user.id, 'assistant', aiResponse);
+      const savedAiMsg = await saveCoachMessage(user.id, 'assistant', aiResponse.content, aiResponse.actions);
 
       setMessages([userMsg, savedAiMsg]);
       setOnboardingCompleted(true);
@@ -77,20 +77,36 @@ export default function CoachPage() {
     if (!user) return;
 
     try {
-      // 1. Save user message
       const userMsg = await saveCoachMessage(user.id, 'user', content);
       setMessages(prev => [...prev, userMsg]);
       
-      // 2. Generate AI response
       setIsTyping(true);
-      const aiContent = await generateCoachResponse(user.id, content);
-      const aiMsg = await saveCoachMessage(user.id, 'assistant', aiContent);
+      const aiResponse = await generateCoachResponse(user.id, content);
+      const aiMsg = await saveCoachMessage(user.id, 'assistant', aiResponse.content, aiResponse.actions);
       
       setMessages(prev => [...prev, aiMsg]);
     } catch (err) {
       console.error("Error sending message:", err);
     } finally {
       setIsTyping(false);
+    }
+  };
+
+  const handleAction = async (action: CoachAction) => {
+    if (!user) return;
+    try {
+      await executeCoachAction(user.id, action);
+      toast({
+        title: "Success",
+        description: `Successfully added: ${action.payload.title}`,
+      });
+    } catch (err) {
+      console.error("Error executing coach action:", err);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to add the habit. Please try again.",
+      });
     }
   };
 
@@ -119,6 +135,7 @@ export default function CoachPage() {
             <CoachChat 
               messages={messages} 
               onSendMessage={handleSendMessage} 
+              onAction={handleAction}
               isTyping={isTyping}
             />
           </motion.div>

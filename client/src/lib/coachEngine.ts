@@ -1,85 +1,6 @@
 import { supabase } from "./supabase";
 import { format, subDays } from "date-fns";
-import type { CoachMessage, CoachProfileData } from "@/types/coach";
-
-export async function getCoachContext(userId: string) {
-  const today = format(new Date(), "yyyy-MM-dd");
-  const sevenDaysAgo = format(subDays(new Date(), 30), "yyyy-MM-dd"); // Get more history for better insights
-
-  const [
-    { data: tasks },
-    { data: habits },
-    { data: reflections }
-  ] = await Promise.all([
-    supabase.from("tasks").select("*").eq("user_id", userId).gte("scheduled_date", sevenDaysAgo),
-    supabase.from("habits").select("*").eq("user_id", userId),
-    supabase.from("reflections").select("*").eq("user_id", userId).gte("created_at", sevenDaysAgo)
-  ]);
-
-  return {
-    recentTasks: tasks || [],
-    allHabits: habits || [],
-    recentReflections: reflections || []
-  };
-}
-
-export async function saveCoachMessage(userId: string, role: 'user' | 'assistant', content: string) {
-  const { data, error } = await supabase
-    .from("coach_conversations")
-    .insert({ user_id: userId, role, content })
-    .select()
-    .single();
-  
-  if (error) throw error;
-  return data as CoachMessage;
-}
-
-export async function getCoachMessages(userId: string) {
-  const { data, error } = await supabase
-    .from("coach_conversations")
-    .select("*")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: true });
-  
-  if (error) throw error;
-  return data as CoachMessage[];
-}
-
-export async function getCoachProfile(userId: string) {
-  const { data, error } = await supabase
-    .from("coach_profile")
-    .select("*")
-    .eq("user_id", userId)
-    .single();
-  
-  if (error && error.code !== 'PGRST116') throw error;
-  return data;
-}
-
-export async function updateCoachProfile(userId: string, profileData: Partial<CoachProfileData>) {
-  let existingData = {};
-  try {
-    const { data: existing, error } = await supabase
-      .from("coach_profile")
-      .select("data")
-      .eq("user_id", userId)
-      .single();
-    
-    if (!error && existing) {
-      existingData = existing.data || {};
-    }
-  } catch (e) {
-    // Ignore error
-  }
-  
-  const newData = { ...existingData, ...profileData };
-
-  const { error } = await supabase
-    .from("coach_profile")
-    .upsert({ user_id: userId, data: newData, updated_at: new Date().toISOString() });
-  
-  if (error) throw error;
-}
+import type { CoachMessage, CoachProfile, CoachAction } from "@/types/coach";
 
 // --- The Growth Strategist Knowledge Base ---
 const STRATEGIST_LIBRARY: Record<string, { system: string, action: string, insight: string, triggers?: string[] }> = {
@@ -121,11 +42,96 @@ const STRATEGIST_LIBRARY: Record<string, { system: string, action: string, insig
   }
 };
 
+export async function getCoachMessages(userId: string): Promise<CoachMessage[]> {
+  const { data, error } = await supabase
+    .from("coach_conversations")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: true });
+  
+  if (error) throw error;
+  return data || [];
+}
+
+export async function saveCoachMessage(userId: string, role: 'user' | 'assistant', content: string, actions?: CoachAction[]) {
+  const { data, error } = await supabase
+    .from("coach_conversations")
+    .insert({
+      user_id: userId,
+      role,
+      content,
+      actions
+    })
+    .select()
+    .single();
+  
+  if (error) throw error;
+  return data;
+}
+
+export async function executeCoachAction(userId: string, action: CoachAction) {
+  if (action.type === 'create_habit') {
+    const { error } = await supabase
+      .from("habits")
+      .insert({
+        user_id: userId,
+        title: action.payload.title,
+        schedule_type: action.payload.schedule_type || 'daily',
+        selected_days: action.payload.selected_days || ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+        streak: 0,
+        best_streak: 0,
+        completed_dates: []
+      });
+    
+    if (error) throw error;
+    return true;
+  }
+  return false;
+}
+
+export async function getCoachProfile(userId: string) {
+  const { data, error } = await supabase
+    .from("coach_profile")
+    .select("*")
+    .eq("user_id", userId)
+    .single();
+  
+  if (error && error.code !== 'PGRST116') throw error;
+  return data;
+}
+
+export async function updateCoachProfile(userId: string, profileData: any) {
+  const { error } = await supabase
+    .from("coach_profile")
+    .upsert({
+      user_id: userId,
+      data: profileData,
+      updated_at: new Date().toISOString()
+    });
+  
+  if (error) throw error;
+}
+
+async function getCoachContext(userId: string) {
+  const thirtyDaysAgo = subDays(new Date(), 30).toISOString();
+  
+  const [tasks, habits, reflections] = await Promise.all([
+    supabase.from("tasks").select("*").eq("user_id", userId).gte("created_at", thirtyDaysAgo),
+    supabase.from("habits").select("*").eq("user_id", userId),
+    supabase.from("reflections").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(5)
+  ]);
+
+  return {
+    recentTasks: tasks.data || [],
+    allHabits: habits.data || [],
+    recentReflections: reflections.data || []
+  };
+}
+
 // Dynamic AI response logic
-export async function generateCoachResponse(userId: string, userMessage: string) {
+export async function generateCoachResponse(userId: string, userMessage: string): Promise<{ content: string, actions?: CoachAction[] }> {
   const context = await getCoachContext(userId);
   const profile = await getCoachProfile(userId);
-  const messages = await getCoachMessages(userId);
   const lowerMsg = userMessage.toLowerCase().trim();
   
   const reflections = context.recentReflections;
@@ -136,34 +142,29 @@ export async function generateCoachResponse(userId: string, userMessage: string)
   const userVision = (profile?.data?.ideal_self || "your best self").replace(/\s+/g, ' ').trim();
   const userGoals = (profile?.data?.goals || "").replace(/\s+/g, ' ').trim();
 
-  // 1. Habit Selection Mode (Specific Suggestion)
+  // 1. Habit Selection Mode (Specific Suggestion + Actions)
   if (lowerMsg.includes("which") || lowerMsg.includes("what") || lowerMsg.includes("suggest")) {
     if (lowerMsg.includes("habit")) {
-      let suggestions = [];
+      const isFitness = userGoals.includes("fat") || userGoals.includes("muscle") || userGoals.includes("health");
       
-      // Dynamic suggestion based on goals
-      if (userGoals.includes("fat") || userGoals.includes("muscle") || userGoals.includes("health")) {
-        suggestions = [
-          "Protein-First Breakfast: Anchored to waking up.",
-          "10-Minute Bodyweight Session: Anchored to arriving home.",
-          "Hydration Baseline: 500ml water anchored to finishing coffee."
-        ];
-      } else {
-        suggestions = [
-          "5-Minute Deep Work: Anchored to opening laptop.",
-          "One-Line Reflection: Anchored to getting into bed.",
-          "Digital Sunset: Phone away 30 mins before sleep."
-        ];
-      }
+      const actions: CoachAction[] = isFitness ? [
+        { type: 'create_habit', label: 'Add Protein Breakfast', payload: { title: 'Protein-First Breakfast', schedule_type: 'daily' } },
+        { type: 'create_habit', label: 'Add 10m Bodyweight', payload: { title: '10-Minute Bodyweight Session', schedule_type: 'daily' } }
+      ] : [
+        { type: 'create_habit', label: 'Add Deep Work', payload: { title: '5-Minute Deep Work', schedule_type: 'daily' } },
+        { type: 'create_habit', label: 'Add Reflection', payload: { title: 'One-Line Reflection', schedule_type: 'daily' } }
+      ];
 
-      return `Based on your goal to reach '${userVision}', we should move from broad aspirations to specific 'Anchor Habits'. 
+      return {
+        content: `Based on your goal to reach '${userVision}', we should move from broad aspirations to specific 'Anchor Habits'. 
 
 **The Strategy: The Foundational Three**
-*   **Recommendation 1**: ${suggestions[0]}
-*   **Recommendation 2**: ${suggestions[1]}
-*   **Recommendation 3**: ${suggestions[2]}
+*   **Recommendation 1**: ${isFitness ? 'Protein-First Breakfast' : '5-Minute Deep Work'}
+*   **Recommendation 2**: ${isFitness ? '10-Minute Bodyweight Session' : 'One-Line Reflection'}
 
-**The Insight**: Don't try to do all three at once. Pick the ONE that feels easiest to start today. Which one resonates most?`;
+**The Insight**: Don't try to do too much at once. Pick the ONE that feels easiest to start today. I can add it to your list immediately.`,
+        actions
+      };
     }
   }
 
@@ -174,7 +175,8 @@ export async function generateCoachResponse(userId: string, userMessage: string)
 
   if (problemKey) {
     const strat = STRATEGIST_LIBRARY[problemKey];
-    return `I understand. When you're struggling with ${problemKey}, we need to move from thinking to a structured system.
+    return { 
+      content: `I understand. When you're struggling with ${problemKey}, we need to move from thinking to a structured system.
 
 **The Strategy: ${strat.system}**
 
@@ -182,55 +184,45 @@ export async function generateCoachResponse(userId: string, userMessage: string)
 
 **The Action**: ${strat.action}
 
-Focus only on this single adjustment for the next few hours. We will build from there.`;
-  }
-
-  // 2. Initial Post-Onboarding Strategy
-  if (lowerMsg.includes("ready to begin this journey") || lowerMsg.includes("shared my vision")) {
-    const blocker = profile?.data?.blockers || "consistency";
-    const productivity = profile?.data?.productivity || "day";
-
-    return `Welcome to your growth journey. I've synthesized your onboarding data into a foundational strategy for becoming ${userVision}.
-
-**Your Core System:**
-1. **The ${blocker} Filter**: Whenever you feel ${blocker} creeping in, use the 'Minimum Viable Step'—do 1% of the task to keep momentum.
-2. **Energy Protection**: Since you're most productive in the ${productivity}, we will protect that window for your ${profile?.data?.goals || 'main priorities'}. No low-value tasks allowed during this time.
-3. **Daily Reflection**: Use the 'Reflect' page each evening. One sentence on what worked. This builds the self-awareness we need to scale.
-
-Let's begin with this structure. No excessive questions—just intentional action.`;
+Focus only on this single adjustment for the next few hours. We will build from there.` 
+    };
   }
 
   // 3. Behavioral Adjustment based on Mood/Data
   if (recentMood === "stressed" || recentMood === "tired") {
-    return `I've noted that you're feeling ${recentMood}. In this state, 'high-performance' is the wrong goal. 
+    return { 
+      content: `I've noted that you're feeling ${recentMood}. In this state, 'high-performance' is the wrong goal. 
 
 **The Strategy: Maintenance Mode**
 *   **The Insight**: Resting today is a strategic investment in your consistency tomorrow.
 *   **The Action**: Complete only your most critical 1-minute habit. Defer everything else. Give yourself explicit permission to recharge.
 
-Your system is now in Maintenance Mode. Focus on recovery.`;
+Your system is now in Maintenance Mode. Focus on recovery.` 
+    };
   }
 
   // 4. Progress Analysis (Data-Driven)
   const completedToday = context.recentTasks.filter(t => t.completed).length;
   if (completedToday > 3) {
-    return `You've completed ${completedToday} tasks today. You have strong momentum. 
+    return { 
+      content: `You've completed ${completedToday} tasks today. You have strong momentum. 
 
 **The Strategy: Sustained Focus**
 *   **The Insight**: Momentum is easily lost if we overextend into burnout. 
 *   **The Action**: Take a 10-minute quiet break now. Then, pick one high-value 'deep work' task that aligns with your goal of ${userAspiration}. 
 
-You are moving effectively toward becoming ${userVision}. Stay steady.`;
+You are moving effectively toward becoming ${userVision}. Stay steady.` 
+    };
   }
 
   // Default: Calm, Systemic Observation
-  const hasStreak = context.allHabits.some(h => (h.streak || 0) > 0);
-  
-  return `I'm currently observing your trajectory toward ${userAspiration}. 
+  return { 
+    content: `I'm currently observing your trajectory toward ${userAspiration}. 
 
 **The Strategy: The Micro-Win Protocol**
 *   **The Insight**: Consistency is a battle against over-ambition. Your ${userVision} identity is built in the small, boring repetitions, not the giant leaps.
 *   **The Action**: Identify the one tiny, 1-minute action you can take right now. Do it, then return to your day. 
 
-This builds the 'habit of showing up' which is the foundation for everything else.`;
+This builds the 'habit of showing up' which is the foundation for everything else.` 
+  };
 }
