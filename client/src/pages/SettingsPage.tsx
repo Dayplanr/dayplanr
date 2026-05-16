@@ -40,6 +40,8 @@ import {
   ChevronDown,
   Check,
   Bell,
+  Sparkles,
+  RefreshCcw,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -65,6 +67,8 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [coachProfile, setCoachProfile] = useState<any>(null);
+  const [isResettingCoach, setIsResettingCoach] = useState(false);
 
   const [notifSettings, setNotifSettings] = useState({
     enabled: true,
@@ -87,6 +91,7 @@ export default function SettingsPage() {
   useEffect(() => {
     if (user) {
       loadSettings();
+      loadCoachProfile();
     }
   }, [user]);
 
@@ -139,6 +144,44 @@ export default function SettingsPage() {
       setDisplayName(user?.user_metadata?.full_name || "");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadCoachProfile = async () => {
+    try {
+      const { data } = await supabase
+        .from("coach_profile")
+        .select("*")
+        .eq("user_id", user?.id)
+        .single();
+      
+      if (data) {
+        setCoachProfile(data.data);
+      }
+    } catch (err) {
+      console.error("Error loading coach profile:", err);
+    }
+  };
+
+  const handleResetCoach = async () => {
+    if (!user) return;
+    setIsResettingCoach(true);
+    try {
+      await supabase.from("coach_profile").delete().eq("user_id", user.id);
+      await supabase.from("coach_conversations").delete().eq("user_id", user.id);
+      setCoachProfile(null);
+      toast({
+        title: "Coach Reset",
+        description: "Your AI Coach has been reset and is ready for a fresh start.",
+      });
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to reset AI Coach.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsResettingCoach(false);
     }
   };
 
@@ -637,6 +680,57 @@ export default function SettingsPage() {
             )}
           </CardContent>
         </Card>
+        
+        {coachProfile && (
+          <Card className="bg-card">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base font-semibold flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-amber-500" />
+                  Growth Coach Blueprint
+                </CardTitle>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-8 text-xs text-muted-foreground hover:text-destructive">
+                      Reset
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Reset AI Coach?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will clear your growth profile and all chat history. You will need to complete the onboarding again.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleResetCoach} className="bg-destructive text-destructive-foreground">
+                        Reset Coach
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4 pt-2">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Ideal Self</p>
+                  <p className="text-sm font-medium line-clamp-2 italic font-serif">"{coachProfile.ideal_self || 'Growth oriented'}"</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Core Blocker</p>
+                  <p className="text-sm font-medium line-clamp-2">"{coachProfile.blockers || 'None identified'}"</p>
+                </div>
+              </div>
+              <Separator />
+              <div className="space-y-1">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Main Aspirations</p>
+                <p className="text-sm">{coachProfile.goals || 'Focusing on general growth.'}</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <Card className="bg-card">
           <CardHeader className="pb-2">

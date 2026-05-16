@@ -81,18 +81,45 @@ export async function updateCoachProfile(userId: string, profileData: Partial<Co
   if (error) throw error;
 }
 
+// --- Coach Knowledge Base ---
+const COACH_KNOWLEDGE: Record<string, { triggers: string[], response: string }> = {
+  procrastination: {
+    triggers: ["procrastinate", "procrastination", "delay", "laziness", "lazy", "starting"],
+    response: "Procrastination is often a signal of overwhelm, not a lack of character. Try the '5-Minute Rule': commit to working on your task for just 5 minutes. The hardest part is breaking the initial inertia. Once you start, your brain's 'Zeigarnik Effect' will want to finish it."
+  },
+  focus: {
+    triggers: ["focus", "distracted", "attention", "concentrate", "distraction", "phone"],
+    response: "Focus is a muscle, not a constant state. If you're struggling to concentrate, try 'Time Blocking' or the Pomodoro technique. Also, audit your environment—is your phone within reach? Physical distance from distractions is often more effective than willpower."
+  },
+  consistency: {
+    triggers: ["consistent", "consistency", "habit", "routine", "every day", "give up", "failed"],
+    response: "Consistency doesn't mean perfection; it means not quitting after a bad day. If you miss a day, your only goal is to 'never miss twice'. Focus on the 'minimum viable version' of your habit—if you can't work out for an hour, do 10 pushups. Keep the identity alive."
+  },
+  stress: {
+    triggers: ["stress", "stressed", "anxious", "anxiety", "overwhelmed", "too much", "burnout"],
+    response: "When you're overwhelmed, your productivity shouldn't be the priority—your nervous system should be. Take a 'Selective Deferral' approach: pick one thing that *must* happen and give yourself permission to ignore the rest for 24 hours. Clarity comes from space."
+  }
+};
+
 // Dynamic AI response logic
 export async function generateCoachResponse(userId: string, userMessage: string) {
   const context = await getCoachContext(userId);
   const profile = await getCoachProfile(userId);
+  const lowerMsg = userMessage.toLowerCase();
   
   const habits = context.allHabits;
-  const topHabit = habits.sort((a, b) => (b.streak || 0) - (a.streak || 0))[0];
   const reflections = context.recentReflections;
   const recentMood = reflections[0]?.mood || "balanced";
 
-  // Case 1: Initial Growth Tips (After Onboarding)
-  if (userMessage.includes("ready to begin this journey")) {
+  // 1. Check Knowledge Base for specific problems
+  for (const [key, data] of Object.entries(COACH_KNOWLEDGE)) {
+    if (data.triggers.some(t => lowerMsg.includes(t))) {
+      return `I hear you on the struggle with ${key}. ${data.response} How does that perspective change your next step?`;
+    }
+  }
+
+  // 2. Initial Growth Tips (After Onboarding)
+  if (lowerMsg.includes("ready to begin this journey") || lowerMsg.includes("shared my vision")) {
     const vision = profile?.data?.ideal_self || "your growth";
     const blocker = profile?.data?.blockers || "obstacles";
     
@@ -101,22 +128,18 @@ export async function generateCoachResponse(userId: string, userMessage: string)
 I've analyzed your starting point. Here are my first recommendations:
 
 1. **Habit Tip**: Since you mentioned struggle with ${blocker}, try 'Habit Stacking'. Link your hardest habit to your most consistent one.
-2. **Task Strategy**: You mentioned being most productive in the ${profile?.data?.productivity || 'morning'}. Protect that time by scheduling your most 'Deep Work' tasks then.
+2. **Task Strategy**: You mentioned being most productive in the ${profile?.data?.productivity || 'day'}. Protect that time by scheduling your most 'Deep Work' tasks then.
 3. **Daily Action**: Today, I suggest starting one small task related to your goal of ${profile?.data?.goals || 'improvement'}.
 
 How does this plan sound for our first step together?`;
   }
 
-  // Case 2: Momentum Recognition
-  if (topHabit && topHabit.streak > 3) {
-    return `I see you've maintained a ${topHabit.streak}-day streak for ${topHabit.title}. This consistency is your superpower. How can we apply the same focus to your other ambitions today?`;
-  }
-
-  // Case 3: Support for Low Mood/Stress
+  // 3. Support for Low Mood/Stress
   if (recentMood === "stressed" || recentMood === "tired") {
-    return `Your recent reflections suggest you've been feeling ${recentMood}. In moments like this, your goal is not speed, but kindness. What's one task we can defer to tomorrow to give you space today?`;
+    return `Looking at your recent reflections, I see you've been feeling ${recentMood}. Instead of pushing for maximum productivity, what if we focused on 'Maintenance Mode' today? What's the one thing that would make you feel most at peace if finished?`;
   }
 
-  // Case 4: Default reflective engagement
-  return `I'm reflecting on your aspiration to improve ${profile?.data?.improvement || 'your life'}. Looking at your tasks today, which one feels like it aligns most with your 'Ideal Self'?`;
+  // 4. Default reflective engagement (Personalized)
+  const aspiration = profile?.data?.improvement || "growth";
+  return `I'm reflecting on your goal to improve ${aspiration}. I've noticed you've been ${context.recentTasks.filter(t => t.completed).length > 0 ? 'making progress on tasks' : 'observing your patterns'} recently. Tell me more about what's currently on your mind regarding your ${aspiration}?`;
 }
