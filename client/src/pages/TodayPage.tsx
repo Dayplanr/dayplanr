@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, TrendingUp, Clock, CheckCircle2, Flame, ChevronUp, ChevronDown, Bell, ListTodo, MoreVertical, Pencil, Trash2, Tag, Calendar as CalendarIcon, Sparkles } from "lucide-react";
+import { Plus, TrendingUp, Clock, CheckCircle2, Flame, ChevronUp, ChevronDown, Bell, ListTodo, MoreVertical, Pencil, Trash2, Tag, Calendar as CalendarIcon, Sparkles, Smile } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -673,48 +673,104 @@ export default function TodayPage() {
               })()}
             </p>
           </motion.div>
+          {/* Awareness Layer — Quick Mood Check-in */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+            className="flex flex-col gap-3"
+          >
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Awareness</p>
+              <Button variant="link" onClick={() => navigate("/app/focus")} className="text-[10px] font-bold h-auto p-0 opacity-60 hover:opacity-100">Full Reflection</Button>
+            </div>
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+              {['✨ Great', '😌 Calm', '🔋 Productive', '🧘 Focused', '😴 Tired', '😟 Stressed'].map((mood) => (
+                <button
+                  key={mood}
+                  onClick={() => navigate("/app/focus")} // Navigate to reflect page for now
+                  className="flex-shrink-0 px-4 py-2.5 rounded-2xl bg-card border border-border/40 text-xs font-semibold text-foreground hover:bg-primary/5 hover:border-primary/20 hover:shadow-soft transition-all active:scale-95"
+                >
+                  {mood}
+                </button>
+              ))}
+            </div>
+          </motion.div>
+
         </motion.div>
 
-        {/* Progress & Direction Layer */}
-        <motion.section
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="grid grid-cols-1 md:grid-cols-2 gap-4"
-        >
-          <Card className="border-border/30 shadow-soft bg-card/40 overflow-hidden group">
-            <CardContent className="p-5 flex items-center gap-5">
-              <div className="relative">
-                <ProgressRing progress={progressPercent} size={64} strokeWidth={6} color="hsl(var(--primary))" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <CheckCircle2 className="w-5 h-5 text-primary/60" />
-                </div>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Daily Progress</p>
-                <div className="flex items-baseline gap-2">
-                  <p className="text-2xl font-black text-foreground">{completedTasks}</p>
-                  <p className="text-sm font-bold text-muted-foreground">of {totalTasks} tasks done</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        {(dashboardConfig.modules.summary || dashboardConfig.modules.focus || dashboardConfig.modules.habits) && (
+          <Card className="overflow-hidden border-none shadow-soft glass-card">
+            <CardContent className="p-0">
+              <div className={`grid grid-cols-1 md:grid-cols-${[dashboardConfig.modules.summary, dashboardConfig.modules.focus, dashboardConfig.modules.habits].filter(Boolean).length
+                } divide-y md:divide-y-0 md:divide-x divide-border/30`}>
+                {dashboardConfig.order.filter(id => id !== 'insights').map((moduleId) => {
+                  if (!dashboardConfig.modules[moduleId as keyof DashboardConfig["modules"]]) return null;
 
-          <Card className="border-border/30 shadow-soft bg-card/40 overflow-hidden group hover:bg-accent/5 transition-colors cursor-pointer" onClick={() => navigate("/habits")}>
-            <CardContent className="p-5 flex items-center gap-5">
-              <div className="w-16 h-16 rounded-2xl bg-orange-500/10 flex items-center justify-center ring-1 ring-orange-500/20">
-                <Flame className={`w-8 h-8 ${completedHabits > 0 ? "text-orange-500 fill-orange-500/20" : "text-orange-300"}`} />
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Momentum</p>
-                <div className="flex items-baseline gap-2">
-                  <p className="text-2xl font-black text-foreground">{completedHabits}</p>
-                  <p className="text-sm font-bold text-muted-foreground">habits completed today</p>
-                </div>
+                  if (moduleId === "summary") {
+                    return (
+                      <div key="summary" className="p-6 flex flex-col items-center justify-center text-center bg-primary/5">
+                        <ProgressRing progress={progressPercent} size={100} strokeWidth={8} color="hsl(var(--primary))" />
+                        <div className="mt-4">
+                          <p className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">{t("dailyProgress")}</p>
+                          <p className="text-sm font-black text-foreground mt-1">
+                            {completedTasks} <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-70">of</span> {totalTasks}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  if (moduleId === "focus") {
+                    return (
+                      <div key="focus" className="p-6 flex flex-col items-center justify-center text-center hover:bg-accent/5 transition-colors cursor-pointer" onClick={() => navigate("/focus")}>
+                        <div className="relative">
+                          <div className="absolute inset-0 bg-blue-500/10 blur-2xl rounded-full" />
+                          <div className="w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center mb-4 relative ring-1 ring-blue-500/20">
+                            <Clock className="w-7 h-7 text-blue-500" />
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">{t("focusTime")}</p>
+                          <p className="text-xl font-black text-foreground mt-1">
+                            {todayFocusMinutes}<span className="text-xs font-bold ml-1 text-muted-foreground">m</span>
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  if (moduleId === "habits") {
+                    return (
+                      <div key="habits" className="p-6 flex flex-col items-center justify-center text-center hover:bg-accent/5 transition-colors cursor-pointer" onClick={() => navigate("/habits")}>
+                        <div className="relative">
+                          <div className="absolute inset-0 bg-orange-500/10 blur-2xl rounded-full" />
+                          <div className="w-14 h-14 rounded-2xl bg-orange-500/10 flex items-center justify-center mb-4 relative ring-1 ring-orange-500/20">
+                            <Flame className="w-7 h-7 text-orange-500" />
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">{t("habits")}</p>
+                          <div className="flex items-center justify-center gap-2 mt-1">
+                            <p className="text-xl font-black text-foreground">
+                              {currentStreak}<span className="text-sm font-bold ml-1 text-muted-foreground uppercase tracking-tight">d</span>
+                            </p>
+                            <div className="h-4 w-px bg-border/50 mx-1" />
+                            <p className="text-lg font-bold text-muted-foreground">
+                              {completedHabits}<span className="text-xs font-semibold">/{totalHabits}</span>
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  return null;
+                })}
               </div>
             </CardContent>
           </Card>
-        </motion.section>
+        )}
 
         {/* Contextual Today Insights */}
         {todayInsights.length > 0 && (
