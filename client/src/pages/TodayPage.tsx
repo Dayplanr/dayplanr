@@ -203,16 +203,6 @@ export default function TodayPage() {
       }
     });
 
-    // Schedule habit reminders
-    habits?.forEach((habit: any) => {
-      const dayOfWeek = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(new Date());
-      const isToday = habit.schedule_type === 'daily' || habit.selected_days?.includes(dayOfWeek);
-
-      if (isToday) {
-        notifications.scheduleHabitReminder(habit, todayStr);
-      }
-    });
-
     // Schedule incomplete nudge for end of day
     const incompleteTasks = data?.filter((t: any) => !t.completed) || [];
     if (incompleteTasks.length > 0) {
@@ -320,6 +310,20 @@ export default function TodayPage() {
       completedHabits: completedHabitsCount,
       totalHabits: habitsCount,
       streak: maxStreak,
+    });
+
+    // Schedule habit reminders
+    habitData?.forEach((habit: any) => {
+      const dayOfWeek = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(new Date());
+      const isToday = habit.schedule_type === 'daily' || habit.selected_days?.includes(dayOfWeek);
+
+      if (isToday) {
+        notifications.scheduleHabitReminder({
+          id: habit.id,
+          title: habit.title,
+          time: habit.time
+        }, today);
+      }
     });
   };
 

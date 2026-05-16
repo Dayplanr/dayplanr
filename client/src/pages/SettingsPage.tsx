@@ -658,13 +658,22 @@ export default function SettingsPage() {
                 size="sm"
                 variant="outline"
                 className="h-8 border-primary/20 hover:bg-primary/10 text-primary"
-                onClick={() => {
+                onClick={async () => {
                   if (notifSettings.enabled) {
-                    notificationService.showTestNotification();
-                    toast({
-                      title: "Test Sent",
-                      description: "Check your browser notifications.",
-                    });
+                    const permission = await notificationService.requestPermission();
+                    if (permission === "granted") {
+                      notificationService.showTestNotification();
+                      toast({
+                        title: "Test Sent",
+                        description: "Check your browser notifications.",
+                      });
+                    } else {
+                      toast({
+                        title: "Permission Denied",
+                        description: "Please allow notifications in your browser settings.",
+                        variant: "destructive",
+                      });
+                    }
                   } else {
                     toast({
                       title: "Notifications Disabled",

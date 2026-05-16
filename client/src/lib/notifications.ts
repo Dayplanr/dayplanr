@@ -139,45 +139,41 @@ class NotificationService {
 
     // Show a notification
     private showNotification(title: string, body: string, tag: string): void {
-        console.log("[Notifications] showNotification called with:", { title, body, tag });
-        console.log("[Notifications] Can show notifications?", this.canShowNotifications());
-        console.log("[Notifications] Permission status:", Notification.permission);
-
+        console.log("[Notifications] showNotification triggered for:", { title, body, tag });
+        
         if (!this.canShowNotifications()) {
-            console.error("[Notifications] Cannot show notification - permission not granted");
+            console.error("[Notifications] Cannot show notification - permission status is:", Notification.permission);
             return;
         }
 
         const style = this.settings?.reminder_style || "gentle";
-        console.log("[Notifications] Notification style:", style);
-
+        
         const options: NotificationOptions = {
             body,
             tag,
-            icon: "/src/assets/logo.png",
-            badge: "/src/assets/logo.png",
+            icon: "/logo-new.png", // Use public asset path
+            badge: "/logo-new.png",
             requireInteraction: style === "important",
             silent: style === "gentle",
         };
 
-        console.log("[Notifications] Creating notification with options:", options);
-
         try {
+            console.log("[Notifications] Attempting new Notification instantiation...");
             const notification = new Notification(title, options);
-            console.log("[Notifications] Notification created successfully!");
+            
+            notification.onshow = () => console.log("[Notifications] Notification successfully shown!");
+            notification.onerror = (err) => console.error("[Notifications] Notification instance error:", err);
 
-            // Auto-close gentle notifications after 5 seconds
             if (style === "gentle") {
                 setTimeout(() => notification.close(), 5000);
             }
 
-            // Optional: Handle notification click
             notification.onclick = () => {
                 window.focus();
                 notification.close();
             };
         } catch (error) {
-            console.error("[Notifications] Error creating notification:", error);
+            console.error("[Notifications] Critical error during notification creation:", error);
         }
     }
 
