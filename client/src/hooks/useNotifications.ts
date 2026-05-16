@@ -57,6 +57,8 @@ export function useNotifications() {
         getPermissionStatus: () => notificationService.getPermissionStatus(),
         canShowNotifications: () => notificationService.canShowNotifications(),
         getScheduledCount: () => notificationService.getScheduledCount(),
+        scheduleSmartNudges: (habits: any[], tasks: any[], date: string) =>
+            notificationService.scheduleSmartNudges(habits, tasks, date),
         showTestNotification: () => notificationService.showTestNotification(),
     };
 }

@@ -122,9 +122,7 @@ export default function SettingsPage() {
       } else if (data) {
         console.log("🔧 Loaded existing settings:", data);
         setDisplayName(user?.user_metadata?.full_name || "");
-        if (data.dashboard_config) {
-          setDashboardConfig(data.dashboard_config as DashboardConfig);
-        }
+        
         setNotifSettings({
           enabled: data.notifications_enabled ?? true,
           tasks: data.task_reminders ?? true,
@@ -284,11 +282,6 @@ export default function SettingsPage() {
     }
   };
 
-  const saveDashboardConfig = async (newConfig: DashboardConfig) => {
-    if (!user) return;
-    setDashboardConfig(newConfig);
-    await updateSetting("dashboard_config", newConfig);
-  };
 
   const handleUpdateProfile = async () => {
     setIsUpdatingPassword(true);

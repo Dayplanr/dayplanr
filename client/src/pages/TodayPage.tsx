@@ -103,12 +103,8 @@ export default function TodayPage() {
     order: ["summary", "focus", "habits", "insights"],
   });
 
-  const [tasks, setTasks] = useState<TaskGroups>({
-    morning: [],
-    afternoon: [],
-    evening: [],
-    night: [],
-  });
+  const [tasks, setTasks] = useState<TaskGroups>({ morning: [], afternoon: [], evening: [], night: [] });
+  const [habits, setHabits] = useState<any[]>([]);
 
   const [goalMap, setGoalMap] = useState<Record<string, string>>({});
 
@@ -201,20 +197,6 @@ export default function TodayPage() {
       }
     });
 
-    // Schedule incomplete nudge for end of day
-    const incompleteTasks = data?.filter((t: any) => !t.completed) || [];
-    if (incompleteTasks.length > 0) {
-      notifications.scheduleIncompleteNudge(
-        incompleteTasks.map((t: any) => ({
-          id: t.id,
-          title: t.title,
-          time: t.time,
-          scheduled_date: t.scheduled_date,
-          completed: t.completed,
-        })),
-        todayStr
-      );
-    }
   };
 
   const fetchGoals = async () => {
@@ -289,6 +271,8 @@ export default function TodayPage() {
       .select("*")
       .eq("user_id", user.id);
 
+    setHabits(habitData || []);
+
     const habitsCount = habitData?.length || 0;
 
     const completedHabitsCount = habitData?.filter(h => {
@@ -310,19 +294,6 @@ export default function TodayPage() {
       streak: maxStreak,
     });
 
-    // Schedule habit reminders
-    habitData?.forEach((habit: any) => {
-      const dayOfWeek = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(new Date());
-      const isToday = habit.schedule_type === 'daily' || habit.selected_days?.includes(dayOfWeek);
-
-      if (isToday) {
-        notifications.scheduleHabitReminder({
-          id: habit.id,
-          title: habit.title,
-          time: habit.time
-        }, today);
-      }
-    });
   };
 
   useEffect(() => {
@@ -340,6 +311,26 @@ export default function TodayPage() {
       setSelectedDate(new Date(preserveDate));
     }
   }, [location]);
+
+  useEffect(() => {
+    if (loading || !user) return;
+
+    const today = format(selectedDate, "yyyy-MM-dd");
+    const smartHabits = habits.map(h => ({
+      id: h.id,
+      title: h.title,
+      streak: h.streak || 0,
+      completedToday: h.completed_dates?.includes(today) || false
+    }));
+
+    const allTasks = Object.values(tasks).flat().map(t => ({
+      id: t.id,
+      title: t.title,
+      completed: t.completed
+    }));
+
+    notifications.scheduleSmartNudges(smartHabits, allTasks, today);
+  }, [tasks, habits, user, selectedDate, loading]);
 
   const handleToggleTask = async (period: keyof TaskGroups, id: string) => {
     const task = tasks[period].find((t: Task) => t.id === id);

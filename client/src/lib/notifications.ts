@@ -23,6 +23,19 @@ interface ScheduledNotification {
     timeoutId: number;
 }
 
+interface SmartHabit {
+    id: string;
+    title: string;
+    streak: number;
+    completedToday: boolean;
+}
+
+interface SmartTask {
+    id: string;
+    title: string;
+    completed: boolean;
+}
+
 class NotificationService {
     private scheduledNotifications: Map<string, ScheduledNotification> = new Map();
     private settings: UserSettings | null = null;
@@ -305,6 +318,73 @@ class NotificationService {
             taskId: habitId,
             timeoutId,
         });
+    }
+
+    // Schedule smart nudges and motivational notifications
+    scheduleSmartNudges(habits: SmartHabit[], tasks: SmartTask[], date: string): void {
+        if (!this.settings?.notifications_enabled) return;
+
+        const now = new Date();
+        const todayStr = now.toISOString().split('T')[0];
+        
+        // Only schedule for the current date
+        if (date !== todayStr) return;
+
+        // 1. Motivational Victory Notifications (Morning - 9:00 AM)
+        const morningTime = new Date(date);
+        morningTime.setHours(9, 0, 0, 0);
+
+        if (morningTime.getTime() > now.getTime()) {
+            const delay = morningTime.getTime() - now.getTime();
+            const topStreakHabit = habits.reduce((prev, current) => (prev.streak > current.streak) ? prev : current, habits[0]);
+
+            if (topStreakHabit && topStreakHabit.streak >= 2) {
+                const id = "morning-motivation";
+                this.cancelNotification(id);
+                const timeoutId = window.setTimeout(() => {
+                    this.showNotification(
+                        "Morning Victory",
+                        `🔥 You're on a ${topStreakHabit.streak} day streak for ${topStreakHabit.title}! Keep the momentum going.`,
+                        id
+                    );
+                    this.scheduledNotifications.delete(id);
+                }, delay);
+                this.scheduledNotifications.set(id, { taskId: id, timeoutId });
+            }
+        }
+
+        // 2. Gentle Nudges (Evening - 7:00 PM)
+        const eveningTime = new Date(date);
+        eveningTime.setHours(19, 0, 0, 0);
+
+        if (eveningTime.getTime() > now.getTime()) {
+            const delay = eveningTime.getTime() - now.getTime();
+            const incompleteHabits = habits.filter(h => !h.completedToday);
+            const incompleteTasks = tasks.filter(t => !t.completed);
+
+            if (incompleteHabits.length > 0 || incompleteTasks.length > 0) {
+                const id = "evening-nudge";
+                this.cancelNotification(id);
+                const timeoutId = window.setTimeout(() => {
+                    let message = "";
+                    if (incompleteHabits.length > 0 && incompleteTasks.length > 0) {
+                        message = `Don't let the day end without your ${incompleteHabits[0].title} habit and ${incompleteTasks.length} tasks!`;
+                    } else if (incompleteHabits.length > 0) {
+                        message = `Still time to complete your ${incompleteHabits[0].title} habit! You can do it.`;
+                    } else {
+                        message = `Finish strong! You have ${incompleteTasks.length} tasks remaining for today.`;
+                    }
+
+                    this.showNotification(
+                        "Evening Nudge",
+                        `🎯 ${message}`,
+                        id
+                    );
+                    this.scheduledNotifications.delete(id);
+                }, delay);
+                this.scheduledNotifications.set(id, { taskId: id, timeoutId });
+            }
+        }
     }
 
     // Cancel a specific notification
