@@ -81,23 +81,31 @@ export async function updateCoachProfile(userId: string, profileData: Partial<Co
   if (error) throw error;
 }
 
-// --- Coach Knowledge Base ---
+// --- Expanded Coach Knowledge Base ---
 const COACH_KNOWLEDGE: Record<string, { triggers: string[], response: string }> = {
   procrastination: {
-    triggers: ["procrastinate", "procrastination", "delay", "laziness", "lazy", "starting"],
-    response: "Procrastination is often a signal of overwhelm, not a lack of character. Try the '5-Minute Rule': commit to working on your task for just 5 minutes. The hardest part is breaking the initial inertia. Once you start, your brain's 'Zeigarnik Effect' will want to finish it."
+    triggers: ["procrastinate", "procrastination", "delay", "laziness", "lazy", "starting", "putting off"],
+    response: "Procrastination is often a signal of overwhelm or fear of failure, not a lack of discipline. Try the '2-Minute Rule': if it takes less than 2 minutes, do it now. For bigger tasks, commit to just the first tiny step. The goal is to lower the barrier to entry until it's impossible to say no."
   },
   focus: {
-    triggers: ["focus", "distracted", "attention", "concentrate", "distraction", "phone"],
-    response: "Focus is a muscle, not a constant state. If you're struggling to concentrate, try 'Time Blocking' or the Pomodoro technique. Also, audit your environment—is your phone within reach? Physical distance from distractions is often more effective than willpower."
+    triggers: ["focus", "distracted", "attention", "concentrate", "distraction", "phone", "interrupt"],
+    response: "Deep focus is a skill that requires protection. Try 'Monk Mode': put your phone in another room, close all unrelated tabs, and set a timer for 25 minutes. If a distracting thought pops up, write it down on a 'distraction list' to deal with later, and immediately return to your task."
   },
   consistency: {
-    triggers: ["consistent", "consistency", "habit", "routine", "every day", "give up", "failed"],
-    response: "Consistency doesn't mean perfection; it means not quitting after a bad day. If you miss a day, your only goal is to 'never miss twice'. Focus on the 'minimum viable version' of your habit—if you can't work out for an hour, do 10 pushups. Keep the identity alive."
+    triggers: ["consistent", "consistency", "habit", "routine", "every day", "give up", "failed", "broken"],
+    response: "Consistency is built on 'low-floor' habits. If you're too tired to do your full routine, do the '1-minute version'. The most important thing is to keep the identity of 'someone who shows up' alive. Remember: Never miss twice. One miss is a mistake; two misses is the start of a new habit."
   },
   stress: {
-    triggers: ["stress", "stressed", "anxious", "anxiety", "overwhelmed", "too much", "burnout"],
-    response: "When you're overwhelmed, your productivity shouldn't be the priority—your nervous system should be. Take a 'Selective Deferral' approach: pick one thing that *must* happen and give yourself permission to ignore the rest for 24 hours. Clarity comes from space."
+    triggers: ["stress", "stressed", "anxious", "anxiety", "overwhelmed", "too much", "burnout", "pressure"],
+    response: "When stress peaks, your priority must shift from 'output' to 'regulation'. Try 'Selective Deferral': Look at your list and pick the 3 things that *truly* matter today. Give yourself explicit permission to ignore the rest. Clarity comes from pruning, not from doing more."
+  },
+  motivation: {
+    triggers: ["motivation", "motivated", "don't feel like", "unmotivated", "drive", "energy", "blah"],
+    response: "Motivation is a feeling that follows action, it doesn't precede it. Don't wait for the 'spark'. Instead, focus on 'Action-First' discipline. Start moving, and the motivation will catch up. Also, check your 'Why'—is this goal yours, or someone else's expectation?"
+  },
+  time: {
+    triggers: ["time", "busy", "no time", "running out", "schedule", "too busy", "hours"],
+    response: "We don't 'have' time; we 'make' time for what we value. Audit your day: where is your time leaking? Often, it's in the transitions. Try 'Time Boxing'—assigning a specific fixed block to a specific task. If it's not on the calendar, it's just a wish."
   }
 };
 
@@ -105,16 +113,16 @@ const COACH_KNOWLEDGE: Record<string, { triggers: string[], response: string }> 
 export async function generateCoachResponse(userId: string, userMessage: string) {
   const context = await getCoachContext(userId);
   const profile = await getCoachProfile(userId);
+  const messages = await getCoachMessages(userId);
   const lowerMsg = userMessage.toLowerCase();
   
-  const habits = context.allHabits;
   const reflections = context.recentReflections;
   const recentMood = reflections[0]?.mood || "balanced";
 
   // 1. Check Knowledge Base for specific problems
   for (const [key, data] of Object.entries(COACH_KNOWLEDGE)) {
     if (data.triggers.some(t => lowerMsg.includes(t))) {
-      return `I hear you on the struggle with ${key}. ${data.response} How does that perspective change your next step?`;
+      return `I hear you on the struggle with ${key}. ${data.response} What's one small way you can apply this to your current situation?`;
     }
   }
 
@@ -125,21 +133,28 @@ export async function generateCoachResponse(userId: string, userMessage: string)
     
     return `It's an honor to guide you on your path toward becoming ${vision}. 
 
-I've analyzed your starting point. Here are my first recommendations:
+Based on our onboarding, here is your personalized Growth Strategy:
 
-1. **Habit Tip**: Since you mentioned struggle with ${blocker}, try 'Habit Stacking'. Link your hardest habit to your most consistent one.
-2. **Task Strategy**: You mentioned being most productive in the ${profile?.data?.productivity || 'day'}. Protect that time by scheduling your most 'Deep Work' tasks then.
-3. **Daily Action**: Today, I suggest starting one small task related to your goal of ${profile?.data?.goals || 'improvement'}.
+1. **The ${blocker} Antidote**: Since you mentioned ${blocker} is a challenge, we will focus on 'Small Wins' this week.
+2. **Peak Energy Use**: You mentioned being most productive in the ${profile?.data?.productivity || 'day'}. Let's protect those hours for your ${profile?.data?.goals || 'main goals'}.
+3. **Intentional Reflection**: Every evening, I want you to log one thing that went well, no matter how small.
 
-How does this plan sound for our first step together?`;
+How does this strategy feel to you?`;
   }
 
   // 3. Support for Low Mood/Stress
   if (recentMood === "stressed" || recentMood === "tired") {
-    return `Looking at your recent reflections, I see you've been feeling ${recentMood}. Instead of pushing for maximum productivity, what if we focused on 'Maintenance Mode' today? What's the one thing that would make you feel most at peace if finished?`;
+    return `I've noticed your recent reflections mention feeling ${recentMood}. In this state, 'Maximum Productivity' is a trap. I recommend 'The Rule of One': pick just ONE task that will make you feel best to finish, and consider the day a victory if you do only that. Which task would that be?`;
   }
 
-  // 4. Default reflective engagement (Personalized)
+  // 4. History-Aware Response (To avoid repeating Case 4)
+  const lastAssistantMsg = [...messages].reverse().find(m => m.role === 'assistant');
   const aspiration = profile?.data?.improvement || "growth";
-  return `I'm reflecting on your goal to improve ${aspiration}. I've noticed you've been ${context.recentTasks.filter(t => t.completed).length > 0 ? 'making progress on tasks' : 'observing your patterns'} recently. Tell me more about what's currently on your mind regarding your ${aspiration}?`;
+
+  if (lastAssistantMsg?.content.includes("currently on your mind")) {
+    return `I'm deeply interested in how your ${aspiration} is evolving. Looking at your habits, you've been ${context.allHabits.some(h => h.streak > 0) ? 'showing up' : 'observing your routine'}. What's one thing you've learned about yourself this week?`;
+  }
+
+  // Default reflective engagement
+  return `I'm reflecting on your goal to improve ${aspiration}. I've noticed you've been ${context.recentTasks.filter(t => t.completed).length > 0 ? 'moving through your tasks' : 'considering your next steps'} today. How can we make the next hour feel more intentional for you?`;
 }
