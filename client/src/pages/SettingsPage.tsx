@@ -567,20 +567,6 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">{t("customizeDashboard")}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-1 p-0">
-            <div className="flex items-center justify-between px-4 py-3">
-              <div className="flex items-center gap-3">
-                <Settings2 className="w-5 h-5 text-gray-500" />
-                <span className="text-foreground">{t("customizeDashboard")}</span>
-              </div>
-              <DashboardCustomizer config={dashboardConfig} onUpdate={saveDashboardConfig} />
-            </div>
-          </CardContent>
-        </Card>
 
         <Card className="bg-card">
           <CardHeader className="pb-2">
