@@ -11,7 +11,7 @@ import { useTranslation, Language, languageNames } from "@/lib/i18n";
 export default function LanguageSelector() {
   const { language, setLanguage, t } = useTranslation();
 
-  const languages: Language[] = ["en", "de", "es", "fr", "it", "pt", "nl", "pl"];
+  const languages: Language[] = ["en", "de", "es", "fr", "it", "pt", "nl", "pl", "tr", "ru"];
 
   return (
     <DropdownMenu>
