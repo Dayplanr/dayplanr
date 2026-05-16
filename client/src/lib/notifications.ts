@@ -6,7 +6,6 @@ interface UserSettings {
     habit_reminders: boolean;
     focus_reminders: boolean;
     incomplete_nudges: boolean;
-    morning_summary: boolean;
     reminder_timing: string;
     reminder_style: string;
 }
@@ -71,6 +70,11 @@ class NotificationService {
         if (data && !error) {
             this.settings = data;
         }
+    }
+
+    // Update settings manually
+    setSettings(settings: UserSettings): void {
+        this.settings = settings;
     }
 
     // Calculate when to show notification based on timing setting
@@ -273,46 +277,6 @@ class NotificationService {
             taskId: nudgeId,
             timeoutId,
         });
-    }
-
-    // Schedule morning summary notification
-    scheduleMorningSummary(date: string, taskCount: number): void {
-        if (!this.settings?.notifications_enabled || !this.settings?.morning_summary) {
-            console.log("[Notifications] Morning summary disabled");
-            return;
-        }
-
-        // Schedule for 8 AM on the given date
-        const summaryTime = new Date(date);
-        summaryTime.setHours(8, 0, 0, 0);
-
-        const delay = summaryTime.getTime() - Date.now();
-        if (delay <= 0) {
-            console.log("[Notifications] Morning summary time is in the past");
-            return;
-        }
-
-        const summaryId = `summary-${date}`;
-        this.cancelNotification(summaryId);
-
-        const timeoutId = window.setTimeout(() => {
-            const body = taskCount > 0 
-                ? `You have ${taskCount} tasks planned for today. Let's make it intentional! ✨`
-                : "Your day is a fresh canvas. What will you create today? 🎨";
-            
-            this.showNotification(
-                "Your Daily Plan",
-                body,
-                summaryId
-            );
-            this.scheduledNotifications.delete(summaryId);
-        }, delay);
-
-        this.scheduledNotifications.set(summaryId, {
-            taskId: summaryId,
-            timeoutId,
-        });
-        console.log("[Notifications] Scheduled morning summary at 8:00 AM");
     }
 
     // Schedule notification for a habit

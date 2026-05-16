@@ -51,10 +51,9 @@ export function useNotifications() {
         cancelNotification: (id: string) => notificationService.cancelNotification(id),
         scheduleIncompleteNudge: (tasks: Task[], date: string) =>
             notificationService.scheduleIncompleteNudge(tasks, date),
-        scheduleMorningSummary: (date: string, taskCount: number) =>
-            notificationService.scheduleMorningSummary(date, taskCount),
         scheduleHabitReminder: (habit: { id: string; title: string; time?: string }, date: string) =>
             notificationService.scheduleHabitReminder(habit, date),
+        updateSettings: (settings: any) => notificationService.setSettings(settings),
         getPermissionStatus: () => notificationService.getPermissionStatus(),
         canShowNotifications: () => notificationService.canShowNotifications(),
         getScheduledCount: () => notificationService.getScheduledCount(),

@@ -189,8 +189,6 @@ export default function TodayPage() {
     setLoading(false);
 
     // Schedule notifications for all tasks
-    notifications.scheduleMorningSummary(todayStr, data?.length || 0);
-
     data?.forEach((task: any) => {
       if (!task.completed && task.time) {
         notifications.scheduleTaskNotification({

@@ -11,6 +11,7 @@ import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
 import { useToast } from "@/hooks/use-toast";
 import { useTimerSound } from "@/hooks/useTimerSound";
+import { useNotifications } from "@/hooks/useNotifications";
 import { timerSounds } from "@/lib/timerSounds";
 import DashboardCustomizer, { type DashboardConfig } from "@/components/DashboardCustomizer";
 import {
@@ -61,6 +62,7 @@ import {
 
 export default function SettingsPage() {
   const { t } = useTranslation();
+  const notifications = useNotifications();
   const { user, signOut } = useAuth();
   const { darkMode, setDarkMode, themeColor, setThemeColor } = useTheme();
   const { toast } = useToast();
@@ -93,7 +95,6 @@ export default function SettingsPage() {
 
   const [notifSettings, setNotifSettings] = useState({
     enabled: true,
-    morningSummary: true,
     tasks: true,
     habits: true,
     incomplete: true,
@@ -153,13 +154,13 @@ export default function SettingsPage() {
         }
         setNotifSettings({
           enabled: data.notifications_enabled ?? true,
-          morningSummary: data.morning_summary ?? true,
           tasks: data.task_reminders ?? true,
           habits: data.habit_reminders ?? true,
           incomplete: data.incomplete_nudges ?? true,
           timing: data.reminder_timing ?? "30min",
           style: data.reminder_style ?? "gentle",
         });
+        notifications.updateSettings(data);
       }
     } catch (error) {
       console.error("Error loading settings:", error);
@@ -290,6 +291,16 @@ export default function SettingsPage() {
 
       if (error) throw error;
       console.log(`🔧 Setting ${key} updated successfully`);
+
+      // Sync with notification service
+      if (["notifications_enabled", "task_reminders", "habit_reminders", "focus_reminders", "incomplete_nudges", "reminder_timing", "reminder_style"].includes(key)) {
+        const { data: updatedSettings } = await supabase
+          .from("user_settings")
+          .select("*")
+          .eq("user_id", user.id)
+          .single();
+        if (updatedSettings) notifications.updateSettings(updatedSettings);
+      }
     } catch (error) {
       console.error(`Error updating setting ${key}:`, error);
       toast({
@@ -498,79 +509,6 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">Timer Settings</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-1 p-0">
-            <Collapsible open={isTimerSettingsOpen} onOpenChange={setIsTimerSettingsOpen}>
-              <Card>
-                <CollapsibleTrigger asChild>
-                  <button className="w-full flex items-center justify-between px-4 py-3 hover:bg-accent/50 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <Volume2 className="w-5 h-5 text-green-500" />
-                      <span className="text-foreground font-medium">Timer Sound</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground">
-                        {timerSounds.find(s => s.value === localTimerSound)?.name || "Radar"}
-                      </span>
-                      {isTimerSettingsOpen ? (
-                        <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                      ) : (
-                        <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                      )}
-                    </div>
-                  </button>
-                </CollapsibleTrigger>
-
-                <CollapsibleContent>
-                  <CardContent className="pt-0 pb-4">
-                    <div className="space-y-2">
-                      <p className="text-sm text-muted-foreground mb-3">
-                        Choose a sound that plays when your timer completes.
-                      </p>
-                      {timerSounds.map((sound) => {
-                        const isSelected = localTimerSound === sound.value;
-
-                        return (
-                          <div
-                            key={sound.value}
-                            className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all ${isSelected
-                              ? "border-primary bg-primary/10 ring-2 ring-primary/20"
-                              : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                              }`}
-                            onClick={() => handleTimerSoundChange(sound.value)}
-                          >
-                            <div className="flex-1">
-                              <div className="flex items-center gap-3">
-                                <div className="font-medium">{sound.name}</div>
-                                {isSelected && <Check className="w-4 h-4 text-primary" />}
-                              </div>
-                              <div className="text-sm text-muted-foreground">{sound.description}</div>
-                            </div>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                playPreviewSound(sound.value);
-                              }}
-                              className="ml-3"
-                            >
-                              <Play className="w-3 h-3 mr-1" />
-                              Preview
-                            </Button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </CardContent>
-                </CollapsibleContent>
-              </Card>
-            </Collapsible>
-          </CardContent>
-        </Card>
 
         <Card className="bg-card">
           <CardHeader className="pb-2">
@@ -649,43 +587,6 @@ export default function SettingsPage() {
             <CardTitle className="text-base font-semibold">Notifications</CardTitle>
           </CardHeader>
           <CardContent className="space-y-1 p-0">
-            <div className="px-4 py-3 bg-primary/5 flex items-center justify-between border-b border-primary/10">
-              <div className="flex flex-col">
-                <span className="text-sm font-semibold text-primary">Test Notifications</span>
-                <span className="text-[10px] text-primary/60">Verify your browser settings</span>
-              </div>
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-8 border-primary/20 hover:bg-primary/10 text-primary"
-                onClick={async () => {
-                  if (notifSettings.enabled) {
-                    const permission = await notificationService.requestPermission();
-                    if (permission === "granted") {
-                      notificationService.showTestNotification();
-                      toast({
-                        title: "Test Sent",
-                        description: "Check your browser notifications.",
-                      });
-                    } else {
-                      toast({
-                        title: "Permission Denied",
-                        description: "Please allow notifications in your browser settings.",
-                        variant: "destructive",
-                      });
-                    }
-                  } else {
-                    toast({
-                      title: "Notifications Disabled",
-                      description: "Please enable notifications first.",
-                      variant: "destructive",
-                    });
-                  }
-                }}
-              >
-                Send Test
-              </Button>
-            </div>
             <div className="flex items-center justify-between px-4 py-3">
               <div className="flex items-center gap-3">
                 <Bell className="w-5 h-5 text-amber-500" />
@@ -706,20 +607,6 @@ export default function SettingsPage() {
                 animate={{ opacity: 1, height: "auto" }}
                 className="space-y-1"
               >
-                <Separator />
-                <div className="flex items-center justify-between px-4 py-3">
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium">Morning Summary</span>
-                    <span className="text-[10px] text-muted-foreground">Daily intentional plan at 8:00 AM</span>
-                  </div>
-                  <Switch
-                    checked={notifSettings.morningSummary}
-                    onCheckedChange={(val) => {
-                      setNotifSettings(prev => ({ ...prev, morningSummary: val }));
-                      updateSetting("morning_summary", val);
-                    }}
-                  />
-                </div>
                 <Separator />
                 <div className="flex items-center justify-between px-4 py-3">
                   <span className="text-sm font-medium">Task Reminders</span>
