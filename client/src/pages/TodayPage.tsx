@@ -562,7 +562,12 @@ export default function TodayPage() {
   };
 
   return (
-    <div className="h-full overflow-y-auto pb-24 md:pb-8 bg-background/50">
+    <motion.div 
+      key={language}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="h-full overflow-y-auto pb-24 md:pb-8 bg-background/50"
+    >
       <div className="max-w-3xl mx-auto p-4 space-y-8">
         {/* Header Section */}
         <motion.div
@@ -620,15 +625,15 @@ export default function TodayPage() {
               {(() => {
                 const hour = new Date().getHours();
                 if (hour < 12) {
-                  if (completedTasks > 0) return "You're starting with great momentum.";
-                  return "Good morning. What's your main intention for today?";
+                  if (completedTasks > 0) return t("today_morning_momentum");
+                  return t("today_morning_greet");
                 }
                 if (hour < 17) {
-                  if (progressPercent >= 50) return "Solid progress so far. Keep this focused energy.";
-                  return "The afternoon is a fresh chance to move forward.";
+                  if (progressPercent >= 50) return t("today_afternoon_momentum");
+                  return t("today_afternoon_greet");
                 }
-                if (progressPercent === 100) return "A truly intentional day. Rest well.";
-                return "The evening is for gentle reflection and winding down.";
+                if (progressPercent === 100) return t("today_evening_done");
+                return t("today_evening_greet");
               })()}
             </p>
           </motion.div>
@@ -640,11 +645,18 @@ export default function TodayPage() {
             className="flex flex-col gap-3"
           >
             <div className="flex items-center justify-between">
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Awareness</p>
-              <Button variant="ghost" onClick={() => navigate("/app/focus")} className="text-[10px] font-bold h-auto p-0 opacity-60 hover:opacity-100 hover:bg-transparent">Full Reflection</Button>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{t("awareness")}</p>
+              <Button variant="ghost" onClick={() => navigate("/app/focus")} className="text-[10px] font-bold h-auto p-0 opacity-60 hover:opacity-100 hover:bg-transparent">{t("full_reflection")}</Button>
             </div>
             <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-              {['✨ Great', '😌 Calm', '🔋 Productive', '🧘 Focused', '😴 Tired', '😟 Stressed'].map((mood) => (
+              {[
+                t("mood_pill_great"), 
+                t("mood_pill_calm"), 
+                t("mood_pill_productive"), 
+                t("mood_pill_focused"), 
+                t("mood_pill_tired"), 
+                t("mood_pill_stressed")
+              ].map((mood) => (
                 <button
                   key={mood}
                   onClick={() => navigate("/app/focus")} // Navigate to reflect page for now
@@ -742,12 +754,12 @@ export default function TodayPage() {
           {!loading && allTasksEmpty && (
             <div className="bg-primary/5 rounded-3xl p-6 text-center border border-primary/10">
               <Smile className="w-8 h-8 text-primary/40 mx-auto mb-3" />
-              <h3 className="text-sm font-bold text-primary/80 uppercase tracking-widest mb-1">Direction</h3>
+              <h3 className="text-sm font-bold text-primary/80 uppercase tracking-widest mb-1">{t("direction")}</h3>
               <p className="text-muted-foreground text-sm max-w-[240px] mx-auto leading-relaxed">
-                No tasks planned yet. Small intentional actions create long-term growth.
+                {t("no_tasks_planned")}
               </p>
               <Button onClick={handleAddTask} variant="ghost" className="text-primary mt-2 font-bold p-0 h-auto hover:bg-transparent">
-                Start your day intentionally
+                {t("start_intentionally")}
               </Button>
             </div>
           )}
@@ -762,6 +774,6 @@ export default function TodayPage() {
 
       </div>
 
-    </div>
+    </motion.div>
   );
 }

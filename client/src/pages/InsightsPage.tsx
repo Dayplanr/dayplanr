@@ -15,22 +15,26 @@ import {
 } from "@/lib/insightEngine";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
+import { useTranslation } from "@/lib/i18n";
 import { format, subDays, startOfWeek, endOfWeek, isWithinInterval } from "date-fns";
+import { enUS, tr, ru } from "date-fns/locale";
 
 const MOOD_EMOJIS: Record<string, string> = {
   great: "✨", good: "😊", okay: "😐", stressed: "😰", tired: "😴", bad: "👎",
 };
 
-const TREND_ICONS = {
-  improving: { icon: ArrowUpRight, color: "text-emerald-500", bg: "bg-emerald-500/10", label: "Improving" },
-  steady:    { icon: Minus,        color: "text-blue-500",    bg: "bg-blue-500/10",    label: "Steady" },
-  declining: { icon: ArrowDownRight, color: "text-amber-500",   bg: "bg-amber-500/10",   label: "Declining" },
-  new:       { icon: Sparkles,     color: "text-primary",    bg: "bg-primary/10",     label: "Starting" },
-};
-
 export default function InsightsPage() {
   const { user } = useAuth();
+  const { t, language } = useTranslation();
+  const currentLocale = language === "tr" ? tr : language === "ru" ? ru : enUS;
   const [timeRange, setTimeRange] = useState<TimeRange>('weekly');
+
+  const TREND_ICONS = {
+    improving: { icon: ArrowUpRight, color: "text-emerald-500", bg: "bg-emerald-500/10", label: t("growth_trend_improving") },
+    steady:    { icon: Minus,        color: "text-blue-500",    bg: "bg-blue-500/10",    label: t("growth_trend_steady") },
+    declining: { icon: ArrowDownRight, color: "text-amber-500",   bg: "bg-amber-500/10",   label: t("growth_trend_declining") },
+    new:       { icon: Sparkles,     color: "text-primary",    bg: "bg-primary/10",     label: t("growth_trend_new") },
+  };
 
   const [reflections, setReflections] = useState<Reflection[]>([]);
   const [tasks, setTasks]             = useState<Task[]>([]);
@@ -70,13 +74,13 @@ export default function InsightsPage() {
   }, [user]);
 
   const summary: GrowthSummary = useMemo(
-    () => generateGrowthSummary(reflections, tasks, habits, goals, timeRange),
-    [reflections, tasks, habits, goals, timeRange]
+    () => generateGrowthSummary(reflections, tasks, habits, goals, timeRange, t),
+    [reflections, tasks, habits, goals, timeRange, t]
   );
 
   const patternInsights = useMemo(
-    () => generatePatternInsights(reflections, tasks, habits, goals),
-    [reflections, tasks, habits, goals]
+    () => generatePatternInsights(reflections, tasks, habits, goals, t),
+    [reflections, tasks, habits, goals, t]
   );
 
   // Productivity Trend Visual
@@ -88,16 +92,16 @@ export default function InsightsPage() {
         const d = subDays(new Date(), (11 - i) * 30);
         const start = subDays(d, 30);
         const count = tasks.filter(t => t.completed && t.scheduled_date && new Date(t.scheduled_date) >= start && new Date(t.scheduled_date) <= d).length;
-        return { label: format(d, 'MMM'), value: count };
+        return { label: format(d, 'MMM', { locale: currentLocale }), value: count };
       });
     }
     return Array.from({ length: days }, (_, i) => {
       const d = subDays(new Date(), (days - 1) - i);
       const str = format(d, 'yyyy-MM-dd');
       const count = tasks.filter(t => t.completed && t.scheduled_date === str).length;
-      return { label: format(d, days === 7 ? 'EEE' : 'd'), value: count };
+      return { label: format(d, days === 7 ? 'EEE' : 'd', { locale: currentLocale }), value: count };
     });
-  }, [tasks, timeRange]);
+  }, [tasks, timeRange, currentLocale]);
 
   const maxProd = Math.max(...productivityData.map(d => d.value), 1);
 
@@ -116,7 +120,7 @@ export default function InsightsPage() {
         const start = subDays(d, 30);
         const refs = reflections.filter(r => new Date(r.created_at) >= start && new Date(r.created_at) <= d);
         const mood = refs.length > 0 ? MOOD_ORDER.find(m => refs.some(r => r.mood === m)) || null : null;
-        return { label: format(d, 'MMM'), mood, color: mood ? MOOD_COLORS[mood] : 'bg-muted/20' };
+        return { label: format(d, 'MMM', { locale: currentLocale }), mood, color: mood ? MOOD_COLORS[mood] : 'bg-muted/20' };
       });
     }
 
@@ -125,12 +129,12 @@ export default function InsightsPage() {
       const str = format(d, 'yyyy-MM-dd');
       const ref = reflections.find(r => r.created_at.startsWith(str));
       return {
-        label: format(d, days === 7 ? 'EEE' : 'd'),
+        label: format(d, days === 7 ? 'EEE' : 'd', { locale: currentLocale }),
         mood: ref?.mood || null,
         color: ref?.mood ? MOOD_COLORS[ref.mood] : 'bg-muted/20',
       };
     });
-  }, [reflections, timeRange]);
+  }, [reflections, timeRange, currentLocale]);
 
   return (
     <div className="h-full overflow-y-auto pb-24 md:pb-8 bg-background/50">
@@ -141,9 +145,9 @@ export default function InsightsPage() {
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
             <div className="flex items-center gap-2 mb-1">
               <Brain className="w-6 h-6 text-primary" />
-              <h1 className="text-2xl font-bold text-foreground tracking-tight">Growth Report</h1>
+              <h1 className="text-2xl font-bold text-foreground tracking-tight">{t("growth_report")}</h1>
             </div>
-            <p className="text-[15px] text-muted-foreground/80">Understanding your behavior and progress.</p>
+            <p className="text-[15px] text-muted-foreground/80">{t("growth_report_desc")}</p>
           </motion.div>
 
           <div className="flex p-1 bg-muted/50 rounded-xl w-fit">
@@ -156,7 +160,7 @@ export default function InsightsPage() {
                   ${timeRange === range ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}
                 `}
               >
-                {range}
+                {t(range as any)}
               </button>
             ))}
           </div>
@@ -207,7 +211,7 @@ export default function InsightsPage() {
         <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
           <div className="flex items-center gap-2 mb-4 px-1">
             <Sparkles className="w-4 h-4 text-primary" />
-            <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Pattern Insights</h3>
+            <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{t("insights")}</h3>
           </div>
           <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide snap-x" style={{ scrollbarWidth: 'none' }}>
             {patternInsights.map(insight => (
@@ -216,7 +220,7 @@ export default function InsightsPage() {
               </div>
             ))}
             {patternInsights.length === 0 && (
-              <p className="text-xs text-muted-foreground px-1">Log more reflections and tasks to reveal your unique patterns.</p>
+              <p className="text-xs text-muted-foreground px-1">{t("growth_empty")}</p>
             )}
           </div>
         </motion.section>
@@ -225,7 +229,7 @@ export default function InsightsPage() {
         <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
           <div className="flex items-center gap-2 mb-4 px-1">
             <TrendingUp className="w-4 h-4 text-primary" />
-            <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Behavioral Trends</h3>
+            <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{t("behavioral_trends")}</h3>
           </div>
           <div className="grid md:grid-cols-2 gap-4">
             
@@ -233,8 +237,8 @@ export default function InsightsPage() {
             <Card className="border-border/40 shadow-sm bg-card/40">
               <CardContent className="p-5">
                 <div className="flex items-center justify-between mb-4">
-                  <p className="text-xs font-semibold text-foreground/70">Task Completion</p>
-                  <p className="text-[10px] text-muted-foreground capitalize">{timeRange} activity</p>
+                  <p className="text-xs font-semibold text-foreground/70">{t("tasks_done")}</p>
+                  <p className="text-[10px] text-muted-foreground capitalize">{t(timeRange as any)}</p>
                 </div>
                 <div className="flex items-end gap-1 h-20">
                   {productivityData.map((d, i) => (
@@ -253,8 +257,8 @@ export default function InsightsPage() {
             <Card className="border-border/40 shadow-sm bg-card/40">
               <CardContent className="p-5">
                 <div className="flex items-center justify-between mb-4">
-                  <p className="text-xs font-semibold text-foreground/70">Emotional Tone</p>
-                  <p className="text-[10px] text-muted-foreground capitalize">{timeRange} flow</p>
+                  <p className="text-xs font-semibold text-foreground/70">{t("emotional_tone")}</p>
+                  <p className="text-[10px] text-muted-foreground capitalize">{t(timeRange as any)}</p>
                 </div>
                 <div className="flex items-center gap-1.5 h-20">
                   {moodTrendData.map((d, i) => (
@@ -267,11 +271,11 @@ export default function InsightsPage() {
                 <div className="flex gap-3 mt-4 justify-center">
                   <div className="flex items-center gap-1.5">
                     <div className="w-2 h-2 rounded-full bg-emerald-400" />
-                    <span className="text-[9px] text-muted-foreground">Positive</span>
+                    <span className="text-[9px] text-muted-foreground">{t("positive")}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <div className="w-2 h-2 rounded-full bg-amber-400" />
-                    <span className="text-[9px] text-muted-foreground">Mixed</span>
+                    <span className="text-[9px] text-muted-foreground">{t("mixed")}</span>
                   </div>
                 </div>
               </CardContent>
@@ -281,8 +285,8 @@ export default function InsightsPage() {
             <Card className="border-border/40 shadow-sm bg-card/40 md:col-span-2">
               <CardContent className="p-5">
                 <div className="flex items-center justify-between mb-5">
-                  <p className="text-xs font-semibold text-foreground/70">Habit Formation</p>
-                  <p className="text-[10px] text-muted-foreground">Completion rates this {timeRange.replace('ly','')}</p>
+                  <p className="text-xs font-semibold text-foreground/70">{t("habit_formation")}</p>
+                  <p className="text-[10px] text-muted-foreground">{t("completion_rate")} ({t(timeRange as any)})</p>
                 </div>
                 <div className="space-y-4">
                   {habits.length > 0 ? habits.slice(0, 3).map(h => {
@@ -307,7 +311,7 @@ export default function InsightsPage() {
                       </div>
                     );
                   }) : (
-                    <p className="text-xs text-muted-foreground text-center py-2">Start a habit to see consistency trends.</p>
+                    <p className="text-xs text-muted-foreground text-center py-2">{t("no_habits")}</p>
                   )}
                 </div>
               </CardContent>

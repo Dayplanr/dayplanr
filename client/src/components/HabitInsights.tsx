@@ -35,15 +35,23 @@ import {
   LineChart,
   Line,
 } from "recharts";
-import { format, differenceInDays, subDays, subWeeks, subMonths, subYears, startOfWeek, endOfWeek, eachWeekOfInterval, startOfYear, endOfYear } from "date-fns";
+import { format, differenceInDays, subDays, subWeeks, subMonths, subYears, startOfWeek, endOfWeek, eachWeekOfInterval, startOfYear, endOfYear, type Locale } from "date-fns";
+import { enUS, tr, ru } from "date-fns/locale";
 import type { Habit } from "@/types/habits";
 import { computeWeeklyData, computeConsistencyData, computeCompletionRate } from "@/types/habits";
+import { useTranslation } from "@/lib/i18n";
 
 interface HabitInsightsProps {
   habits: Habit[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
+
+const localeMap: Record<string, Locale> = {
+  en: enUS,
+  tr: tr,
+  ru: ru,
+};
 
 // Dynamic colors for pie chart
 const generateColors = (count: number) => {
@@ -55,16 +63,11 @@ const generateColors = (count: number) => {
   return colors;
 };
 
-const months = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"
-];
-
 const generateYears = () => {
   return [2026, 2027, 2028, 2029, 2030];
 };
 
-const generateWeeks = (year: number) => {
+const generateWeeks = (year: number, t: any) => {
   const yearStart = startOfYear(new Date(year, 0, 1));
   const yearEnd = endOfYear(new Date(year, 11, 31));
   const weeks = eachWeekOfInterval({ start: yearStart, end: yearEnd }, { weekStartsOn: 1 }); // Monday start
@@ -73,7 +76,7 @@ const generateWeeks = (year: number) => {
     const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
     return {
       value: index + 1,
-      label: `Week ${index + 1}`,
+      label: `${t("weekly")} ${index + 1}`,
       dateRange: `${format(weekStart, "MMM d")} - ${format(weekEnd, "MMM d")}`,
       startDate: weekStart,
       endDate: weekEnd
@@ -290,10 +293,10 @@ export default function HabitInsights({ habits, open, onOpenChange }: HabitInsig
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
                 <Target className="w-5 h-5" />
-                Overall Habit Progress
+                {t("overall_progress")}
               </CardTitle>
               <p className="text-sm text-muted-foreground">
-                Track your consistency and progress across all habits.
+                {t("habitProgressDesc")}
               </p>
             </CardHeader>
             <CardContent>
@@ -302,25 +305,25 @@ export default function HabitInsights({ habits, open, onOpenChange }: HabitInsig
                   <p className="text-3xl font-bold font-mono text-primary" data-testid="text-total-habits">
                     {totalHabits}
                   </p>
-                  <p className="text-sm text-muted-foreground mt-1">Total Habits</p>
+                  <p className="text-sm text-muted-foreground mt-1">{t("total_habits")}</p>
                 </div>
                 <div className="p-4 bg-muted/50 rounded-lg text-center">
                   <p className="text-3xl font-bold font-mono text-green-600" data-testid="text-active-habits">
                     {activeHabits}
                   </p>
-                  <p className="text-sm text-muted-foreground mt-1">Active Streaks</p>
+                  <p className="text-sm text-muted-foreground mt-1">{t("active_streaks")}</p>
                 </div>
                 <div className="p-4 bg-muted/50 rounded-lg text-center">
                   <p className="text-3xl font-bold font-mono text-blue-600" data-testid="text-challenge-habits">
                     {challengeHabits}
                   </p>
-                  <p className="text-sm text-muted-foreground mt-1">Challenge Habits</p>
+                  <p className="text-sm text-muted-foreground mt-1">{t("challenge_habits")}</p>
                 </div>
                 <div className="p-4 bg-primary/10 rounded-lg text-center border border-primary/20">
                   <p className="text-3xl font-bold font-mono text-primary" data-testid="text-avg-success">
                     {avgSuccessRate}%
                   </p>
-                  <p className="text-sm text-muted-foreground mt-1">Average Success Rate</p>
+                  <p className="text-sm text-muted-foreground mt-1">{t("avg_success_rate")}</p>
                 </div>
               </div>
             </CardContent>
@@ -331,10 +334,10 @@ export default function HabitInsights({ habits, open, onOpenChange }: HabitInsig
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
                 <BarChart3 className="w-5 h-5" />
-                Weekly Completion Pattern
+                {t("weekly_pattern")}
               </CardTitle>
               <p className="text-sm text-muted-foreground">
-                See which days you're most consistent with your habits.
+                {t("habitWeeklyPatternDesc")}
               </p>
             </CardHeader>
             <CardContent>
@@ -359,8 +362,8 @@ export default function HabitInsights({ habits, open, onOpenChange }: HabitInsig
                         borderRadius: "8px",
                       }}
                       formatter={(value: number, name: string) => [
-                        `${value} habits`,
-                        name === "completed" ? "Completed" : "Total"
+                        `${value} ${t("habits")}`,
+                        name === "completed" ? t("completed") : t("total")
                       ]}
                     />
                     <Bar 
@@ -386,10 +389,10 @@ export default function HabitInsights({ habits, open, onOpenChange }: HabitInsig
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
                 <BarChart3 className="w-5 h-5" />
-                Habit Categories Breakdown
+                {t("category_breakdown")}
               </CardTitle>
               <p className="text-sm text-muted-foreground">
-                Understand where you focus your habit-building energy.
+                {t("categoryBreakdownDesc")}
               </p>
             </CardHeader>
             <CardContent>
@@ -411,7 +414,7 @@ export default function HabitInsights({ habits, open, onOpenChange }: HabitInsig
                             <Cell key={`cell-${index}`} fill={pieColors[index]} />
                           ))}
                         </Pie>
-                        <Tooltip formatter={(value, name) => [`${value} habits`, name]} />
+                        <Tooltip formatter={(value, name) => [`${value} ${t("habits")}`, name]} />
                       </PieChart>
                     </ResponsiveContainer>
                   </div>
@@ -423,7 +426,7 @@ export default function HabitInsights({ habits, open, onOpenChange }: HabitInsig
                           style={{ backgroundColor: pieColors[index] }}
                         />
                         <span className="text-sm font-medium">{category.name}</span>
-                        <span className="text-sm text-muted-foreground">({category.value} habits)</span>
+                        <span className="text-sm text-muted-foreground">({category.value} {t("habits")})</span>
                       </div>
                     ))}
                   </div>
@@ -431,7 +434,7 @@ export default function HabitInsights({ habits, open, onOpenChange }: HabitInsig
               ) : (
                 <div className="text-center py-12">
                   <Sparkles className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-                  <p className="text-sm text-muted-foreground">No habits created yet</p>
+                  <p className="text-sm text-muted-foreground">{t("no_habits_yet")}</p>
                 </div>
               )}
             </CardContent>
@@ -442,10 +445,10 @@ export default function HabitInsights({ habits, open, onOpenChange }: HabitInsig
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
                 <Zap className="w-5 h-5" />
-                Best Performing Habit
+                {t("best_performing")}
               </CardTitle>
               <p className="text-sm text-muted-foreground">
-                The habit you're most consistent with.
+                {t("bestHabitDesc")}
               </p>
             </CardHeader>
             <CardContent>
@@ -460,26 +463,26 @@ export default function HabitInsights({ habits, open, onOpenChange }: HabitInsig
                       <p className="text-2xl font-bold font-mono text-primary">
                         {bestHabit.successRate}%
                       </p>
-                      <p className="text-xs text-muted-foreground">Success Rate</p>
+                      <p className="text-xs text-muted-foreground">{t("success_rate")}</p>
                     </div>
                     <div className="text-center">
                       <p className="text-2xl font-bold font-mono text-primary">
                         {bestHabit.streak}
                       </p>
-                      <p className="text-xs text-muted-foreground">Current Streak</p>
+                      <p className="text-xs text-muted-foreground">{t("current_streak")}</p>
                     </div>
                     <div className="text-center">
                       <p className="text-2xl font-bold font-mono text-primary">
                         {bestHabit.bestStreak || 0}
                       </p>
-                      <p className="text-xs text-muted-foreground">Best Streak</p>
+                      <p className="text-xs text-muted-foreground">{t("best_streak")}</p>
                     </div>
                   </div>
                 </div>
               ) : (
                 <div className="text-center py-8">
                   <Sparkles className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-                  <p className="text-sm text-muted-foreground">No habits created yet</p>
+                  <p className="text-sm text-muted-foreground">{t("no_habits_yet")}</p>
                 </div>
               )}
             </CardContent>
@@ -487,22 +490,22 @@ export default function HabitInsights({ habits, open, onOpenChange }: HabitInsig
           {/* Time-based Insights with Tabs */}
           <Tabs defaultValue="weekly" className="w-full">
             <TabsList className="w-full grid grid-cols-3">
-              <TabsTrigger value="weekly">Weekly</TabsTrigger>
-              <TabsTrigger value="monthly">Monthly</TabsTrigger>
-              <TabsTrigger value="yearly">Yearly</TabsTrigger>
+              <TabsTrigger value="weekly">{t("weekly")}</TabsTrigger>
+              <TabsTrigger value="monthly">{t("monthly")}</TabsTrigger>
+              <TabsTrigger value="yearly">{t("yearly")}</TabsTrigger>
             </TabsList>
 
             {/* Weekly Content */}
             <TabsContent value="weekly" className="space-y-6 mt-6">
               <div className="flex items-center justify-between gap-2">
-                <h3 className="text-sm font-medium">Select Week</h3>
+                <h3 className="text-sm font-medium">{t("select_week")}</h3>
                 <div className="flex gap-2">
                   <Select value={selectedWeek.toString()} onValueChange={(value) => setSelectedWeek(parseInt(value))}>
                     <SelectTrigger className="w-32" data-testid="select-week-habits">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {generateWeeks(selectedYear).map((week) => (
+                      {generateWeeks(selectedYear, t).map((week) => (
                         <SelectItem key={week.value} value={week.value.toString()}>
                           {week.label}
                         </SelectItem>
@@ -542,10 +545,10 @@ export default function HabitInsights({ habits, open, onOpenChange }: HabitInsig
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg flex items-center gap-2">
                     <Activity className="w-5 h-5" />
-                    Week {selectedWeek} {selectedYear} Consistency Score
+                    {t("consistency_score")}
                   </CardTitle>
                   <p className="text-sm text-muted-foreground">
-                    See how consistently you're maintaining your habits in week {selectedWeek} of {selectedYear}.
+                    {t("consistencyHabitDesc")}
                   </p>
                 </CardHeader>
                 <CardContent>
@@ -587,10 +590,10 @@ export default function HabitInsights({ habits, open, onOpenChange }: HabitInsig
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg flex items-center gap-2">
                     <Trophy className="w-5 h-5" />
-                    Week {selectedWeek} {selectedYear} Habit Productivity Score
+                    {t("productivity_score")}
                   </CardTitle>
                   <p className="text-sm text-muted-foreground">
-                    A combined score based on your consistency, streaks, and success rates in week {selectedWeek} of {selectedYear}.
+                    {t("productivityHabitDesc")}
                   </p>
                 </CardHeader>
                 <CardContent>

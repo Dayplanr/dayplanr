@@ -1,14 +1,26 @@
-import { format, addDays, startOfWeek } from "date-fns";
+import { format, addDays, startOfWeek, type Locale } from "date-fns";
+import { enUS, tr, ru } from "date-fns/locale";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/lib/i18n";
 
 interface CalendarScrubberProps {
   selectedDate: Date;
   onSelectDate: (date: Date) => void;
 }
 
+const localeMap: Record<string, Locale> = {
+  en: enUS,
+  tr: tr,
+  ru: ru,
+};
+
 export default function CalendarScrubber({ selectedDate, onSelectDate }: CalendarScrubberProps) {
+  const { language } = useLanguage();
+  const baseLanguage = language.split("-")[0];
+  const currentLocale = localeMap[baseLanguage] || enUS;
+
   const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 });
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
@@ -48,7 +60,7 @@ export default function CalendarScrubber({ selectedDate, onSelectDate }: Calenda
             >
               <span className={`text-[10px] font-bold uppercase tracking-wider mb-1 ${isSelected ? "text-primary-foreground/70" : "text-muted-foreground/50"
                 }`}>
-                {format(day, "EEE")}
+                {format(day, "EEE", { locale: currentLocale })}
               </span>
               <span className="text-sm font-black">
                 {format(day, "d")}

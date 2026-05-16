@@ -32,7 +32,7 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function HabitsPage() {
   const [, navigate] = useLocation();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const { user } = useAuth();
   const { toast } = useToast();
   const [showInsights, setShowInsights] = useState(false);
@@ -52,8 +52,9 @@ export default function HabitsPage() {
       weeklyConsistency: h.weeklyConsistency || 0,
       completedDates: h.completedDates || [],
       selectedDays: h.selectedDays || [],
-    }))
-  ), [habits]);
+    })),
+    t
+  ), [habits, t]);
 
   const fetchHabits = async () => {
     if (!user) return;
@@ -96,7 +97,7 @@ export default function HabitsPage() {
       setHabits(formattedHabits);
     } catch (error: any) {
       toast({
-        title: "Error fetching habits",
+        title: t("error_fetching_habits"),
         description: error.message,
         variant: "destructive",
       });
@@ -158,10 +159,10 @@ export default function HabitsPage() {
             : h
         )
       );
-      toast({ title: isCompleted ? "Day unmarked" : "Day marked" });
+      toast({ title: isCompleted ? t("day_unmarked") : t("day_marked") });
     } catch (error: any) {
       toast({
-        title: "Error updating habit",
+        title: t("error_updating_habit"),
         description: error.message,
         variant: "destructive",
       });
@@ -191,10 +192,10 @@ export default function HabitsPage() {
         prev.map((habit) => (habit.id === updatedHabit.id ? updatedHabit : habit))
       );
       setEditingHabit(null);
-      toast({ title: "Habit updated" });
+      toast({ title: t("habit_updated") });
     } catch (error: any) {
       toast({
-        title: "Error updating habit",
+        title: t("error_updating_habit"),
         description: error.message,
         variant: "destructive",
       });
@@ -212,10 +213,10 @@ export default function HabitsPage() {
 
       setHabits((prev) => prev.filter((habit) => habit.id !== habitId));
       setDeletingHabit(null);
-      toast({ title: "Habit deleted" });
+      toast({ title: t("habit_deleted") });
     } catch (error: any) {
       toast({
-        title: "Error deleting habit",
+        title: t("error_deleting_habit"),
         description: error.message,
         variant: "destructive",
       });
@@ -229,7 +230,12 @@ export default function HabitsPage() {
   };
 
   return (
-    <div className="h-full overflow-y-auto pb-20 md:pb-4">
+    <motion.div 
+      key={language}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="h-full overflow-y-auto pb-20 md:pb-4"
+    >
       <div className="max-w-3xl mx-auto p-4 space-y-6">
         <div className="flex items-center justify-between gap-4">
           <div>
@@ -259,7 +265,7 @@ export default function HabitsPage() {
 
         <div className="space-y-4">
           {habitInsights.length > 0 && (
-            <InsightCarousel insights={habitInsights} label="Habit Insights" compact />
+            <InsightCarousel insights={habitInsights} label={t("habit_insights")} compact />
           )}
 
           {habits.map((habit) => (
@@ -314,9 +320,9 @@ export default function HabitsPage() {
       <AlertDialog open={!!deletingHabit} onOpenChange={(open) => !open && setDeletingHabit(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Habit</AlertDialogTitle>
+            <AlertDialogTitle>{t("delete_habit")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{deletingHabit?.title}"? This action cannot be undone and all your progress will be lost.
+              {t("delete_habit_confirm")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -326,7 +332,7 @@ export default function HabitsPage() {
               onClick={confirmDelete}
               data-testid="button-confirm-delete"
             >
-              Delete
+              {t("delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -337,6 +343,6 @@ export default function HabitsPage() {
         open={showInsights}
         onOpenChange={setShowInsights}
       />
-    </div>
+    </motion.div>
   );
 }

@@ -23,7 +23,7 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function GoalsPage() {
   const [, navigate] = useLocation();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const { user } = useAuth();
   const { toast } = useToast();
   const [showEditGoal, setShowEditGoal] = useState(false);
@@ -40,8 +40,9 @@ export default function GoalsPage() {
       title: g.title,
       progress: g.progress,
       lastActivityAt: g.lastActivityAt,
-    }))
-  ), [goals]);
+    })),
+    t
+  ), [goals, t]);
 
   const fetchGoals = async () => {
     if (!user) return;
@@ -120,7 +121,7 @@ export default function GoalsPage() {
       }
     } catch (error: any) {
       toast({
-        title: "Error fetching goals",
+        title: t("error_fetching_goals"),
         description: error.message,
         variant: "destructive",
       });
@@ -175,7 +176,7 @@ export default function GoalsPage() {
       );
     } catch (error: any) {
       toast({
-        title: "Error updating milestone",
+        title: t("error_updating_goal"),
         description: error.message,
         variant: "destructive",
       });
@@ -207,8 +208,7 @@ export default function GoalsPage() {
 
       if (goalError) throw goalError;
 
-      // 2. Handle milestones (this is more complex - for simplicity, let's update titles and ignore deletions for now, 
-      // or implement a full sync if needed. Here we assume milestones in 'data' are the current ones)
+      // 2. Handle milestones
       if (data.milestones) {
         // Find existing milestones to determine what to update vs insert
         const { data: existingMilestones } = await supabase
@@ -243,11 +243,11 @@ export default function GoalsPage() {
         }
       }
 
-      toast({ title: "Goal updated successfully" });
+      toast({ title: t("goal_updated") });
       fetchGoals(); // Refresh to get correct IDs and data
     } catch (error: any) {
       toast({
-        title: "Error updating goal",
+        title: t("error_updating_goal"),
         description: error.message,
         variant: "destructive",
       });
@@ -266,10 +266,10 @@ export default function GoalsPage() {
       if (error) throw error;
 
       setGoals((prev) => prev.filter((goal) => goal.id !== goalId));
-      toast({ title: "Goal deleted" });
+      toast({ title: t("goal_deleted") });
     } catch (error: any) {
       toast({
-        title: "Error deleting goal",
+        title: t("error_deleting_goal"),
         description: error.message,
         variant: "destructive",
       });
@@ -277,7 +277,12 @@ export default function GoalsPage() {
   };
 
   return (
-    <div className="h-full overflow-y-auto pb-20 md:pb-4">
+    <motion.div 
+      key={language}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="h-full overflow-y-auto pb-20 md:pb-4"
+    >
       <div className="max-w-3xl mx-auto p-4 space-y-6">
         <div className="flex items-center justify-between gap-4">
           <div>
@@ -307,7 +312,7 @@ export default function GoalsPage() {
 
         <div className="space-y-4">
           {goalInsights.length > 0 && (
-            <InsightCarousel insights={goalInsights} label="Goal Insights" compact />
+            <InsightCarousel insights={goalInsights} label={t("goal_insights")} compact />
           )}
 
           {goals.map((goal) => (
@@ -355,6 +360,6 @@ export default function GoalsPage() {
         open={showInsights}
         onOpenChange={setShowInsights}
       />
-    </div>
+    </motion.div>
   );
 }

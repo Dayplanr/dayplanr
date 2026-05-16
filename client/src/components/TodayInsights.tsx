@@ -28,7 +28,9 @@ import {
   Line,
   Legend,
 } from "recharts";
-import { format, subDays, startOfMonth, eachDayOfInterval, getDay, startOfWeek, endOfWeek, eachWeekOfInterval, startOfYear, endOfYear } from "date-fns";
+import { format, subDays, startOfMonth, eachDayOfInterval, getDay, startOfWeek, endOfWeek, eachWeekOfInterval, startOfYear, endOfYear, type Locale } from "date-fns";
+import { enUS, tr, ru } from "date-fns/locale";
+import { useTranslation } from "@/lib/i18n";
 
 interface TodayInsightsProps {
   open: boolean;
@@ -43,16 +45,17 @@ interface TodayInsightsProps {
 const FOCUS_COLOR = "hsl(var(--primary))";
 const TASK_COLOR = "#a78bfa";
 
-const months = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"
-];
+const localeMap: Record<string, Locale> = {
+  en: enUS,
+  tr: tr,
+  ru: ru,
+};
 
 const generateYears = () => {
   return [2026, 2027, 2028, 2029, 2030];
 };
 
-const generateWeeks = (year: number) => {
+const generateWeeks = (year: number, t: any) => {
   const yearStart = startOfYear(new Date(year, 0, 1));
   const yearEnd = endOfYear(new Date(year, 11, 31));
   const weeks = eachWeekOfInterval({ start: yearStart, end: yearEnd }, { weekStartsOn: 1 }); // Monday start
@@ -61,7 +64,7 @@ const generateWeeks = (year: number) => {
     const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
     return {
       value: index + 1,
-      label: `Week ${index + 1}`,
+      label: `${t("weekly")} ${index + 1}`,
       dateRange: `${format(weekStart, "MMM d")} - ${format(weekEnd, "MMM d")}`,
       startDate: weekStart,
       endDate: weekEnd
@@ -78,8 +81,16 @@ export default function TodayInsights({
   habitsCompleted,
   totalHabits,
 }: TodayInsightsProps) {
+  const { t, language } = useTranslation();
+  const baseLanguage = language.split("-")[0];
+  const currentLocale = localeMap[baseLanguage] || enUS;
+
+  const months = Array.from({ length: 12 }, (_, i) => 
+    format(new Date(2026, i, 1), "MMMM", { locale: currentLocale })
+  );
+
   const [activeTab, setActiveTab] = useState("weekly");
-  const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "MMMM"));
+  const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "MMMM", { locale: currentLocale }));
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedWeek, setSelectedWeek] = useState(1);
 
@@ -116,7 +127,7 @@ export default function TodayInsights({
   }, [open, user]);
 
   const getWeeklyData = () => {
-    const weeks = generateWeeks(selectedYear);
+    const weeks = generateWeeks(selectedYear, t);
     const targetWeek = weeks.find(w => w.value === selectedWeek);
     if (!targetWeek) return [];
 
@@ -128,7 +139,7 @@ export default function TodayInsights({
       const dSessions = sessionHistory.filter(s => s.completed_at?.startsWith(dayStr));
 
       return {
-        day: format(day, "EEE"),
+        day: format(day, "EEE", { locale: currentLocale }),
         tasks: dTasks.length,
         focus: dSessions.reduce((acc, s) => acc + (s.duration || 0), 0)
       };
@@ -176,7 +187,7 @@ export default function TodayInsights({
       });
 
       return {
-        month: month.substring(0, 3), // Jan
+        month: format(monthStart, "MMM", { locale: currentLocale }), // Jan
         tasks: mTasks.length,
         focus: mSessions.reduce((acc, s) => acc + (s.duration || 0), 0)
       };
@@ -209,7 +220,7 @@ export default function TodayInsights({
         <CardHeader className="pb-2">
           <CardTitle className="text-sm flex items-center gap-2">
             <Target className="w-4 h-4 text-violet-500" />
-            Goal Progress
+            {t("goal_progress")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -217,7 +228,7 @@ export default function TodayInsights({
             <div key={g.title}>
               <div className="flex justify-between text-xs mb-1">
                 <span className="font-medium truncate max-w-[65%]">{g.title}</span>
-                <span className="text-muted-foreground">{g.done}/{g.total} tasks</span>
+                <span className="text-muted-foreground">{g.done}/{g.total} {t("tasks")}</span>
               </div>
               <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
                 <div
@@ -255,11 +266,15 @@ export default function TodayInsights({
     const firstDayOfWeek = getDay(monthStart);
     const emptyCells = Array(firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1).fill(null);
 
+    const weekDays = Array.from({ length: 7 }, (_, i) => 
+      format(startOfWeek(new Date(), { weekStartsOn: 1 }), "EEEEE", { locale: currentLocale })
+    );
+
     return (
       <div className="grid grid-cols-7 gap-1">
-        {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
+        {weekDays.map((d, i) => (
           <div key={i} className="text-xs text-center text-muted-foreground">
-            {d}
+            {format(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), i), "EEEEE", { locale: currentLocale })}
           </div>
         ))}
         {emptyCells.map((_, i) => (
@@ -301,28 +316,28 @@ export default function TodayInsights({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <TrendingUp className="w-5 h-5" />
-            Today Insights
+            {t("today_insights")}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="w-full grid grid-cols-3">
-              <TabsTrigger value="weekly" data-testid="tab-weekly">Weekly</TabsTrigger>
-              <TabsTrigger value="monthly" data-testid="tab-monthly">Monthly</TabsTrigger>
-              <TabsTrigger value="yearly" data-testid="tab-yearly">Yearly</TabsTrigger>
+              <TabsTrigger value="weekly" data-testid="tab-weekly">{t("weekly")}</TabsTrigger>
+              <TabsTrigger value="monthly" data-testid="tab-monthly">{t("monthly")}</TabsTrigger>
+              <TabsTrigger value="yearly" data-testid="tab-yearly">{t("yearly")}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="weekly" className="space-y-4 mt-4">
               <div className="flex items-center justify-between gap-2">
-                <h3 className="text-sm font-medium">Select Week</h3>
+                <h3 className="text-sm font-medium">{t("select_week")}</h3>
                 <div className="flex gap-2">
                   <Select value={selectedWeek.toString()} onValueChange={(value) => setSelectedWeek(parseInt(value))}>
                     <SelectTrigger className="w-32" data-testid="select-week-today">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {generateWeeks(selectedYear).map((week) => (
+                      {generateWeeks(selectedYear, t).map((week) => (
                         <SelectItem key={week.value} value={week.value.toString()}>
                           {week.label}
                         </SelectItem>
@@ -345,14 +360,14 @@ export default function TodayInsights({
               </div>
 
               {(() => {
-                const weeks = generateWeeks(selectedYear);
+                const weeks = generateWeeks(selectedYear, t);
                 const currentWeek = weeks.find(w => w.value === selectedWeek);
                 return (
                   <div className="p-3 bg-muted/50 rounded-lg text-center">
                     <p className="text-sm font-medium">
-                      {currentWeek ? currentWeek.dateRange : 'Week not found'} {selectedYear}
+                      {currentWeek ? currentWeek.dateRange : t("no_activity_detected")} {selectedYear}
                     </p>
-                    <p className="text-xs text-muted-foreground mt-1">Selected week range</p>
+                    <p className="text-xs text-muted-foreground mt-1">{t("selected_week_range") || "Selected week range"}</p>
                   </div>
                 );
               })()}
@@ -361,7 +376,7 @@ export default function TodayInsights({
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2">
                     <Target className="w-4 h-4" />
-                    Week {selectedWeek} {selectedYear} - Tasks vs Focus Time
+                    {t("tasks_vs_focus")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -379,8 +394,8 @@ export default function TodayInsights({
                           }}
                         />
                         <Legend />
-                        <Bar yAxisId="left" dataKey="tasks" fill={TASK_COLOR} radius={[4, 4, 0, 0]} name="Tasks" />
-                        <Bar yAxisId="right" dataKey="focus" fill={FOCUS_COLOR} radius={[4, 4, 0, 0]} name="Focus (min)" />
+                        <Bar yAxisId="left" dataKey="tasks" fill={TASK_COLOR} radius={[4, 4, 0, 0]} name={t("tasks")} />
+                        <Bar yAxisId="right" dataKey="focus" fill={FOCUS_COLOR} radius={[4, 4, 0, 0]} name={`${t("focus_time")} (min)`} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -391,7 +406,7 @@ export default function TodayInsights({
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2">
                     <Trophy className="w-4 h-4" />
-                    Week {selectedWeek} {selectedYear} Productivity Score
+                    {t("productivity_score")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -399,7 +414,7 @@ export default function TodayInsights({
                     <p className="text-4xl font-mono font-bold" data-testid="text-weekly-productivity">
                       {weeklyProductivityScore}
                     </p>
-                    <p className="text-sm text-muted-foreground">out of 100</p>
+                    <p className="text-sm text-muted-foreground">{t("out_of_100")}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -409,23 +424,23 @@ export default function TodayInsights({
                   <p className="text-xl font-semibold font-mono" data-testid="text-weekly-tasks">
                     {weeklyData.reduce((sum, d) => sum + d.tasks, 0)}
                   </p>
-                  <p className="text-xs text-muted-foreground">Tasks Done</p>
+                  <p className="text-xs text-muted-foreground">{t("tasks_done")}</p>
                 </div>
                 <div className="p-3 bg-muted/50 rounded-lg text-center">
                   <p className="text-xl font-semibold font-mono" data-testid="text-weekly-focus">
                     {weeklyData.reduce((sum, d) => sum + d.focus, 0)}m
                   </p>
-                  <p className="text-xs text-muted-foreground">Focus Time</p>
+                  <p className="text-xs text-muted-foreground">{t("focus_time")}</p>
                 </div>
                 <div className="p-3 bg-muted/50 rounded-lg text-center">
                   <p className="text-xl font-semibold font-mono" data-testid="text-weekly-best">
                     {weeklyData.reduce((best, d) => d.tasks > best.tasks ? d : best).day}
                   </p>
-                  <p className="text-xs text-muted-foreground">Best Day</p>
+                  <p className="text-xs text-muted-foreground">{t("best_day")}</p>
                 </div>
               </div>
               {(() => {
-                const weeks = generateWeeks(selectedYear);
+                const weeks = generateWeeks(selectedYear, t);
                 const w = weeks.find(wk => wk.value === selectedWeek);
                 if (!w) return null;
                 return renderGoalRows(getGoalStatsForPeriod(w.startDate, w.endDate));
@@ -434,7 +449,7 @@ export default function TodayInsights({
 
             <TabsContent value="monthly" className="space-y-4 mt-4">
               <div className="flex items-center justify-between gap-2">
-                <h3 className="text-sm font-medium">Select Date</h3>
+                <h3 className="text-sm font-medium">{t("select_date")}</h3>
                 <div className="flex gap-2">
                   <Select value={selectedMonth} onValueChange={setSelectedMonth}>
                     <SelectTrigger className="w-32" data-testid="select-month">
@@ -465,7 +480,7 @@ export default function TodayInsights({
 
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">{selectedMonth} {selectedYear} Activity</CardTitle>
+                  <CardTitle className="text-sm">{selectedMonth} {selectedYear} {t("activity")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {renderMonthHeatmap()}
@@ -476,7 +491,7 @@ export default function TodayInsights({
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2">
                     <Target className="w-4 h-4" />
-                    Tasks vs Focus Time
+                    {t("tasks_vs_focus")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -493,8 +508,8 @@ export default function TodayInsights({
                           }}
                         />
                         <Legend />
-                        <Line type="monotone" dataKey="tasks" stroke={TASK_COLOR} strokeWidth={2} dot={false} name="Tasks" />
-                        <Line type="monotone" dataKey="focus" stroke={FOCUS_COLOR} strokeWidth={2} dot={false} name="Focus (min)" />
+                        <Line type="monotone" dataKey="tasks" stroke={TASK_COLOR} strokeWidth={2} dot={false} name={t("tasks")} />
+                        <Line type="monotone" dataKey="focus" stroke={FOCUS_COLOR} strokeWidth={2} dot={false} name={`${t("focus_time")} (min)`} />
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
@@ -505,7 +520,7 @@ export default function TodayInsights({
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2">
                     <Trophy className="w-4 h-4" />
-                    Productivity Score
+                    {t("productivity_score")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -513,7 +528,7 @@ export default function TodayInsights({
                     <p className="text-4xl font-mono font-bold" data-testid="text-monthly-productivity">
                       {monthlyProductivityScore}
                     </p>
-                    <p className="text-sm text-muted-foreground">out of 100</p>
+                    <p className="text-sm text-muted-foreground">{t("out_of_100")}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -523,19 +538,19 @@ export default function TodayInsights({
                   <p className="text-xl font-semibold font-mono" data-testid="text-monthly-tasks">
                     {monthlyData.reduce((sum, d) => sum + d.tasks, 0)}
                   </p>
-                  <p className="text-xs text-muted-foreground">Tasks Done</p>
+                  <p className="text-xs text-muted-foreground">{t("tasks_done")}</p>
                 </div>
                 <div className="p-3 bg-muted/50 rounded-lg text-center">
                   <p className="text-xl font-semibold font-mono" data-testid="text-monthly-focus">
                     {Math.round(monthlyData.reduce((sum, d) => sum + d.focus, 0) / 60)}h
                   </p>
-                  <p className="text-xs text-muted-foreground">Focus Time</p>
+                  <p className="text-xs text-muted-foreground">{t("focus_time")}</p>
                 </div>
                 <div className="p-3 bg-muted/50 rounded-lg text-center">
                   <p className="text-xl font-semibold font-mono" data-testid="text-monthly-avg">
                     {Math.round(monthlyData.reduce((sum, d) => sum + d.tasks, 0) / monthlyData.length)}
                   </p>
-                  <p className="text-xs text-muted-foreground">Avg/Day</p>
+                  <p className="text-xs text-muted-foreground">{t("avg_per_day")}</p>
                 </div>
               </div>
               {renderGoalRows(getGoalStatsForPeriod(
@@ -546,7 +561,7 @@ export default function TodayInsights({
 
             <TabsContent value="yearly" className="space-y-4 mt-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium">Select Year</h3>
+                <h3 className="text-sm font-medium">{t("select_year")}</h3>
                 <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
                   <SelectTrigger className="w-20" data-testid="select-year-yearly">
                     <SelectValue />
@@ -565,7 +580,7 @@ export default function TodayInsights({
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2">
                     <Target className="w-4 h-4" />
-                    {selectedYear} Tasks vs Focus Time
+                    {selectedYear} {t("tasks_vs_focus")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -583,8 +598,8 @@ export default function TodayInsights({
                           }}
                         />
                         <Legend />
-                        <Bar yAxisId="left" dataKey="tasks" fill={TASK_COLOR} radius={[4, 4, 0, 0]} name="Tasks" />
-                        <Bar yAxisId="right" dataKey="focus" fill={FOCUS_COLOR} radius={[4, 4, 0, 0]} name="Focus (min)" />
+                        <Bar yAxisId="left" dataKey="tasks" fill={TASK_COLOR} radius={[4, 4, 0, 0]} name={t("tasks")} />
+                        <Bar yAxisId="right" dataKey="focus" fill={FOCUS_COLOR} radius={[4, 4, 0, 0]} name={`${t("focus_time")} (min)`} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -595,7 +610,7 @@ export default function TodayInsights({
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2">
                     <Trophy className="w-4 h-4" />
-                    Productivity Score
+                    {t("productivity_score")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -603,7 +618,7 @@ export default function TodayInsights({
                     <p className="text-4xl font-mono font-bold" data-testid="text-yearly-productivity">
                       {yearlyProductivityScore}
                     </p>
-                    <p className="text-sm text-muted-foreground">out of 100</p>
+                    <p className="text-sm text-muted-foreground">{t("out_of_100")}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -613,19 +628,19 @@ export default function TodayInsights({
                   <p className="text-xl font-semibold font-mono" data-testid="text-yearly-tasks">
                     {yearlyData.reduce((sum, d) => sum + d.tasks, 0)}
                   </p>
-                  <p className="text-xs text-muted-foreground">Tasks Done</p>
+                  <p className="text-xs text-muted-foreground">{t("tasks_done")}</p>
                 </div>
                 <div className="p-3 bg-muted/50 rounded-lg text-center">
                   <p className="text-xl font-semibold font-mono" data-testid="text-yearly-focus">
                     {Math.round(yearlyData.reduce((sum, d) => sum + d.focus, 0) / 60)}h
                   </p>
-                  <p className="text-xs text-muted-foreground">Focus Time</p>
+                  <p className="text-xs text-muted-foreground">{t("focus_time")}</p>
                 </div>
                 <div className="p-3 bg-muted/50 rounded-lg text-center">
                   <p className="text-xl font-semibold font-mono" data-testid="text-yearly-best">
                     {yearlyData.reduce((best, d) => d.tasks > best.tasks ? d : best).month}
                   </p>
-                  <p className="text-xs text-muted-foreground">Best Month</p>
+                  <p className="text-xs text-muted-foreground">{t("best_month")}</p>
                 </div>
               </div>
               {renderGoalRows(getGoalStatsForPeriod(

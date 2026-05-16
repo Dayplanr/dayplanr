@@ -18,206 +18,70 @@ export const languageNames: Record<Language, string> = {
 };
 
 export type TranslationKey =
-  | "today"
-  | "goals"
-  | "habits"
-  | "focus"
-  | "dailyProgress"
-  | "tasksComplete"
-  | "focusTime"
-  | "streak"
-  | "complete"
-  | "morning"
-  | "afternoon"
-  | "evening"
-  | "night"
-  | "addTask"
-  | "insights"
-  | "settings"
-  | "language"
-  | "theme"
-  | "dark"
-  | "light"
-  | "system"
-  | "cancel"
-  | "save"
-  | "delete"
-  | "edit"
-  | "add"
-  | "create"
-  | "title"
-  | "description"
-  | "priority"
-  | "high"
-  | "medium"
-  | "low"
-  | "startFocus"
-  | "pauseFocus"
-  | "resumeFocus"
-  | "stopFocus"
-  | "focusSession"
-  | "breakTime"
-  | "deepWork"
-  | "pomodoro"
-  | "minutes"
-  | "hours"
-  | "days"
-  | "week"
-  | "month"
-  | "year"
-  | "yesterday"
-  | "tomorrow"
-  | "thisWeek"
-  | "thisMonth"
-  | "completed"
-  | "inProgress"
-  | "notStarted"
-  | "overdue"
-  | "onTrack"
-  | "habitStreak"
-  | "currentStreak"
-  | "longestStreak"
-  | "completionRate"
-  | "goalProgress"
-  | "addGoal"
-  | "addHabit"
-  | "noTasks"
-  | "noGoals"
-  | "noHabits"
-  | "welcomeBack"
-  | "goodMorning"
-  | "goodAfternoon"
-  | "goodEvening"
-  | "of"
-  | "account"
-  | "profile"
-  | "personalData"
-  | "privacy"
-  | "deleteAccount"
-  | "connections"
-  | "appleHealth"
-  | "calendar"
-  | "notifications"
-  | "appearance"
-  | "themeColor"
-  | "appIcon"
-  | "general"
-  | "haptics"
-  | "logOut"
-  | "reminderSettings"
-  | "reminderDescription"
-  | "reminderCategories"
-  | "taskReminders"
-  | "habitReminders"
-  | "focusReminders"
-  | "incompleteNudges"
-  | "timing"
-  | "atTime"
-  | "minutesBefore10"
-  | "minutesBefore30"
-  | "hourBefore"
-  | "notificationStyle"
-  | "gentle"
-  | "important"
-  | "reminderNote"
-  | "deleteAccountConfirm"
-  | "taskTitle"
-  | "time"
-  | "period"
-  | "newTask"
-  | "taskTitlePlaceholder"
-  | "descriptionOptional"
-  | "descriptionPlaceholder"
-  | "startTimeOptional"
-  | "durationOptional"
-  | "linkToHabitOptional"
-  | "linkToGoalOptional"
-  | "category"
-  | "noGoal"
-  | "none"
-  | "personal"
-  | "work"
-  | "health"
-  | "learning"
-  | "other"
-  | "taskDeleted"
-  | "activeGoals"
-  | "progress"
-  | "customize"
-  | "customizeDashboard"
-  | "customizeDashboardDescription"
-  | "moduleVisible"
-  | "moduleHidden"
-  | "reflect"
-  | "reflectProgress"
-  | "reflectChallenge"
-  | "reflectNextStep"
-  | "reflectMood"
-  | "reflectSave"
-  | "reflectSaved"
-  | "reflectProgressPlaceholder"
-  | "reflectChallengePlaceholder"
-  | "reflectNextStepPlaceholder"
-  | "reflectDescription"
-  | "insight_streak_title"
-  | "insight_streak_desc"
-  | "insight_all_done_title"
-  | "insight_all_done_desc"
-  | "insight_great_progress_title"
-  | "insight_great_progress_desc"
-  | "insight_weekday_warrior_title"
-  | "insight_weekday_warrior_desc"
-  | "insight_goal_inactive_title"
-  | "insight_goal_inactive_desc_days"
-  | "insight_goal_inactive_desc_none"
-  | "insight_goal_near_done_title"
-  | "insight_goal_near_done_desc"
-  | "insight_goal_fastest_title"
-  | "insight_goal_fastest_desc"
-  | "insight_habit_top_streak_title"
-  | "insight_habit_top_streak_desc"
-  | "insight_habit_low_consistency_title"
-  | "insight_habit_low_consistency_desc"
-  | "insight_habit_weekday_pattern_title"
-  | "insight_habit_weekday_pattern_desc"
-  | "insight_reflect_mood_productive_title"
-  | "insight_reflect_mood_productive_desc"
-  | "insight_reflect_stress_sleep_title"
-  | "insight_reflect_stress_sleep_desc"
-  | "insight_reflect_low_moods_title"
-  | "insight_reflect_low_moods_desc"
-  | "insight_reflect_positive_streak_title"
-  | "insight_reflect_positive_streak_desc"
-  | "insight_pattern_peak_performance_title"
-  | "insight_pattern_peak_performance_desc"
-  | "insight_pattern_habit_champion_title"
-  | "insight_pattern_habit_champion_desc"
-  | "insight_pattern_goal_stall_title"
-  | "insight_pattern_goal_stall_desc"
-  | "insight_cat_distraction_title"
-  | "insight_cat_distraction_desc"
-  | "insight_cat_energy_title"
-  | "insight_cat_energy_desc"
-  | "insight_cat_time_title"
-  | "insight_cat_time_desc"
-  | "insight_cat_focus_title"
-  | "insight_cat_focus_desc"
-  | "insight_cat_overwhelm_title"
-  | "insight_cat_overwhelm_desc"
-  | "insight_cat_health_title"
-  | "insight_cat_health_desc"
+  | "today" | "goals" | "habits" | "focus" | "dailyProgress" | "tasksComplete" | "focusTime" | "streak" | "complete"
+  | "morning" | "afternoon" | "evening" | "night" | "addTask" | "insights" | "settings" | "language" | "theme"
+  | "dark" | "light" | "system" | "cancel" | "save" | "delete" | "edit" | "add" | "create" | "title" | "description"
+  | "priority" | "high" | "medium" | "low" | "startFocus" | "pauseFocus" | "resumeFocus" | "stopFocus" | "focusSession"
+  | "breakTime" | "deepWork" | "pomodoro" | "minutes" | "hours" | "days" | "week" | "month" | "year" | "yesterday"
+  | "tomorrow" | "thisWeek" | "thisMonth" | "completed" | "inProgress" | "notStarted" | "overdue" | "onTrack"
+  | "habitStreak" | "currentStreak" | "longestStreak" | "completionRate" | "goalProgress" | "addGoal" | "addHabit"
+  | "noTasks" | "noGoals" | "noHabits" | "welcomeBack" | "goodMorning" | "goodAfternoon" | "goodEvening" | "of"
+  | "account" | "profile" | "personalData" | "privacy" | "deleteAccount" | "connections" | "appleHealth" | "calendar"
+  | "notifications" | "appearance" | "themeColor" | "appIcon" | "general" | "haptics" | "logOut" | "reminderSettings"
+  | "reminderDescription" | "reminderCategories" | "taskReminders" | "habitReminders" | "focusReminders"
+  | "incompleteNudges" | "timing" | "atTime" | "minutesBefore10" | "minutesBefore30" | "hourBefore" | "notificationStyle"
+  | "gentle" | "important" | "reminderNote" | "deleteAccountConfirm" | "taskTitle" | "time" | "period" | "newTask"
+  | "taskTitlePlaceholder" | "descriptionOptional" | "descriptionPlaceholder" | "startTimeOptional" | "durationOptional"
+  | "linkToHabitOptional" | "linkToGoalOptional" | "category" | "noGoal" | "none" | "personal" | "work" | "health"
+  | "learning" | "other" | "taskDeleted" | "activeGoals" | "progress" | "customize" | "customizeDashboard"
+  | "customizeDashboardDescription" | "moduleVisible" | "moduleHidden" | "reflect" | "reflectProgress"
+  | "reflectChallenge" | "reflectNextStep" | "reflectMood" | "reflectSave" | "reflectSaved" | "reflectProgressPlaceholder"
+  | "reflectChallengePlaceholder" | "reflectNextStepPlaceholder" | "reflectDescription"
+  | "insight_streak_title" | "insight_streak_desc" | "insight_all_done_title" | "insight_all_done_desc"
+  | "insight_great_progress_title" | "insight_great_progress_desc" | "insight_weekday_warrior_title"
+  | "insight_weekday_warrior_desc" | "insight_goal_inactive_title" | "insight_goal_inactive_desc_days"
+  | "insight_goal_inactive_desc_none" | "insight_goal_near_done_title" | "insight_goal_near_done_desc"
+  | "insight_goal_fastest_title" | "insight_goal_fastest_desc" | "insight_habit_top_streak_title"
+  | "insight_habit_top_streak_desc" | "insight_habit_low_consistency_title" | "insight_habit_low_consistency_desc"
+  | "insight_habit_weekday_pattern_title" | "insight_habit_weekday_pattern_desc" | "insight_reflect_mood_productive_title"
+  | "insight_reflect_mood_productive_desc" | "insight_reflect_stress_sleep_title" | "insight_reflect_stress_sleep_desc"
+  | "insight_reflect_low_moods_title" | "insight_reflect_low_moods_desc" | "insight_reflect_positive_streak_title"
+  | "insight_reflect_positive_streak_desc" | "insight_pattern_peak_performance_title" | "insight_pattern_peak_performance_desc"
+  | "insight_pattern_habit_champion_title" | "insight_pattern_habit_champion_desc" | "insight_pattern_goal_stall_title"
+  | "insight_pattern_goal_stall_desc" | "insight_cat_distraction_title" | "insight_cat_distraction_desc"
+  | "insight_cat_energy_title" | "insight_cat_energy_desc" | "insight_cat_time_title" | "insight_cat_time_desc"
+  | "insight_cat_focus_title" | "insight_cat_focus_desc" | "insight_cat_overwhelm_title" | "insight_cat_overwhelm_desc"
+  | "insight_cat_health_title" | "insight_cat_health_desc"
   | "growth_headline_improving" | "growth_headline_declining" | "growth_headline_steady" | "growth_headline_new"
   | "growth_narrative_improving" | "growth_narrative_declining" | "growth_narrative_steady" | "growth_narrative_generic"
   | "growth_best_day" | "growth_habit_anchor" | "growth_challenge_blocker" | "growth_dominant_mood"
-  | "growth_month_total" | "growth_month_habit" | "growth_month_mood"
-  | "growth_year_total" | "growth_year_goals" | "growth_year_reflections"
-  | "growth_empty" | "growth_highlight_productive" | "growth_highlight_habit" | "growth_highlight_blocker" | "growth_highlight_mood"
-  | "growth_monthly_headline_improving" | "growth_monthly_headline_declining" | "growth_monthly_headline_steady" | "growth_monthly_headline_new"
-  | "growth_yearly_headline_improving" | "growth_yearly_headline_declining"
-  | "growth_trend_improving" | "growth_trend_steady" | "growth_trend_declining"  | "growth_trend_new"
+  | "growth_month_total" | "growth_month_habit" | "growth_month_mood" | "growth_year_total" | "growth_year_goals"
+  | "growth_year_reflections" | "growth_empty" | "growth_highlight_productive" | "growth_highlight_habit"
+  | "growth_highlight_blocker" | "growth_highlight_mood" | "growth_monthly_headline_improving"
+  | "growth_monthly_headline_declining" | "growth_monthly_headline_steady" | "growth_monthly_headline_new"
+  | "growth_yearly_headline_improving" | "growth_yearly_headline_declining" | "growth_trend_improving"
+  | "growth_trend_steady" | "growth_trend_declining"  | "growth_trend_new"
   | "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday"
-  | "growth_report" | "growth_report_desc" | "weekly" | "monthly" | "yearly" | "behavioral_trends" | "emotional_tone" | "habit_formation" | "positive" | "mixed"
-  | "mood_great" | "mood_good" | "mood_okay" | "mood_stressed" | "mood_tired" | "mood_bad";
+  | "growth_report" | "growth_report_desc" | "weekly" | "monthly" | "yearly" | "behavioral_trends"
+  | "emotional_tone" | "habit_formation" | "positive" | "mixed" | "today_morning_momentum" | "today_morning_greet"
+  | "today_afternoon_momentum" | "today_afternoon_greet" | "today_evening_done" | "today_evening_greet"
+  | "awareness" | "full_reflection" | "direction" | "no_tasks_planned" | "start_intentionally"
+  | "mood_pill_great" | "mood_pill_calm" | "mood_pill_productive" | "mood_pill_focused" | "mood_pill_tired" | "mood_pill_stressed"
+  | "reflect_saving" | "emotional_patterns" | "goal_insights" | "error_fetching_goals" | "goal_updated" | "error_updating_goal"
+  | "goal_deleted" | "error_deleting_goal" | "habit_insights" | "error_fetching_habits" | "day_unmarked" | "day_marked"
+  | "error_updating_habit" | "habit_updated" | "habit_deleted" | "error_deleting_habit" | "delete_habit" | "delete_habit_confirm"
+  | "overall_progress" | "category_breakdown" | "fastest_progressing" | "consistency_score" | "productivity_score"
+  | "select_week" | "select_date" | "total_goals" | "total_habits" | "completed_goals" | "goals_in_progress"
+  | "active_streaks" | "avg_completion" | "avg_success_rate" | "milestones_rate" | "completed_milestones"
+  | "pending_milestones" | "best_performing" | "goals_at_risk" | "habits_at_risk" | "no_activity_detected"
+  | "out_of_100" | "days_with_progress" | "best_streak" | "last_activity" | "milestoneRateDesc" | "milestone_completion"
+  | "categoryBreakdownDesc" | "fastestGoalDesc" | "consistencyDesc" | "productivityDesc" | "habitProgressDesc"
+  | "weekly_pattern" | "habitWeeklyPatternDesc" | "bestHabitDesc" | "consistencyHabitDesc" | "productivityHabitDesc"
+  | "today_insights" | "tasks_done" | "focus_time" | "best_day" | "best_month" | "avg_per_day" | "tasks_vs_focus"
+  | "goal_progress" | "focus_insights" | "sessions" | "no_sessions" | "pomodoro" | "deep_work" | "custom" | "top_timer"
+  | "view_insights" | "active_days" | "timer_ranking" | "best_focus_month" | "sessions_by_timer" | "focus_trend" | "total_minutes"
+  | "timeline" | "pattern_insights" | "reflection_history" | "no_reflections_yet" | "mood_summary" | "mood_distribution" | "no_mood_data"
+  | "mood_great" | "mood_good" | "mood_okay" | "mood_stressed" | "mood_tired" | "mood_bad" | "completion_rate";
 
 type Translations = Record<TranslationKey, string>;
 
@@ -335,7 +199,7 @@ const translations: Record<Language, Translations> = {
     reminderNote: "Reminders are designed to be supportive and non-intrusive, helping you stay on track without creating pressure.",
     deleteAccountConfirm: "Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently removed.",
     taskTitle: "Task Title",
-    time: "Hora",
+    time: "Time",
     period: "Period",
     newTask: "New Task",
     taskTitlePlaceholder: "What do you need to do?",
@@ -419,12 +283,6 @@ const translations: Record<Language, Translations> = {
     insight_cat_overwhelm_desc: "Feelings of overwhelm appear in your data. Breaking goals into smaller daily actions could reduce this significantly.",
     insight_cat_health_title: "Energy & Nutrition",
     insight_cat_health_desc: "Nutrition and hydration appear as challenges. Small habits like keeping water nearby can noticeably lift your energy.",
-    mood_great: "Great",
-    mood_good: "Good",
-    mood_okay: "Okay",
-    mood_stressed: "Stressed",
-    mood_tired: "Tired",
-    mood_bad: "Bad",
     growth_headline_improving: "A stronger week than the last",
     growth_headline_declining: "A quieter week — room to rebuild",
     growth_headline_steady: "Staying consistent this week",
@@ -457,7 +315,7 @@ const translations: Record<Language, Translations> = {
     growth_trend_improving: "Improving",
     growth_trend_steady: "Steady",
     growth_trend_declining: "Declining",
-    growth_trend_new: "Starting",
+    growth_trend_new: "New",
     monday: "Monday",
     tuesday: "Tuesday",
     wednesday: "Wednesday",
@@ -465,6 +323,120 @@ const translations: Record<Language, Translations> = {
     friday: "Friday",
     saturday: "Saturday",
     sunday: "Sunday",
+    growth_report: "Growth Report",
+    growth_report_desc: "Understanding your behavior and progress.",
+    weekly: "Weekly",
+    monthly: "Monthly",
+    yearly: "Yearly",
+    behavioral_trends: "Behavioral Trends",
+    emotional_tone: "Emotional Tone",
+    habit_formation: "Habit Formation",
+    positive: "Positive",
+    mixed: "Mixed",
+    today_morning_momentum: "You're starting with great momentum.",
+    today_morning_greet: "Good morning. What's your main intention for today?",
+    today_afternoon_momentum: "Solid progress so far. Keep this focused energy.",
+    today_afternoon_greet: "The afternoon is a fresh chance to move forward.",
+    today_evening_done: "A truly intentional day. Rest well.",
+    today_evening_greet: "The evening is for gentle reflection and winding down.",
+    awareness: "Awareness",
+    full_reflection: "Full Reflection",
+    direction: "Direction",
+    no_tasks_planned: "No tasks planned yet. Small intentional actions create long-term growth.",
+    start_intentionally: "Start your day intentionally",
+    mood_pill_great: "✨ Great",
+    mood_pill_calm: "😌 Calm",
+    mood_pill_productive: "🔋 Productive",
+    mood_pill_focused: "🧘 Focused",
+    mood_pill_tired: "😴 Tired",
+    mood_pill_stressed: "😟 Stressed",
+    reflect_saving: "Saving...",
+    emotional_patterns: "Emotional Patterns",
+    goal_insights: "Goal Insights",
+    error_fetching_goals: "Error fetching goals",
+    goal_updated: "Goal updated successfully",
+    error_updating_goal: "Error updating goal",
+    goal_deleted: "Goal deleted",
+    error_deleting_goal: "Error deleting goal",
+    habit_insights: "Habit Insights",
+    error_fetching_habits: "Error fetching habits",
+    day_unmarked: "Day unmarked",
+    day_marked: "Day marked",
+    error_updating_habit: "Error updating habit",
+    habit_updated: "Habit updated",
+    habit_deleted: "Habit deleted",
+    error_deleting_habit: "Error deleting habit",
+    delete_habit: "Delete Habit",
+    delete_habit_confirm: "Are you sure you want to delete this habit? This action cannot be undone and all your progress will be lost.",
+    overall_progress: "Overall Progress",
+    category_breakdown: "Category Breakdown",
+    fastest_progressing: "Fastest Progressing",
+    consistency_score: "Consistency Score",
+    productivity_score: "Productivity Score",
+    select_week: "Select Week",
+    select_date: "Select Date",
+    total_goals: "Total Goals",
+    total_habits: "Total Habits",
+    completed_goals: "Completed Goals",
+    goals_in_progress: "Goals in Progress",
+    active_streaks: "Active Streaks",
+    avg_completion: "Avg. Completion",
+    avg_success_rate: "Avg. Success Rate",
+    milestones_rate: "Milestone Completion Rate",
+    completed_milestones: "Completed Milestones",
+    pending_milestones: "Pending Milestones",
+    best_performing: "Best Performing",
+    goals_at_risk: "Goals at Risk",
+    habits_at_risk: "Habits at Risk",
+    no_activity_detected: "No activity detected",
+    out_of_100: "out of 100",
+    days_with_progress: "Days with Progress",
+    best_streak: "Best Streak",
+    last_activity: "Last Activity",
+    milestoneRateDesc: "See how effectively you're completing the steps that lead to your goals.",
+    milestone_completion: "milestone completion",
+    categoryBreakdownDesc: "Understand where you invest most of your long-term energy.",
+    fastestGoalDesc: "The goal you're moving toward the quickest.",
+    consistencyDesc: "See how steadily you're progressing toward your goals.",
+    productivityDesc: "A combined score based on your consistency and milestone completion.",
+    habitProgressDesc: "Track your consistency and progress across all habits.",
+    weekly_pattern: "Weekly Completion Pattern",
+    habitWeeklyPatternDesc: "See which days you're most consistent with your habits.",
+    bestHabitDesc: "The habit you're most consistent with.",
+    consistencyHabitDesc: "See how consistently you're maintaining your habits.",
+    productivityHabitDesc: "A combined score based on your consistency and streaks.",
+    today_insights: "Today Insights",
+    tasks_done: "Tasks Done",
+    focus_time: "Focus Time",
+    best_day: "Best Day",
+    best_month: "Best Month",
+    avg_per_day: "Avg/Day",
+    tasks_vs_focus: "Tasks vs Focus Time",
+    goal_progress: "Goal Progress",
+    focus_insights: "Focus Insights",
+    sessions: "Sessions",
+    no_sessions: "No Sessions",
+    custom: "Custom",
+    top_timer: "Top Timer",
+    view_insights: "View Insights",
+    active_days: "Active Days",
+    timer_ranking: "Timer Ranking",
+    best_focus_month: "Best Focus Month",
+    sessions_by_timer: "Sessions by Timer",
+    focus_trend: "Focus Trend",
+    total_minutes: "Total Minutes",
+    timeline: "Timeline",
+    pattern_insights: "Pattern Insights",
+    reflection_history: "Reflection History",
+    no_reflections_yet: "No reflections yet. Start checking in to build your history.",
+    mood_summary: "Mood Summary",
+    mood_distribution: "Mood Distribution",
+    no_mood_data: "No mood data for this month.",
+    emotional_tone: "Emotional Tone",
+    positive: "Positive",
+    mixed: "Mixed",
+    habit_formation: "Habit Formation",
+    growth_empty: "Not enough data yet for pattern insights.",
   },
   de: {
     today: "Heute",
@@ -1702,6 +1674,133 @@ const translations: Record<Language, Translations> = {
     friday: "Cuma",
     saturday: "Cumartesi",
     sunday: "Pazar",
+    growth_report: "Gelişim Raporu",
+    growth_report_desc: "Davranışlarınızı ve ilerlemenizi anlayın.",
+    weekly: "Haftalık",
+    monthly: "Aylık",
+    yearly: "Yıllık",
+    behavioral_trends: "Davranışsal Trendler",
+    emotional_tone: "Duygusal Ton",
+    habit_formation: "Alışkanlık Oluşumu",
+    positive: "Pozitif",
+    mixed: "Karışık",
+    today_morning_momentum: "Harika bir ivmeyle başlıyorsunuz.",
+    today_morning_greet: "Günaydın. Bugün için ana niyetiniz nedir?",
+    today_afternoon_momentum: "Şu ana kadar sağlam ilerleme. Bu odaklanmış enerjiyi koruyun.",
+    today_afternoon_greet: "Öğleden sonrası ilerlemek için taze bir şans.",
+    today_evening_done: "Gerçekten niyet dolu bir gün. İyi dinlenin.",
+    today_evening_greet: "Akşam, nazik bir yansıma ve gevşeme içindir.",
+    awareness: "Farkındalık",
+    full_reflection: "Tam Yansıma",
+    direction: "Yön",
+    no_tasks_planned: "Henüz planlanmış görev yok. Küçük niyetli eylemler uzun vadeli büyüme yaratır.",
+    start_intentionally: "Gününüzü niyetle başlatın",
+    mood_pill_great: "✨ Harika",
+    mood_pill_calm: "😌 Sakin",
+    mood_pill_productive: "🔋 Üretken",
+    mood_pill_focused: "🧘 Odaklanmış",
+    mood_pill_tired: "😴 Yorgun",
+    mood_pill_stressed: "😟 Stresli",
+    reflect_saving: "Kaydediliyor...",
+    emotional_patterns: "Duygusal Desenler",
+    reflectSave: "Yansımayı Kaydet",
+    goal_insights: "Hedef İçgörüleri",
+    error_fetching_goals: "Hedefler getirilirken hata oluştu",
+    goal_updated: "Hedef başarıyla güncellendi",
+    error_updating_goal: "Hedef güncellenirken hata oluştu",
+    goal_deleted: "Hedef silindi",
+    error_deleting_goal: "Hedef silinirken hata oluştu",
+    habit_insights: "Alışkanlık İçgörüleri",
+    error_fetching_habits: "Alışkanlıklar getirilirken hata oluştu",
+    day_unmarked: "Gün işareti kaldırıldı",
+    day_marked: "Gün işaretlendi",
+    error_updating_habit: "Alışkanlık güncellenirken hata oluştu",
+    habit_updated: "Alışkanlık güncellendi",
+    habit_deleted: "Alışkanlık silindi",
+    error_deleting_habit: "Alışkanlık silinirken hata oluştu",
+    delete_habit: "Alışkanlığı Sil",
+    delete_habit_confirm: "Bu alışkanlığı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz ve tüm ilerlemeniz kaybolur.",
+    overall_progress: "Genel İlerleme",
+    category_breakdown: "Kategori Dağılımı",
+    fastest_progressing: "En Hızlı İlerleyen",
+    consistency_score: "İstikrar Puanı",
+    productivity_score: "Verimlilik Puanı",
+    weekly: "Haftalık",
+    monthly: "Aylık",
+    yearly: "Yıllık",
+    select_week: "Hafta Seç",
+    select_date: "Tarih Seç",
+    total_goals: "Toplam Hedef",
+    total_habits: "Toplam Alışkanlık",
+    completed_goals: "Tamamlanan Hedefler",
+    goals_in_progress: "Devam Eden Hedefler",
+    active_streaks: "Aktif Seriler",
+    avg_completion: "Ort. Tamamlama",
+    avg_success_rate: "Ort. Başarı Oranı",
+    milestones_rate: "Kilometre Taşı Tamamlama Oranı",
+    completed_milestones: "Tamamlanan Kilometre Taşları",
+    pending_milestones: "Bekleyen Kilometre Taşları",
+    best_performing: "En İyi Performans",
+    goals_at_risk: "Risk Altındaki Hedefler",
+    habits_at_risk: "Risk Altındaki Alışkanlıklar",
+    no_activity_detected: "Aktivite tespit edilmedi",
+    out_of_100: "/ 100",
+    days_with_progress: "İlerleme Olan Günler",
+    best_streak: "En İyi Seri",
+    last_activity: "Son Aktivite",
+    milestoneRateDesc: "Hedeflerinize götüren adımları ne kadar etkili tamamladığınızı görün.",
+    milestone_completion: "kilometre taşı tamamlama",
+    categoryBreakdownDesc: "Uzun vadeli enerjinizi en çok nereye yatırdığınızı anlayın.",
+    fastestGoalDesc: "En hızlı ilerlediğiniz hedef.",
+    consistencyDesc: "Hedeflerinize ne kadar istikrarlı ilerlediğinizi görün.",
+    productivityDesc: "İstikrar ve kilometre taşı tamamlamanıza dayalı birleşik bir puan.",
+    habitProgressDesc: "Tüm alışkanlıklarınızdaki istikrarınızı ve ilerlemenizi takip edin.",
+    weekly_pattern: "Haftalık Tamamlama Deseni",
+    habitWeeklyPatternDesc: "Alışkanlıklarınızda en çok hangi günlerde istikrarlı olduğunuzu görün.",
+    bestHabitDesc: "En çok istikrarlı olduğunuz alışkanlık.",
+    consistencyHabitDesc: "Alışkanlıklarınızı ne kadar istikrarlı sürdürdüğünüzü görün.",
+    productivityHabitDesc: "İstikrar ve serilerinize dayalı birleşik bir puan.",
+    today_insights: "Günlük Analizler",
+    tasks_done: "Tamamlanan Görevler",
+    focus_time: "Odaklanma Süresi",
+    best_day: "En İyi Gün",
+    best_month: "En İyi Ay",
+    avg_per_day: "Ort./Gün",
+    tasks_vs_focus: "Görevler vs Odaklanma",
+    goal_progress: "Hedef İlerlemesi",
+    focus_insights: "Odaklanma Analizleri",
+    sessions: "Oturumlar",
+    no_sessions: "Oturum Yok",
+    pomodoro: "Pomodoro",
+    deep_work: "Derin Çalışma",
+    custom: "Özel",
+    top_timer: "En Çok Kullanılan Zamanlayıcı",
+    view_insights: "Analizleri Görüntüle",
+    active_days: "Aktif Günler",
+    timer_ranking: "Zamanlayıcı Sıralaması",
+    best_focus_month: "En İyi Odaklanma Ayı",
+    sessions_by_timer: "Zamanlayıcıya Göre Oturumlar",
+    focus_trend: "Odaklanma Trendi",
+    total_minutes: "Toplam Dakika",
+    timeline: "Zaman Çizelgesi",
+    pattern_insights: "Kalıp Analizleri",
+    reflection_history: "Yansıma Geçmişi",
+    no_reflections_yet: "Henüz yansıma yok. Geçmişinizi oluşturmak için giriş yapmaya başlayın.",
+    mood_summary: "Ruh Hali Özeti",
+    mood_distribution: "Ruh Hali Dağılımı",
+    no_mood_data: "Bu ay için ruh hali verisi yok.",
+    growth_report: "Gelişim Raporu",
+    growth_report_desc: "İlerlemeniz ve kalıplarınızın kişiselleştirilmiş bir özeti.",
+    growth_trend_improving: "Gelişiyor",
+    growth_trend_steady: "Sabit",
+    growth_trend_declining: "Düşüşte",
+    growth_trend_new: "Yeni",
+    behavioral_trends: "Davranışsal Trendler",
+    emotional_tone: "Duygusal Ton",
+    positive: "Pozitif",
+    mixed: "Karışık",
+    habit_formation: "Alışkanlık Oluşumu",
+    growth_empty: "Kalıp analizleri için henüz yeterli veri yok.",
   },
   ru: {
     today: "Сегодня",
@@ -1938,6 +2037,133 @@ const translations: Record<Language, Translations> = {
     friday: "Пятница",
     saturday: "Суббота",
     sunday: "Воскресенье",
+    growth_report: "Отчет о росте",
+    growth_report_desc: "Понимание вашего поведения и прогресса.",
+    weekly: "Неделя",
+    monthly: "Месяц",
+    yearly: "Год",
+    behavioral_trends: "Поведенческие тренды",
+    emotional_tone: "Эмоциональный фон",
+    habit_formation: "Формирование привычек",
+    positive: "Позитив",
+    mixed: "Смешанно",
+    today_morning_momentum: "Вы начинаете с отличным импульсом.",
+    today_morning_greet: "Доброе утро. Какое ваше главное намерение на сегодня?",
+    today_afternoon_momentum: "Хороший прогресс. Сохраняйте эту сосредоточенную энергию.",
+    today_afternoon_greet: "Вторая половина дня — это новый шанс продвинуться вперед.",
+    today_evening_done: "По-настоящему осознанный день. Хорошего отдыха.",
+    today_evening_greet: "Вечер — время для спокойной рефлексии и отдыха.",
+    awareness: "Осознанность",
+    full_reflection: "Полная рефлексия",
+    direction: "Направление",
+    no_tasks_planned: "Задач пока нет. Маленькие осознанные действия ведут к большому росту.",
+    start_intentionally: "Начните день осознанно",
+    mood_pill_great: "✨ Отлично",
+    mood_pill_calm: "😌 Спокойно",
+    mood_pill_productive: "🔋 Продуктивно",
+    mood_pill_focused: "🧘 Сосредоточенно",
+    mood_pill_tired: "😴 Усталость",
+    mood_pill_stressed: "😟 Стресс",
+    reflect_saving: "Сохранение...",
+    emotional_patterns: "Эмоциональные паттерны",
+    reflectSave: "Сохранить рефлексию",
+    goal_insights: "Инсайты по целям",
+    error_fetching_goals: "Ошибка при загрузке целей",
+    goal_updated: "Цель успешно обновлена",
+    error_updating_goal: "Ошибка при обновлении цели",
+    goal_deleted: "Цель удалена",
+    error_deleting_goal: "Ошибка при удалении цели",
+    habit_insights: "Инсайты по привычкам",
+    error_fetching_habits: "Ошибка при загрузке привычек",
+    day_unmarked: "Отметка снята",
+    day_marked: "День отмечен",
+    error_updating_habit: "Ошибка при обновлении привычки",
+    habit_updated: "Привычка обновлена",
+    habit_deleted: "Привычка удалена",
+    error_deleting_goal: "Ошибка при удалении привычки",
+    delete_habit: "Удалить привычку",
+    delete_habit_confirm: "Вы уверены, что хотите удалить эту привычку? Это действие нельзя отменить, и весь ваш прогресс будет потерян.",
+    overall_progress: "Общий прогресс",
+    category_breakdown: "Распределение по категориям",
+    fastest_progressing: "Самый быстрый прогресс",
+    consistency_score: "Показатель последовательности",
+    productivity_score: "Показатель продуктивности",
+    weekly: "Еженедельно",
+    monthly: "Ежемесячно",
+    yearly: "Ежегодно",
+    select_week: "Выбрать неделю",
+    select_date: "Выбрать дату",
+    total_goals: "Всего целей",
+    total_habits: "Всего привычек",
+    completed_goals: "Завершенные цели",
+    goals_in_progress: "Цели в работе",
+    active_streaks: "Активные серии",
+    avg_completion: "Сред. завершение",
+    avg_success_rate: "Сред. показатель успеха",
+    milestones_rate: "Процент выполнения этапов",
+    completed_milestones: "Завершенные этапы",
+    pending_milestones: "Ожидающие этапы",
+    best_performing: "Лучший результат",
+    goals_at_risk: "Цели под угрозой",
+    habits_at_risk: "Привычки под угрозой",
+    no_activity_detected: "Активность не обнаружена",
+    out_of_100: "из 100",
+    days_with_progress: "Дни с прогрессом",
+    best_streak: "Лучшая серия",
+    last_activity: "Последняя активность",
+    milestoneRateDesc: "Посмотрите, насколько эффективно вы выполняете шаги, ведущие к вашим целям.",
+    milestone_completion: "выполнение этапов",
+    categoryBreakdownDesc: "Поймите, куда вы вкладываете больше всего своей долгосрочной энергии.",
+    fastestGoalDesc: "Цель, к которой вы продвигаетесь быстрее всего.",
+    consistencyDesc: "Посмотрите, насколько стабильно вы продвигаетесь к своим целям.",
+    productivityDesc: "Комбинированный балл, основанный на вашей последовательности и выполнении этапов.",
+    habitProgressDesc: "Отслеживайте свою последовательность и прогресс во всех привычках.",
+    weekly_pattern: "Еженедельный паттерн выполнения",
+    habitWeeklyPatternDesc: "Посмотрите, в какие дни вы наиболее последовательны в своих привычках.",
+    bestHabitDesc: "Привычка, в которой вы наиболее последовательны.",
+    consistencyHabitDesc: "Посмотрите, насколько последовательно вы поддерживаете свои привычки.",
+    productivityHabitDesc: "Комбинированный балл, основанный на вашей последовательности и сериях.",
+    today_insights: "Аналитика дня",
+    tasks_done: "Выполнено задач",
+    focus_time: "Время фокуса",
+    best_day: "Лучший день",
+    best_month: "Лучший месяц",
+    avg_per_day: "Сред./день",
+    tasks_vs_focus: "Задачи vs Фокус",
+    goal_progress: "Прогресс целей",
+    focus_insights: "Аналитика фокуса",
+    sessions: "Сессии",
+    no_sessions: "Нет сессий",
+    pomodoro: "Помодоро",
+    deep_work: "Глубокая работа",
+    custom: "Свой таймер",
+    top_timer: "Лучший таймер",
+    view_insights: "Посмотреть аналитику",
+    active_days: "Активные дни",
+    timer_ranking: "Рейтинг таймеров",
+    best_focus_month: "Лучший месяц фокуса",
+    sessions_by_timer: "Сессии по таймерам",
+    focus_trend: "Тренд фокуса",
+    total_minutes: "Всего минут",
+    timeline: "Хронология",
+    pattern_insights: "Анализ закономерностей",
+    reflection_history: "История размышлений",
+    no_reflections_yet: "Размышлений пока нет. Начните делать записи, чтобы собрать историю.",
+    mood_summary: "Сводка настроения",
+    mood_distribution: "Распределение настроения",
+    no_mood_data: "Нет данных о настроении за этот месяц.",
+    growth_report: "Отчет о росте",
+    growth_report_desc: "Персонализированный обзор вашего прогресса и закономерностей.",
+    growth_trend_improving: "Улучшается",
+    growth_trend_steady: "Стабильно",
+    growth_trend_declining: "Снижается",
+    growth_trend_new: "Новое",
+    behavioral_trends: "Поведенческие тренды",
+    emotional_tone: "Эмоциональный фон",
+    positive: "Положительный",
+    mixed: "Смешанный",
+    habit_formation: "Формирование привычек",
+    growth_empty: "Пока недостаточно данных для анализа закономерностей.",
   },
 };
 

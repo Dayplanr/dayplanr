@@ -5,29 +5,25 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { TrendingUp, PieChart as PieChartIcon, BarChart2, Sparkles, Dumbbell, Smartphone, Moon, Target, CheckCircle2, Clock, Brain, Activity, Apple } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from "recharts";
 import { format, startOfWeek, endOfWeek, eachWeekOfInterval, startOfYear, endOfYear } from "date-fns";
+import { enUS, tr, ru } from "date-fns/locale";
 import { useTranslation } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { generatePatternInsights, Insight, Reflection, Task, FocusSession, Habit, Goal } from "@/lib/insightEngine";
 
 const MOODS = [
-  { id: "great", emoji: "✨", label: "Great", color: "#10b981" },
-  { id: "okay", emoji: "😐", label: "Okay", color: "#6366f1" },
-  { id: "stressed", emoji: "😰", label: "Stressed", color: "#f59e0b" },
-  { id: "tired", emoji: "😴", label: "Tired", color: "#6b7280" },
-  { id: "bad", emoji: "👎", label: "Bad", color: "#ef4444" },
-];
-
-const months = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"
+  { id: "great", emoji: "✨", color: "#10b981" },
+  { id: "okay", emoji: "😐", color: "#6366f1" },
+  { id: "stressed", emoji: "😰", color: "#f59e0b" },
+  { id: "tired", emoji: "😴", color: "#6b7280" },
+  { id: "bad", emoji: "👎", color: "#ef4444" },
 ];
 
 const generateYears = () => {
   return [2026, 2027, 2028, 2029, 2030];
 };
 
-const generateWeeks = (year: number) => {
+const generateWeeks = (year: number, t: any) => {
   const yearStart = startOfYear(new Date(year, 0, 1));
   const yearEnd = endOfYear(new Date(year, 11, 31));
   const weeks = eachWeekOfInterval({ start: yearStart, end: yearEnd }, { weekStartsOn: 1 });
@@ -36,7 +32,7 @@ const generateWeeks = (year: number) => {
     const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
     return {
       value: index + 1,
-      label: `Week ${index + 1}`,
+      label: `${t("week")} ${index + 1}`,
       dateRange: `${format(weekStart, "MMM d")} - ${format(weekEnd, "MMM d")}`,
       startDate: weekStart,
       endDate: weekEnd
@@ -51,14 +47,21 @@ interface ReflectInsightsProps {
 }
 
 export default function ReflectInsights({ open, onOpenChange, history }: ReflectInsightsProps) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
+  const currentLocale = language === "tr" ? tr : language === "ru" ? ru : enUS;
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("timeline");
   
+  const months = useMemo(() => {
+    return Array.from({ length: 12 }, (_, i) => 
+      format(new Date(2024, i, 1), "MMMM", { locale: currentLocale })
+    );
+  }, [currentLocale]);
+
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [selectedWeek, setSelectedWeek] = useState(1);
-  const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "MMMM"));
+  const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "MMMM", { locale: currentLocale }));
 
   const [patternInsights, setPatternInsights] = useState<Insight[]>([]);
   const [loadingInsights, setLoadingInsights] = useState(false);
@@ -95,7 +98,7 @@ export default function ReflectInsights({ open, onOpenChange, history }: Reflect
   }, [open, user, history]);
 
   const weeklyData = useMemo(() => {
-    const weeks = generateWeeks(selectedYear);
+    const weeks = generateWeeks(selectedYear, t);
     const targetWeek = weeks.find(w => w.value === selectedWeek);
     if (!targetWeek) return [];
 
@@ -105,11 +108,11 @@ export default function ReflectInsights({ open, onOpenChange, history }: Reflect
     });
 
     return MOODS.map(mood => ({
-      name: mood.emoji + " " + mood.label,
+      name: mood.emoji + " " + t(`mood_${mood.id}` as any),
       count: weekReflections.filter(r => r.mood === mood.id).length,
       color: mood.color,
     }));
-  }, [history, selectedWeek, selectedYear]);
+  }, [history, selectedWeek, selectedYear, t]);
 
   const monthlyData = useMemo(() => {
     const monthIndex = months.indexOf(selectedMonth);
@@ -119,11 +122,11 @@ export default function ReflectInsights({ open, onOpenChange, history }: Reflect
     });
 
     return MOODS.map(mood => ({
-      name: mood.emoji + " " + mood.label,
+      name: mood.emoji + " " + t(`mood_${mood.id}` as any),
       value: monthReflections.filter(r => r.mood === mood.id).length,
       color: mood.color,
     })).filter(data => data.value > 0);
-  }, [history, selectedMonth, selectedYear]);
+  }, [history, selectedMonth, selectedYear, months, t]);
 
   const getInsightIcon = (type: string) => {
     switch (type) {
@@ -159,16 +162,16 @@ export default function ReflectInsights({ open, onOpenChange, history }: Reflect
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-primary" />
-            Insights
+            {t("insights")}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="w-full grid grid-cols-3">
-              <TabsTrigger value="timeline">Timeline</TabsTrigger>
-              <TabsTrigger value="weekly">Weekly</TabsTrigger>
-              <TabsTrigger value="monthly">Monthly</TabsTrigger>
+              <TabsTrigger value="timeline">{t("timeline")}</TabsTrigger>
+              <TabsTrigger value="weekly">{t("weekly")}</TabsTrigger>
+              <TabsTrigger value="monthly">{t("monthly")}</TabsTrigger>
             </TabsList>
 
             {/* TIMELINE TAB */}
@@ -178,7 +181,7 @@ export default function ReflectInsights({ open, onOpenChange, history }: Reflect
               <div className="mb-8">
                 <div className="flex items-center gap-1.5 mb-3 px-1">
                   <Sparkles className="w-3.5 h-3.5 text-primary" />
-                  <h3 className="text-xs uppercase font-bold text-muted-foreground tracking-wider">Pattern Insights</h3>
+                  <h3 className="text-xs uppercase font-bold text-muted-foreground tracking-wider">{t("pattern_insights")}</h3>
                 </div>
                 {loadingInsights ? (
                   <div className="flex justify-center p-4">
@@ -204,11 +207,11 @@ export default function ReflectInsights({ open, onOpenChange, history }: Reflect
               {/* Reflection History Timeline */}
               <div>
                 <div className="flex items-center gap-1.5 mb-4 px-1">
-                  <h3 className="text-xs uppercase font-bold text-muted-foreground tracking-wider">Reflection History</h3>
+                  <h3 className="text-xs uppercase font-bold text-muted-foreground tracking-wider">{t("reflection_history")}</h3>
                 </div>
                 {history.length === 0 ? (
                   <p className="text-muted-foreground text-sm italic text-center p-8 bg-card rounded-2xl border border-border/50">
-                    No reflections yet. Start checking in to build your history.
+                    {t("no_reflections_yet")}
                   </p>
                 ) : (
                   <div className="relative pl-4 space-y-6 before:absolute before:inset-y-2 before:left-[21px] before:w-[2px] before:bg-border/50">
@@ -223,11 +226,11 @@ export default function ReflectInsights({ open, onOpenChange, history }: Reflect
                           <div className="bg-card p-3.5 rounded-xl shadow-sm border border-border/50 flex flex-col gap-2.5 hover:shadow-md transition-shadow">
                             <div className="flex items-center justify-between">
                               <span className="text-[13px] font-semibold text-foreground">
-                                {format(new Date(item.created_at), "EEE, MMM d")}
+                                {format(new Date(item.created_at), "EEE, MMM d", { locale: currentLocale })}
                               </span>
                               {moodData && (
                                 <span className="bg-muted px-2 py-0.5 rounded-full text-[11px] flex items-center gap-1 font-medium text-muted-foreground">
-                                  {moodData.emoji} {moodData.label}
+                                  {moodData.emoji} {t(`mood_${moodData.id}` as any)}
                                 </span>
                               )}
                             </div>
@@ -236,19 +239,19 @@ export default function ReflectInsights({ open, onOpenChange, history }: Reflect
                               <div className="space-y-2 pt-2 border-t border-border/30">
                                 {item.progress && (
                                   <div>
-                                    <span className="text-[10px] uppercase text-muted-foreground font-bold mr-1">Progress:</span>
+                                    <span className="text-[10px] uppercase text-muted-foreground font-bold mr-1">{t("progress")}:</span>
                                     <span className="text-[13px] text-foreground/90">{item.progress}</span>
                                   </div>
                                 )}
                                 {item.challenge && (
                                   <div>
-                                    <span className="text-[10px] uppercase text-muted-foreground font-bold mr-1">Challenge:</span>
+                                    <span className="text-[10px] uppercase text-muted-foreground font-bold mr-1">{t("challenge")}:</span>
                                     <span className="text-[13px] text-foreground/90">{item.challenge}</span>
                                   </div>
                                 )}
                                 {item.next_step && (
                                   <div>
-                                    <span className="text-[10px] uppercase text-muted-foreground font-bold mr-1">Next:</span>
+                                    <span className="text-[10px] uppercase text-muted-foreground font-bold mr-1">{t("next_step")}:</span>
                                     <span className="text-[13px] text-foreground/90">{item.next_step}</span>
                                   </div>
                                 )}
@@ -266,14 +269,14 @@ export default function ReflectInsights({ open, onOpenChange, history }: Reflect
             {/* WEEKLY TAB */}
             <TabsContent value="weekly" className="space-y-4 mt-4">
               <div className="flex items-center justify-between gap-2">
-                <h3 className="text-sm font-medium">Select Week</h3>
+                <h3 className="text-sm font-medium">{t("select_week")}</h3>
                 <div className="flex gap-2">
                   <Select value={selectedWeek.toString()} onValueChange={(value) => setSelectedWeek(parseInt(value))}>
                     <SelectTrigger className="w-32">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {generateWeeks(selectedYear).map((week) => (
+                      {generateWeeks(selectedYear, t).map((week) => (
                         <SelectItem key={week.value} value={week.value.toString()}>
                           {week.label}
                         </SelectItem>
@@ -296,14 +299,14 @@ export default function ReflectInsights({ open, onOpenChange, history }: Reflect
               </div>
 
               {(() => {
-                const weeks = generateWeeks(selectedYear);
+                const weeks = generateWeeks(selectedYear, t);
                 const currentWeek = weeks.find(w => w.value === selectedWeek);
                 return (
                   <div className="p-3 bg-muted/50 rounded-lg text-center">
                     <p className="text-sm font-medium">
-                      {currentWeek ? currentWeek.dateRange : 'Week not found'} {selectedYear}
+                      {currentWeek ? currentWeek.dateRange : t("no_activity_detected")} {selectedYear}
                     </p>
-                    <p className="text-xs text-muted-foreground mt-1">Selected week range</p>
+                    <p className="text-xs text-muted-foreground mt-1">{t("selected_week_range") || "Selected week range"}</p>
                   </div>
                 );
               })()}
@@ -311,7 +314,7 @@ export default function ReflectInsights({ open, onOpenChange, history }: Reflect
               <div className="bg-card border border-border/50 rounded-xl p-4 shadow-sm">
                 <div className="flex items-center gap-2 mb-4">
                   <BarChart2 className="w-4 h-4 text-muted-foreground" />
-                  <h3 className="text-sm font-medium">Mood Summary</h3>
+                  <h3 className="text-sm font-medium">{t("mood_summary")}</h3>
                 </div>
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
@@ -336,7 +339,7 @@ export default function ReflectInsights({ open, onOpenChange, history }: Reflect
             {/* MONTHLY TAB */}
             <TabsContent value="monthly" className="space-y-4 mt-4">
               <div className="flex items-center justify-between gap-2">
-                <h3 className="text-sm font-medium">Select Month</h3>
+                <h3 className="text-sm font-medium">{t("select_month")}</h3>
                 <div className="flex gap-2">
                   <Select value={selectedMonth} onValueChange={setSelectedMonth}>
                     <SelectTrigger className="w-32">
@@ -368,7 +371,7 @@ export default function ReflectInsights({ open, onOpenChange, history }: Reflect
               <div className="bg-card border border-border/50 rounded-xl p-4 shadow-sm">
                 <div className="flex items-center gap-2 mb-4">
                   <PieChartIcon className="w-4 h-4 text-muted-foreground" />
-                  <h3 className="text-sm font-medium">Mood Distribution</h3>
+                  <h3 className="text-sm font-medium">{t("mood_distribution")}</h3>
                 </div>
                 {monthlyData.length > 0 ? (
                   <div className="h-64">
@@ -397,7 +400,7 @@ export default function ReflectInsights({ open, onOpenChange, history }: Reflect
                   </div>
                 ) : (
                   <div className="h-64 flex items-center justify-center text-sm text-muted-foreground italic">
-                    No mood data for this month.
+                    {t("no_mood_data")}
                   </div>
                 )}
               </div>

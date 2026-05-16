@@ -28,7 +28,8 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from "recharts";
-import { format, differenceInDays, subDays, subWeeks, subMonths, subYears, startOfWeek, endOfWeek, eachWeekOfInterval, startOfYear, endOfYear } from "date-fns";
+import { format, differenceInDays, subDays, subWeeks, subMonths, subYears, startOfWeek, endOfWeek, eachWeekOfInterval, startOfYear, endOfYear, type Locale } from "date-fns";
+import { enUS, tr, ru } from "date-fns/locale";
 import type { Goal } from "@/types/goals";
 import {
   getOverallProgress,
@@ -37,12 +38,19 @@ import {
   getFastestProgressingGoal,
   calculateProductivityScore,
 } from "@/types/goals";
+import { useTranslation } from "@/lib/i18n";
 
 interface GoalInsightsProps {
   goals: Goal[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
+
+const localeMap: Record<string, Locale> = {
+  en: enUS,
+  tr: tr,
+  ru: ru,
+};
 
 // Dynamic colors for pie chart - no predefined colors as requested
 const generateColors = (count: number) => {
@@ -54,16 +62,11 @@ const generateColors = (count: number) => {
   return colors;
 };
 
-const months = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"
-];
-
 const generateYears = () => {
   return [2026, 2027, 2028, 2029, 2030];
 };
 
-const generateWeeks = (year: number) => {
+const generateWeeks = (year: number, t: any) => {
   const yearStart = startOfYear(new Date(year, 0, 1));
   const yearEnd = endOfYear(new Date(year, 11, 31));
   const weeks = eachWeekOfInterval({ start: yearStart, end: yearEnd }, { weekStartsOn: 1 }); // Monday start
@@ -72,7 +75,7 @@ const generateWeeks = (year: number) => {
     const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
     return {
       value: index + 1,
-      label: `Week ${index + 1}`,
+      label: `${t("weekly")} ${index + 1}`,
       dateRange: `${format(weekStart, "MMM d")} - ${format(weekEnd, "MMM d")}`,
       startDate: weekStart,
       endDate: weekEnd
@@ -256,25 +259,25 @@ export default function GoalInsights({ goals, open, onOpenChange }: GoalInsights
                   <p className="text-3xl font-bold font-mono text-primary" data-testid="text-total-goals">
                     {goals.length}
                   </p>
-                  <p className="text-sm text-muted-foreground mt-1">Total Goals Created</p>
+                  <p className="text-sm text-muted-foreground mt-1">{t("total_goals")}</p>
                 </div>
                 <div className="p-4 bg-muted/50 rounded-lg text-center">
                   <p className="text-3xl font-bold font-mono text-blue-600" data-testid="text-in-progress">
                     {inProgressGoals}
                   </p>
-                  <p className="text-sm text-muted-foreground mt-1">Goals in Progress</p>
+                  <p className="text-sm text-muted-foreground mt-1">{t("goals_in_progress")}</p>
                 </div>
                 <div className="p-4 bg-muted/50 rounded-lg text-center">
                   <p className="text-3xl font-bold font-mono text-green-600" data-testid="text-completed-goals">
                     {completedGoals}
                   </p>
-                  <p className="text-sm text-muted-foreground mt-1">Completed Goals</p>
+                  <p className="text-sm text-muted-foreground mt-1">{t("completed_goals")}</p>
                 </div>
                 <div className="p-4 bg-primary/10 rounded-lg text-center border border-primary/20">
                   <p className="text-3xl font-bold font-mono text-primary" data-testid="text-avg-progress">
                     {overallProgress}%
                   </p>
-                  <p className="text-sm text-muted-foreground mt-1">Average Completion %</p>
+                  <p className="text-sm text-muted-foreground mt-1">{t("avg_completion")}</p>
                 </div>
               </div>
             </CardContent>
@@ -285,10 +288,10 @@ export default function GoalInsights({ goals, open, onOpenChange }: GoalInsights
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
                 <CheckCircle2 className="w-5 h-5" />
-                Milestone Completion Rate
+                {t("milestones_rate")}
               </CardTitle>
               <p className="text-sm text-muted-foreground">
-                See how effectively you're completing the steps that lead to your goals.
+                {t("milestoneRateDesc")}
               </p>
             </CardHeader>
             <CardContent>
@@ -297,22 +300,22 @@ export default function GoalInsights({ goals, open, onOpenChange }: GoalInsights
                   <p className="text-3xl font-bold font-mono text-green-600" data-testid="text-completed-milestones">
                     {milestoneStats.completed}
                   </p>
-                  <p className="text-sm text-muted-foreground mt-1">Completed Milestones</p>
+                  <p className="text-sm text-muted-foreground mt-1">{t("completed_milestones")}</p>
                 </div>
                 <div className="p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg text-center border border-orange-200 dark:border-orange-800">
                   <p className="text-3xl font-bold font-mono text-orange-600" data-testid="text-pending-milestones">
                     {milestoneStats.pending}
                   </p>
-                  <p className="text-sm text-muted-foreground mt-1">Pending Milestones</p>
+                  <p className="text-sm text-muted-foreground mt-1">{t("pending_milestones")}</p>
                 </div>
                 <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-center border border-purple-200 dark:border-purple-800">
                   <div className="text-lg font-semibold text-purple-600 truncate" data-testid="text-best-milestone-goal">
-                    {bestMilestoneGoal?.title || "No goals yet"}
+                    {bestMilestoneGoal?.title || t("no_goals_yet")}
                   </div>
-                  <p className="text-sm text-muted-foreground mt-1">Best-Performing Goal</p>
+                  <p className="text-sm text-muted-foreground mt-1">{t("best_performing")}</p>
                   {bestMilestoneGoal && (
                     <p className="text-xs text-purple-600 mt-1">
-                      {Math.round((bestMilestoneGoal.milestones.filter(m => m.completed).length / bestMilestoneGoal.milestones.length) * 100)}% milestone completion
+                      {Math.round((bestMilestoneGoal.milestones.filter(m => m.completed).length / bestMilestoneGoal.milestones.length) * 100)}% {t("milestone_completion")}
                     </p>
                   )}
                 </div>
@@ -325,10 +328,10 @@ export default function GoalInsights({ goals, open, onOpenChange }: GoalInsights
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
                 <BarChart3 className="w-5 h-5" />
-                Goal Categories Breakdown
+                {t("category_breakdown")}
               </CardTitle>
               <p className="text-sm text-muted-foreground">
-                Understand where you invest most of your long-term energy.
+                {t("categoryBreakdownDesc")}
               </p>
             </CardHeader>
             <CardContent>
@@ -350,7 +353,7 @@ export default function GoalInsights({ goals, open, onOpenChange }: GoalInsights
                             <Cell key={`cell-${index}`} fill={pieColors[index]} />
                           ))}
                         </Pie>
-                        <Tooltip formatter={(value, name) => [`${value} goals`, name]} />
+                        <Tooltip formatter={(value, name) => [`${value} ${t("goals")}`, name]} />
                       </PieChart>
                     </ResponsiveContainer>
                   </div>
@@ -362,7 +365,7 @@ export default function GoalInsights({ goals, open, onOpenChange }: GoalInsights
                           style={{ backgroundColor: pieColors[index] }}
                         />
                         <span className="text-sm font-medium">{category.name}</span>
-                        <span className="text-sm text-muted-foreground">({category.value} goals)</span>
+                        <span className="text-sm text-muted-foreground">({category.value} {t("goals")})</span>
                       </div>
                     ))}
                   </div>
@@ -370,7 +373,7 @@ export default function GoalInsights({ goals, open, onOpenChange }: GoalInsights
               ) : (
                 <div className="text-center py-12">
                   <BarChart3 className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-                  <p className="text-sm text-muted-foreground">No goals created yet</p>
+                  <p className="text-sm text-muted-foreground">{t("no_goals_yet")}</p>
                 </div>
               )}
             </CardContent>
@@ -381,10 +384,10 @@ export default function GoalInsights({ goals, open, onOpenChange }: GoalInsights
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
                 <Zap className="w-5 h-5" />
-                Fastest-Progressing Goal
+                {t("fastest_progressing")}
               </CardTitle>
               <p className="text-sm text-muted-foreground">
-                The goal you're moving toward the quickest.
+                {t("fastestGoalDesc")}
               </p>
             </CardHeader>
             <CardContent>
@@ -399,20 +402,20 @@ export default function GoalInsights({ goals, open, onOpenChange }: GoalInsights
                       <p className="text-3xl font-bold font-mono text-primary">
                         {fastestGoal.progress}%
                       </p>
-                      <p className="text-xs text-muted-foreground">Progress</p>
+                      <p className="text-xs text-muted-foreground">{t("progress")}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-lg font-semibold text-primary">
                         {calculateProductivityScore(fastestGoal)}
                       </p>
-                      <p className="text-xs text-muted-foreground">Productivity Score</p>
+                      <p className="text-xs text-muted-foreground">{t("productivity_score")}</p>
                     </div>
                   </div>
                 </div>
               ) : (
                 <div className="text-center py-8">
                   <Zap className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-                  <p className="text-sm text-muted-foreground">No goals created yet</p>
+                  <p className="text-sm text-muted-foreground">{t("no_goals_yet")}</p>
                 </div>
               )}
             </CardContent>
@@ -421,22 +424,22 @@ export default function GoalInsights({ goals, open, onOpenChange }: GoalInsights
           {/* Time-based Insights with Tabs */}
           <Tabs defaultValue="weekly" className="w-full">
             <TabsList className="w-full grid grid-cols-3">
-              <TabsTrigger value="weekly">Weekly</TabsTrigger>
-              <TabsTrigger value="monthly">Monthly</TabsTrigger>
-              <TabsTrigger value="yearly">Yearly</TabsTrigger>
+              <TabsTrigger value="weekly">{t("weekly")}</TabsTrigger>
+              <TabsTrigger value="monthly">{t("monthly")}</TabsTrigger>
+              <TabsTrigger value="yearly">{t("yearly")}</TabsTrigger>
             </TabsList>
 
             {/* Weekly Content */}
             <TabsContent value="weekly" className="space-y-6 mt-6">
               <div className="flex items-center justify-between gap-2">
-                <h3 className="text-sm font-medium">Select Week</h3>
+                <h3 className="text-sm font-medium">{t("select_week")}</h3>
                 <div className="flex gap-2">
                   <Select value={selectedWeek.toString()} onValueChange={(value) => setSelectedWeek(parseInt(value))}>
                     <SelectTrigger className="w-32" data-testid="select-week-goals">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {generateWeeks(selectedYear).map((week) => (
+                      {generateWeeks(selectedYear, t).map((week) => (
                         <SelectItem key={week.value} value={week.value.toString()}>
                           {week.label}
                         </SelectItem>
@@ -476,10 +479,10 @@ export default function GoalInsights({ goals, open, onOpenChange }: GoalInsights
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg flex items-center gap-2">
                     <Activity className="w-5 h-5" />
-                    Week {selectedWeek} {selectedYear} Consistency Score
+                    {t("consistency_score")}
                   </CardTitle>
                   <p className="text-sm text-muted-foreground">
-                    See how steadily you're progressing toward your goals in week {selectedWeek} of {selectedYear}.
+                    {t("consistencyDesc")}
                   </p>
                 </CardHeader>
                 <CardContent>
@@ -521,10 +524,10 @@ export default function GoalInsights({ goals, open, onOpenChange }: GoalInsights
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg flex items-center gap-2">
                     <Trophy className="w-5 h-5" />
-                    Week {selectedWeek} {selectedYear} Goal Productivity Score
+                    {t("productivity_score")}
                   </CardTitle>
                   <p className="text-sm text-muted-foreground">
-                    A combined score based on your consistency, milestone completion, and overall progress in week {selectedWeek} of {selectedYear}.
+                    {t("productivityDesc")}
                   </p>
                 </CardHeader>
                 <CardContent>

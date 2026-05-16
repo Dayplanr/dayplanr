@@ -15,7 +15,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Clock, Target, TrendingUp, Trophy, Calendar, ChevronRight } from "lucide-react";
-import { format, startOfMonth, eachDayOfInterval, getDay, startOfWeek, endOfWeek, eachWeekOfInterval, startOfYear, endOfYear } from "date-fns";
+import { format, startOfMonth, eachDayOfInterval, getDay, startOfWeek, endOfWeek, eachWeekOfInterval, startOfYear, endOfYear, addDays, type Locale } from "date-fns";
+import { enUS, tr, ru } from "date-fns/locale";
 import {
   PieChart,
   Pie,
@@ -29,6 +30,7 @@ import {
   LineChart,
   Line,
 } from "recharts";
+import { useTranslation } from "@/lib/i18n";
 
 interface SessionData {
   id?: string;
@@ -44,16 +46,17 @@ interface FocusInsightsProps {
   sessionHistory: SessionData[];
 }
 
-const months = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"
-];
+const localeMap: Record<string, Locale> = {
+  en: enUS,
+  tr: tr,
+  ru: ru,
+};
 
 const generateYears = () => {
   return [2026, 2027, 2028, 2029, 2030];
 };
 
-const generateWeeks = (year: number) => {
+const generateWeeks = (year: number, t: any) => {
   const yearStart = startOfYear(new Date(year, 0, 1));
   const yearEnd = endOfYear(new Date(year, 11, 31));
   const weeks = eachWeekOfInterval({ start: yearStart, end: yearEnd }, { weekStartsOn: 1 }); // Monday start
@@ -62,7 +65,7 @@ const generateWeeks = (year: number) => {
     const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
     return {
       value: index + 1,
-      label: `Week ${index + 1}`,
+      label: `${t("weekly")} ${index + 1}`,
       dateRange: `${format(weekStart, "MMM d")} - ${format(weekEnd, "MMM d")}`,
       startDate: weekStart,
       endDate: weekEnd
@@ -75,9 +78,17 @@ export default function FocusInsights({
   onOpenChange,
   sessionHistory = [],
 }: FocusInsightsProps) {
+  const { t, language } = useTranslation();
+  const baseLanguage = language.split("-")[0];
+  const currentLocale = localeMap[baseLanguage] || enUS;
+
+  const months = Array.from({ length: 12 }, (_, i) => 
+    format(new Date(2026, i, 1), "MMMM", { locale: currentLocale })
+  );
+
   const [showMonthDetails, setShowMonthDetails] = useState(false);
   const [activeTab, setActiveTab] = useState("today");
-  const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "MMMM"));
+  const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "MMMM", { locale: currentLocale }));
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedWeek, setSelectedWeek] = useState(1); // Would normally calculate current week
 
@@ -89,17 +100,17 @@ export default function FocusInsights({
   const todaySessions = todaySessionsList.length;
 
   let todayPieData = [
-    { name: "Pomodoro", value: todaySessionsList.filter(s => s.mode === "pomodoro").length, color: "#8b5cf6" },
-    { name: "Deep Work", value: todaySessionsList.filter(s => s.mode === "deepwork").length, color: "#3b82f6" },
-    { name: "Custom", value: todaySessionsList.filter(s => s.mode === "custom").length, color: "#10b981" },
+    { name: t("pomodoro"), value: todaySessionsList.filter(s => s.mode === "pomodoro").length, color: "#8b5cf6" },
+    { name: t("deep_work"), value: todaySessionsList.filter(s => s.mode === "deepwork").length, color: "#3b82f6" },
+    { name: t("custom"), value: todaySessionsList.filter(s => s.mode === "custom").length, color: "#10b981" },
   ].filter(d => d.value > 0);
 
   if (todayPieData.length === 0) {
-    todayPieData = [{ name: "No Sessions", value: 1, color: "#e5e7eb" }];
+    todayPieData = [{ name: t("no_sessions"), value: 1, color: "#e5e7eb" }];
   }
 
   const getWeekData = () => {
-    const weeks = generateWeeks(selectedYear);
+    const weeks = generateWeeks(selectedYear, t);
     const targetWeek = weeks.find(w => w.value === selectedWeek);
     if (!targetWeek) return [];
 
@@ -109,7 +120,7 @@ export default function FocusInsights({
       const dayStr = format(day, "yyyy-MM-dd");
       const daySessions = sessionHistory.filter(s => s.completed_at?.startsWith(dayStr));
       return {
-        day: format(day, "EEE"),
+        day: format(day, "EEE", { locale: currentLocale }),
         pomodoro: daySessions.filter(s => s.mode === "pomodoro").reduce((acc, s) => acc + (s.duration || 0), 0),
         deepwork: daySessions.filter(s => s.mode === "deepwork").reduce((acc, s) => acc + (s.duration || 0), 0),
         custom: daySessions.filter(s => s.mode === "custom").reduce((acc, s) => acc + (s.duration || 0), 0),
@@ -138,7 +149,7 @@ export default function FocusInsights({
   const monthData = getMonthData();
 
   const getYearData = () => {
-    return months.map((month, index) => {
+    return months.map((_, index) => {
       const monthStart = new Date(selectedYear, index, 1);
       const monthEnd = new Date(selectedYear, index + 1, 0);
       const monthSessions = sessionHistory.filter(s => {
@@ -148,7 +159,7 @@ export default function FocusInsights({
       });
 
       return {
-        month: month.substring(0, 3),
+        month: format(monthStart, "MMM", { locale: currentLocale }),
         minutes: monthSessions.reduce((acc, s) => acc + (s.duration || 0), 0)
       };
     });
@@ -171,9 +182,9 @@ export default function FocusInsights({
     const custom = yearSessions.filter(s => s.mode === "custom").length;
 
     return [
-      { name: "Pomodoro", sessions: pomodoro, color: "#8b5cf6" },
-      { name: "Deep Work", sessions: deepwork, color: "#3b82f6" },
-      { name: "Custom", sessions: custom, color: "#10b981" },
+      { name: t("pomodoro"), sessions: pomodoro, color: "#8b5cf6" },
+      { name: t("deep_work"), sessions: deepwork, color: "#3b82f6" },
+      { name: t("custom"), sessions: custom, color: "#10b981" },
     ].sort((a, b) => b.sessions - a.sessions);
   };
 
@@ -181,23 +192,23 @@ export default function FocusInsights({
 
   const getTopWeekTimer = () => {
     const totals = {
-      Pomodoro: weekData.reduce((acc, d) => acc + d.pomodoro, 0),
-      "Deep Work": weekData.reduce((acc, d) => acc + d.deepwork, 0),
-      Custom: weekData.reduce((acc, d) => acc + d.custom, 0),
+      [t("pomodoro")]: weekData.reduce((acc, d) => acc + d.pomodoro, 0),
+      [t("deep_work")]: weekData.reduce((acc, d) => acc + d.deepwork, 0),
+      [t("custom")]: weekData.reduce((acc, d) => acc + d.custom, 0),
     };
-    const max = Math.max(totals.Pomodoro, totals["Deep Work"], totals.Custom);
-    if (max === 0) return { name: "None", value: 0 };
-    if (totals.Pomodoro === max) return { name: "Pomodoro", value: max };
-    if (totals["Deep Work"] === max) return { name: "Deep Work", value: max };
-    return { name: "Custom", value: max };
+    const max = Math.max(totals[t("pomodoro")], totals[t("deep_work")], totals[t("custom")]);
+    if (max === 0) return { name: t("no_activity_detected"), value: 0 };
+    if (totals[t("pomodoro")] === max) return { name: t("pomodoro"), value: max };
+    if (totals[t("deep_work")] === max) return { name: t("deep_work"), value: max };
+    return { name: t("custom"), value: max };
   };
 
   const topWeekTimer = getTopWeekTimer();
 
   const getTopMonth = () => {
-    if (!yearData.length) return "None";
+    if (!yearData.length) return t("no_activity_detected");
     const max = yearData.reduce((prev, current) => (prev.minutes > current.minutes) ? prev : current);
-    return max.minutes > 0 ? max.month : "None";
+    return max.minutes > 0 ? max.month : t("no_activity_detected");
   };
 
   const topMonth = getTopMonth();
@@ -218,9 +229,13 @@ export default function FocusInsights({
     const firstDayOfWeek = getDay(monthStart);
     const emptyCells = Array(firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1).fill(null);
 
+    const weekDays = Array.from({ length: 7 }, (_, i) => 
+      format(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), i), "EEEEE", { locale: currentLocale })
+    );
+
     return (
       <div className="grid grid-cols-7 gap-1">
-        {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
+        {weekDays.map((d, i) => (
           <div key={i} className="text-xs text-center text-muted-foreground">
             {d}
           </div>
@@ -251,9 +266,9 @@ export default function FocusInsights({
   const renderYearHeatmap = () => {
     const yearMonths = Array.from({ length: 12 }, (_, i) => {
       const date = new Date(selectedYear, i, 1);
-      const yearMonth = yearData.find((d) => d.month === format(date, "MMM"));
+      const yearMonth = yearData.find((d) => d.month === format(date, "MMM", { locale: currentLocale }));
       return {
-        month: format(date, "MMM"),
+        month: format(date, "MMM", { locale: currentLocale }),
         minutes: yearMonth?.minutes || 0,
       };
     });
@@ -283,16 +298,16 @@ export default function FocusInsights({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <TrendingUp className="w-5 h-5" />
-              Focus Insights
+              {t("focus_insights")}
             </DialogTitle>
           </DialogHeader>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
             <TabsList className="w-full grid grid-cols-4">
-              <TabsTrigger value="today" data-testid="tab-today">Today</TabsTrigger>
-              <TabsTrigger value="week" data-testid="tab-week">Week</TabsTrigger>
-              <TabsTrigger value="month" data-testid="tab-month">Month</TabsTrigger>
-              <TabsTrigger value="year" data-testid="tab-year">Year</TabsTrigger>
+              <TabsTrigger value="today" data-testid="tab-today">{t("today")}</TabsTrigger>
+              <TabsTrigger value="week" data-testid="tab-week">{t("weekly")}</TabsTrigger>
+              <TabsTrigger value="month" data-testid="tab-month">{t("monthly")}</TabsTrigger>
+              <TabsTrigger value="year" data-testid="tab-year">{t("yearly")}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="today" className="space-y-4 mt-4">
@@ -300,7 +315,7 @@ export default function FocusInsights({
                 <div className="p-4 bg-muted/50 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
                     <Clock className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground">Focus Minutes</span>
+                    <span className="text-xs text-muted-foreground">{t("total_minutes")}</span>
                   </div>
                   <p className="text-2xl font-semibold font-mono" data-testid="text-today-minutes">
                     {todayMinutes}
@@ -309,7 +324,7 @@ export default function FocusInsights({
                 <div className="p-4 bg-muted/50 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
                     <Target className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground">Sessions</span>
+                    <span className="text-xs text-muted-foreground">{t("sessions")}</span>
                   </div>
                   <p className="text-2xl font-semibold font-mono" data-testid="text-today-sessions">
                     {todaySessions}
@@ -351,14 +366,14 @@ export default function FocusInsights({
 
             <TabsContent value="week" className="space-y-4 mt-4">
               <div className="flex items-center justify-between gap-2">
-                <h3 className="text-sm font-medium">Select Week</h3>
+                <h3 className="text-sm font-medium">{t("select_week")}</h3>
                 <div className="flex gap-2">
                   <Select value={selectedWeek.toString()} onValueChange={(value) => setSelectedWeek(parseInt(value))}>
                     <SelectTrigger className="w-32" data-testid="select-week-focus">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {generateWeeks(selectedYear).map((week) => (
+                      {generateWeeks(selectedYear, t).map((week) => (
                         <SelectItem key={week.value} value={week.value.toString()}>
                           {week.label}
                         </SelectItem>
@@ -381,14 +396,14 @@ export default function FocusInsights({
               </div>
 
               {(() => {
-                const weeks = generateWeeks(selectedYear);
+                const weeks = generateWeeks(selectedYear, t);
                 const currentWeek = weeks.find(w => w.value === selectedWeek);
                 return (
                   <div className="p-3 bg-muted/50 rounded-lg text-center">
                     <p className="text-sm font-medium">
-                      {currentWeek ? currentWeek.dateRange : 'Week not found'} {selectedYear}
+                      {currentWeek ? currentWeek.dateRange : t("no_activity_detected")} {selectedYear}
                     </p>
-                    <p className="text-xs text-muted-foreground mt-1">Selected week range</p>
+                    <p className="text-xs text-muted-foreground mt-1">{t("selected_week_range") || "Selected week range"}</p>
                   </div>
                 );
               })()}
@@ -399,15 +414,15 @@ export default function FocusInsights({
                     <XAxis dataKey="day" tick={{ fontSize: 12 }} />
                     <YAxis tick={{ fontSize: 12 }} />
                     <Tooltip />
-                    <Bar dataKey="pomodoro" stackId="a" fill="#8b5cf6" radius={[0, 0, 0, 0]} />
-                    <Bar dataKey="deepwork" stackId="a" fill="#3b82f6" radius={[0, 0, 0, 0]} />
-                    <Bar dataKey="custom" stackId="a" fill="#10b981" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="pomodoro" stackId="a" fill="#8b5cf6" radius={[0, 0, 0, 0]} name={t("pomodoro")} />
+                    <Bar dataKey="deepwork" stackId="a" fill="#3b82f6" radius={[0, 0, 0, 0]} name={t("deep_work")} />
+                    <Bar dataKey="custom" stackId="a" fill="#10b981" radius={[4, 4, 0, 0]} name={t("custom")} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
               <div className="p-3 bg-muted/50 rounded-lg flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-muted-foreground">Top Timer Week {selectedWeek} {selectedYear}</p>
+                  <p className="text-xs text-muted-foreground">{t("top_timer")}</p>
                   <p className="text-sm font-semibold">{topWeekTimer.name}</p>
                 </div>
                 <Badge>{topWeekTimer.value} mins</Badge>
@@ -416,7 +431,7 @@ export default function FocusInsights({
 
             <TabsContent value="month" className="space-y-4 mt-4">
               <div className="flex items-center justify-between gap-2">
-                <h3 className="text-sm font-medium">Select Date</h3>
+                <h3 className="text-sm font-medium">{t("select_date")}</h3>
                 <div className="flex gap-2">
                   <Select value={selectedMonth} onValueChange={setSelectedMonth}>
                     <SelectTrigger className="w-32" data-testid="select-month-focus">
@@ -452,7 +467,7 @@ export default function FocusInsights({
               >
                 <div className="flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm">View {selectedMonth} {selectedYear} insights</span>
+                  <span className="text-sm">{t("view_insights")} {selectedMonth} {selectedYear}</span>
                 </div>
                 <ChevronRight className="w-4 h-4 text-muted-foreground" />
               </button>
@@ -462,7 +477,7 @@ export default function FocusInsights({
                   <LineChart data={monthData.slice(-14)}>
                     <XAxis dataKey="date" tick={false} />
                     <Tooltip
-                      labelFormatter={(label) => format(new Date(label), "MMM d")}
+                      labelFormatter={(label) => format(new Date(label), "MMM d", { locale: currentLocale })}
                     />
                     <Line
                       type="monotone"
@@ -470,6 +485,7 @@ export default function FocusInsights({
                       stroke="hsl(var(--primary))"
                       strokeWidth={2}
                       dot={false}
+                      name={t("focus_time")}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -478,7 +494,7 @@ export default function FocusInsights({
 
             <TabsContent value="year" className="space-y-4 mt-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium">Select Year</h3>
+                <h3 className="text-sm font-medium">{t("select_year")}</h3>
                 <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
                   <SelectTrigger className="w-20" data-testid="select-year-focus-yearly">
                     <SelectValue />
@@ -495,7 +511,7 @@ export default function FocusInsights({
 
               {renderYearHeatmap()}
               <div className="space-y-2">
-                <h4 className="text-sm font-medium">Timer Ranking</h4>
+                <h4 className="text-sm font-medium">{t("timer_ranking")}</h4>
                 <div className="space-y-2">
                   {timerRankings.map((timer, i) => (
                     <div
@@ -511,7 +527,7 @@ export default function FocusInsights({
                         <span className="text-sm">{timer.name}</span>
                       </div>
                       <span className="text-xs text-muted-foreground">
-                        {timer.sessions} sessions
+                        {timer.sessions} {t("sessions")}
                       </span>
                     </div>
                   ))}
@@ -520,7 +536,7 @@ export default function FocusInsights({
               <div className="p-3 bg-primary/10 rounded-lg flex items-center gap-3">
                 <Trophy className="w-5 h-5 text-primary" />
                 <div>
-                  <p className="text-xs text-muted-foreground">Best Focus Month</p>
+                  <p className="text-xs text-muted-foreground">{t("best_focus_month")}</p>
                   <p className="text-sm font-semibold">{topMonth} {selectedYear}</p>
                 </div>
               </div>
@@ -532,15 +548,15 @@ export default function FocusInsights({
       <Dialog open={showMonthDetails} onOpenChange={setShowMonthDetails}>
         <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{selectedMonth} {selectedYear} Focus Insights</DialogTitle>
+            <DialogTitle>{selectedMonth} {selectedYear} {t("focus_insights")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-6 py-4">
             <div>
-              <h4 className="text-sm font-medium mb-3">Calendar Heatmap</h4>
+              <h4 className="text-sm font-medium mb-3">{t("weekly_pattern")}</h4>
               {renderMonthHeatmap()}
             </div>
             <div>
-              <h4 className="text-sm font-medium mb-3">Sessions by Timer</h4>
+              <h4 className="text-sm font-medium mb-3">{t("sessions_by_timer")}</h4>
               <div className="h-48">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
@@ -554,39 +570,40 @@ export default function FocusInsights({
                         return d >= monthStart && d <= monthEnd;
                       });
                       return [
-                        { name: "Pomodoro", value: mSessions.filter(s => s.mode === "pomodoro").length },
-                        { name: "Deep Work", value: mSessions.filter(s => s.mode === "deepwork").length },
-                        { name: "Custom", value: mSessions.filter(s => s.mode === "custom").length },
+                        { name: t("pomodoro"), value: mSessions.filter(s => s.mode === "pomodoro").length },
+                        { name: t("deep_work"), value: mSessions.filter(s => s.mode === "deepwork").length },
+                        { name: t("custom"), value: mSessions.filter(s => s.mode === "custom").length },
                       ];
                     })()}
                   >
                     <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                     <YAxis tick={{ fontSize: 12 }} />
                     <Tooltip />
-                    <Bar dataKey="value" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="value" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name={t("sessions")} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             </div>
             <div>
-              <h4 className="text-sm font-medium mb-3">Focus Trend</h4>
+              <h4 className="text-sm font-medium mb-3">{t("focus_trend")}</h4>
               <div className="h-48">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={monthData}>
                     <XAxis
                       dataKey="date"
                       tick={{ fontSize: 10 }}
-                      tickFormatter={(val) => format(new Date(val), "d")}
+                      tickFormatter={(val) => format(new Date(val), "d", { locale: currentLocale })}
                     />
                     <YAxis tick={{ fontSize: 12 }} />
                     <Tooltip
-                      labelFormatter={(label) => format(new Date(label), "MMM d")}
+                      labelFormatter={(label) => format(new Date(label), "MMM d", { locale: currentLocale })}
                     />
                     <Line
                       type="monotone"
                       dataKey="minutes"
                       stroke="hsl(var(--primary))"
                       strokeWidth={2}
+                      name={t("total_minutes")}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -597,7 +614,7 @@ export default function FocusInsights({
                 <p className="text-2xl font-semibold font-mono">
                   {monthData.reduce((acc, d) => acc + d.minutes, 0)}
                 </p>
-                <p className="text-xs text-muted-foreground">Total Minutes</p>
+                <p className="text-xs text-muted-foreground">{t("total_minutes")}</p>
               </div>
               <div className="p-3 bg-muted/50 rounded-lg text-center">
                 <p className="text-2xl font-semibold font-mono">
@@ -612,13 +629,13 @@ export default function FocusInsights({
                     }).length;
                   })()}
                 </p>
-                <p className="text-xs text-muted-foreground">Sessions</p>
+                <p className="text-xs text-muted-foreground">{t("sessions")}</p>
               </div>
               <div className="p-3 bg-muted/50 rounded-lg text-center">
                 <p className="text-2xl font-semibold font-mono">
                   {monthData.filter(d => d.minutes > 0).length}
                 </p>
-                <p className="text-xs text-muted-foreground">Active Days</p>
+                <p className="text-xs text-muted-foreground">{t("active_days")}</p>
               </div>
             </div>
           </div>

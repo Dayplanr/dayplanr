@@ -27,10 +27,19 @@ interface Reflection {
 }
 
 export default function ReflectPage() {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const { toast } = useToast();
   const { user } = useAuth();
   
+  const MOODS = [
+    { id: "great", emoji: "✨", label: t("mood_great") },
+    { id: "good", emoji: "🙂", label: t("mood_good") },
+    { id: "okay", emoji: "😐", label: t("mood_okay") },
+    { id: "stressed", emoji: "😰", label: t("mood_stressed") },
+    { id: "tired", emoji: "😴", label: t("mood_tired") },
+    { id: "bad", emoji: "👎", label: t("mood_bad") },
+  ];
+
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
   const [progress, setProgress] = useState("");
   const [challenge, setChallenge] = useState("");
@@ -45,8 +54,9 @@ export default function ReflectPage() {
   const reflectInsights = useMemo(() =>
     generateReflectInsights(
       history.map(r => ({ id: r.id, mood: r.mood, progress: r.progress, challenge: r.challenge, next_step: r.next_step, created_at: r.created_at })),
-      [] // tasks not loaded on this page; insights degrade gracefully
-    ), [history]
+      [], // tasks not loaded on this page; insights degrade gracefully
+      t
+    ), [history, t]
   );
 
   const fetchHistory = async () => {
@@ -113,7 +123,12 @@ export default function ReflectPage() {
   };
 
   return (
-    <div className="h-full overflow-y-auto pb-20 md:pb-4 bg-background/50">
+    <motion.div 
+      key={language}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="h-full overflow-y-auto pb-20 md:pb-4 bg-background/50"
+    >
       <div className="max-w-3xl mx-auto p-[24px] space-y-8 animate-in fade-in duration-700 ease-out">
         
         {/* Header */}
@@ -218,7 +233,7 @@ export default function ReflectPage() {
         {/* Reflect Insights Carousel */}
         {reflectInsights.length > 0 && (
           <div className="pb-2">
-            <InsightCarousel insights={reflectInsights} label="Emotional Patterns" compact />
+            <InsightCarousel insights={reflectInsights} label={t("emotional_patterns")} compact />
           </div>
         )}
 
@@ -241,7 +256,7 @@ export default function ReflectPage() {
             ) : isSaving ? (
               <span className="flex items-center gap-2">
                 <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                Saving...
+                {t("reflect_saving")}
               </span>
             ) : (
               <span className="flex items-center gap-2">
@@ -259,6 +274,6 @@ export default function ReflectPage() {
         onOpenChange={setShowInsights} 
         history={history} 
       />
-    </div>
+    </motion.div>
   );
 }
