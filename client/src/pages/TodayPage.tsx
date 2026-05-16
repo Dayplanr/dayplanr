@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, TrendingUp, Clock, CheckCircle2, Flame, ChevronUp, ChevronDown, Bell, ListTodo, MoreVertical, Pencil, Trash2, Tag, Calendar as CalendarIcon, Sparkles, Smile } from "lucide-react";
+import { Plus, Clock, CheckCircle2, Flame, ChevronUp, ChevronDown, Bell, ListTodo, MoreVertical, Pencil, Trash2, Tag, Calendar as CalendarIcon, Sparkles, Smile } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -19,15 +19,12 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import CalendarScrubber from "@/components/CalendarScrubber";
-import TodayInsights from "@/components/TodayInsights";
-import InsightCarousel from "@/components/InsightCarousel";
 import ModernTaskCard from "@/components/ModernTaskCard";
 import ProgressRing from "@/components/ProgressRing";
 import DashboardCustomizer, { type DashboardConfig } from "@/components/DashboardCustomizer";
 import { useTranslation } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
-import { generateTodayInsights } from "@/lib/insightEngine";
 import { format, type Locale, startOfDay, endOfDay, subDays } from "date-fns";
 import { enUS, de, es, fr, it, pt, nl, pl } from "date-fns/locale";
 import { isHabitScheduledForDate, calculateHabitStreak, type Habit as HabitType } from "@/types/habits";
@@ -113,7 +110,6 @@ export default function TodayPage() {
   ].map(t => ({ id: t.id, completed: t.completed, scheduled_date: t.scheduled_date || null })),
   [tasks]);
 
-  const todayInsights = useMemo(() => generateTodayInsights(allFlatTasks), [allFlatTasks]);
 
   const fetchTasks = async () => {
     if (!user) return;
@@ -299,25 +295,6 @@ export default function TodayPage() {
     }
   }, [location]);
 
-  useEffect(() => {
-    if (loading || !user) return;
-
-    const today = format(selectedDate, "yyyy-MM-dd");
-    const smartHabits = habits.map(h => ({
-      id: h.id,
-      title: h.title,
-      streak: h.streak || 0,
-      completedToday: h.completed_dates?.includes(today) || false
-    }));
-
-    const allTasks = Object.values(tasks).flat().map(t => ({
-      id: t.id,
-      title: t.title,
-      completed: t.completed
-    }));
-
-    notifications.scheduleSmartNudges(smartHabits, allTasks, today);
-  }, [tasks, habits, user, selectedDate, loading]);
 
   const handleToggleTask = async (period: keyof TaskGroups, id: string) => {
     const task = tasks[period].find((t: Task) => t.id === id);
@@ -615,17 +592,6 @@ export default function TodayPage() {
               </div>
             </div>
             <div className="flex items-start gap-2">
-              {dashboardConfig.modules.insights && (
-                <Button
-                  onClick={() => setShowInsights(true)}
-                  variant="outline"
-                  size="icon"
-                  className="rounded-full h-11 w-11 border-border/50 bg-background/50 hover:bg-accent backdrop-blur-sm shadow-sm"
-                  data-testid="button-today-insights-header"
-                >
-                  <TrendingUp className="w-5 h-5" />
-                </Button>
-              )}
               <div className="flex flex-col gap-2 w-full sm:w-auto">
                 <Button onClick={handleAddTask} className="w-full sm:w-auto rounded-full h-11 px-6 gap-2 shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95" data-testid="button-add-task-header">
                   <Plus className="w-5 h-5" />
@@ -765,10 +731,6 @@ export default function TodayPage() {
           </Card>
         )}
 
-        {/* Contextual Today Insights */}
-        {todayInsights.length > 0 && (
-          <InsightCarousel insights={todayInsights} label="Self-Awareness" compact />
-        )}
 
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -800,15 +762,6 @@ export default function TodayPage() {
 
       </div>
 
-      <TodayInsights
-        open={showInsights}
-        onOpenChange={setShowInsights}
-        tasksCompleted={completedTasks}
-        totalTasks={totalTasks}
-        focusMinutes={todayFocusMinutes}
-        habitsCompleted={completedHabits}
-        totalHabits={totalHabits}
-      />
     </div>
   );
 }
