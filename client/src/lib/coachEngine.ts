@@ -82,30 +82,39 @@ export async function updateCoachProfile(userId: string, profileData: Partial<Co
 }
 
 // --- The Growth Strategist Knowledge Base ---
-const STRATEGIST_LIBRARY: Record<string, { system: string, action: string, insight: string }> = {
+const STRATEGIST_LIBRARY: Record<string, { system: string, action: string, insight: string, triggers?: string[] }> = {
+  habits: {
+    triggers: ["habit", "habits", "routine", "building habits", "create", "start"],
+    system: "Habit Stacking & Anchoring",
+    action: "Identify an existing habit you do without thinking (like brushing your teeth or making coffee). 'Anchor' your new habit to it: 'After I [Existing Habit], I will [New Habit]'. Keep the new habit under 2 minutes for the first 14 days.",
+    insight: "We don't build habits by willpower; we build them by design. Link the new to the known."
+  },
   procrastination: {
+    triggers: ["procrastinate", "procrastination", "delay", "laziness", "lazy", "starting", "putting off"],
     system: "The 5-Minute Momentum System",
     action: "Pick your most avoided task. Set a timer for 5 minutes. Your only goal is to start. You have permission to stop after 5 minutes, but you'll likely find the inertia is broken.",
     insight: "Procrastination is often a 'fear of the first step' manifesting as busyness. We solve it with movement, not thought."
   },
   focus: {
+    triggers: ["focus", "distracted", "attention", "concentrate", "distraction", "phone", "interrupt"],
     system: "Environment Isolation",
     action: "Put your phone in another room. Close all browser tabs except the one you need. Work in one 25-minute 'Deep Work' block.",
     insight: "Your environment is stronger than your willpower. If you have to fight your surroundings, you've already lost half your energy."
   },
   consistency: {
-    triggers: ["consistent", "consistency", "failed", "broken"],
+    triggers: ["consistent", "consistency", "failed", "broken", "streak"],
     system: "The 'Never Miss Twice' Protocol",
     action: "If you miss a habit today, your absolute priority tomorrow is to show up, even for just 1 minute. The floor for your habit should be so low it's impossible to fail (e.g., 1 pushup).",
-    insight: "Consistency isn't about perfection; it's about identity. You are becoming the person who doesn't quit."
+    insight: "Consistency isn't about perfection; it means not quitting after a bad day. You are becoming the person who doesn't quit."
   },
   overwhelm: {
-    triggers: ["overwhelmed", "too much", "stress", "pressure"],
+    triggers: ["overwhelmed", "too much", "stress", "pressure", "anxious", "anxiety"],
     system: "Selective Deferral",
     action: "Look at your list. Pick ONE thing that must happen. Explicitly 'cancel' the rest for the next 4 hours. Focus only on the 'One Thing'.",
     insight: "Overwhelm is the result of trying to solve the future in the present. We regain calm by narrowing our field of vision."
   },
   motivation: {
+    triggers: ["motivation", "motivated", "don't feel like", "unmotivated", "drive", "energy", "blah"],
     system: "Action-First Discipline",
     action: "Ignore how you 'feel' for a moment. Complete one tiny, administrative task (like clearing your desk or answering one email) to generate baseline dopamine.",
     insight: "Motivation is a byproduct of progress, not a prerequisite for it. Start moving, and the drive will follow."
@@ -117,16 +126,50 @@ export async function generateCoachResponse(userId: string, userMessage: string)
   const context = await getCoachContext(userId);
   const profile = await getCoachProfile(userId);
   const messages = await getCoachMessages(userId);
-  const lowerMsg = userMessage.toLowerCase();
+  const lowerMsg = userMessage.toLowerCase().trim();
   
   const reflections = context.recentReflections;
   const recentMood = reflections[0]?.mood || "balanced";
-  const userAspiration = profile?.data?.improvement || "growth";
-  const userVision = profile?.data?.ideal_self || "your best self";
+  
+  // Clean up profile data
+  const userAspiration = (profile?.data?.improvement || "growth").replace(/\s+/g, ' ').trim();
+  const userVision = (profile?.data?.ideal_self || "your best self").replace(/\s+/g, ' ').trim();
+  const userGoals = (profile?.data?.goals || "").replace(/\s+/g, ' ').trim();
 
-  // 1. Problem-System Matching (The Strategist Approach)
+  // 1. Habit Selection Mode (Specific Suggestion)
+  if (lowerMsg.includes("which") || lowerMsg.includes("what") || lowerMsg.includes("suggest")) {
+    if (lowerMsg.includes("habit")) {
+      let suggestions = [];
+      
+      // Dynamic suggestion based on goals
+      if (userGoals.includes("fat") || userGoals.includes("muscle") || userGoals.includes("health")) {
+        suggestions = [
+          "Protein-First Breakfast: Anchored to waking up.",
+          "10-Minute Bodyweight Session: Anchored to arriving home.",
+          "Hydration Baseline: 500ml water anchored to finishing coffee."
+        ];
+      } else {
+        suggestions = [
+          "5-Minute Deep Work: Anchored to opening laptop.",
+          "One-Line Reflection: Anchored to getting into bed.",
+          "Digital Sunset: Phone away 30 mins before sleep."
+        ];
+      }
+
+      return `Based on your goal to reach '${userVision}', we should move from broad aspirations to specific 'Anchor Habits'. 
+
+**The Strategy: The Foundational Three**
+*   **Recommendation 1**: ${suggestions[0]}
+*   **Recommendation 2**: ${suggestions[1]}
+*   **Recommendation 3**: ${suggestions[2]}
+
+**The Insight**: Don't try to do all three at once. Pick the ONE that feels easiest to start today. Which one resonates most?`;
+    }
+  }
+
+  // 2. Problem-System Matching (The Strategist Approach)
   const problemKey = Object.keys(STRATEGIST_LIBRARY).find(key => 
-    lowerMsg.includes(key) || (STRATEGIST_LIBRARY[key] as any).triggers?.some((t: string) => lowerMsg.includes(t))
+    lowerMsg.includes(key) || STRATEGIST_LIBRARY[key].triggers?.some((t: string) => lowerMsg.includes(t))
   );
 
   if (problemKey) {
@@ -134,8 +177,10 @@ export async function generateCoachResponse(userId: string, userMessage: string)
     return `I understand. When you're struggling with ${problemKey}, we need to move from thinking to a structured system.
 
 **The Strategy: ${strat.system}**
-*   **The Insight**: ${strat.insight}
-*   **The Action**: ${strat.action}
+
+**The Insight**: ${strat.insight}
+
+**The Action**: ${strat.action}
 
 Focus only on this single adjustment for the next few hours. We will build from there.`;
   }
@@ -160,11 +205,10 @@ Let's begin with this structure. No excessive questions—just intentional actio
     return `I've noted that you're feeling ${recentMood}. In this state, 'high-performance' is the wrong goal. 
 
 **The Strategy: Maintenance Mode**
-*   **The Goal**: Protect your energy.
-*   **The Action**: Complete only your most critical habit. Defer everything else. 
-*   **The Mindset**: Resting today is an investment in your consistency tomorrow.
+*   **The Insight**: Resting today is a strategic investment in your consistency tomorrow.
+*   **The Action**: Complete only your most critical 1-minute habit. Defer everything else. Give yourself explicit permission to recharge.
 
-I've simplified your focus. What is the one critical task you'll choose to keep?`;
+Your system is now in Maintenance Mode. Focus on recovery.`;
   }
 
   // 4. Progress Analysis (Data-Driven)
@@ -173,16 +217,20 @@ I've simplified your focus. What is the one critical task you'll choose to keep?
     return `You've completed ${completedToday} tasks today. You have strong momentum. 
 
 **The Strategy: Sustained Focus**
-*   **The Insight**: Momentum is easily lost if we overextend. 
-*   **The Action**: Before adding anything else, take a 10-minute quiet break. Then, pick one 'deep work' task that aligns with your goal of ${userAspiration}.
+*   **The Insight**: Momentum is easily lost if we overextend into burnout. 
+*   **The Action**: Take a 10-minute quiet break now. Then, pick one high-value 'deep work' task that aligns with your goal of ${userAspiration}. 
 
-You are moving effectively toward becoming ${userVision}. Keep this pace.`;
+You are moving effectively toward becoming ${userVision}. Stay steady.`;
   }
 
-  // Default: Calm, Insightful Guidance
-  return `I'm analyzing your path toward ${userAspiration}. I see you've been ${context.allHabits.some(h => h.streak > 0) ? 'maintaining your core habits' : 'observing your daily patterns'}. 
+  // Default: Calm, Systemic Observation
+  const hasStreak = context.allHabits.some(h => (h.streak || 0) > 0);
+  
+  return `I'm currently observing your trajectory toward ${userAspiration}. 
 
-**Current Insight**: Growth is often quieter than we expect. It's found in the small, boring repetitions. 
+**The Strategy: The Micro-Win Protocol**
+*   **The Insight**: Consistency is a battle against over-ambition. Your ${userVision} identity is built in the small, boring repetitions, not the giant leaps.
+*   **The Action**: Identify the one tiny, 1-minute action you can take right now. Do it, then return to your day. 
 
-Instead of searching for a big breakthrough, identify the one 'micro-habit' you can perform right now that your ${userVision} would be proud of. Do that, then return to your day.`;
+This builds the 'habit of showing up' which is the foundation for everything else.`;
 }
