@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, TrendingUp, Clock, CheckCircle2, Flame, ChevronUp, ChevronDown, Bell, ListTodo, MoreVertical, Pencil, Trash2, Tag, Calendar as CalendarIcon, Sparkles } from "lucide-react";
@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/collapsible";
 import CalendarScrubber from "@/components/CalendarScrubber";
 import TodayInsights from "@/components/TodayInsights";
+import InsightCarousel from "@/components/InsightCarousel";
 import ModernTaskCard from "@/components/ModernTaskCard";
 import ProgressRing from "@/components/ProgressRing";
 import DashboardCustomizer, { type DashboardConfig } from "@/components/DashboardCustomizer";
@@ -26,6 +27,7 @@ import { useTranslation } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { useNotifications } from "@/hooks/useNotifications";
+import { generateTodayInsights } from "@/lib/insightEngine";
 import { format, type Locale, startOfDay, endOfDay, subDays } from "date-fns";
 import { enUS, de, es, fr, it, pt, nl, pl } from "date-fns/locale";
 import { isHabitScheduledForDate, calculateHabitStreak, type Habit as HabitType } from "@/types/habits";
@@ -109,6 +111,14 @@ export default function TodayPage() {
   });
 
   const [goalMap, setGoalMap] = useState<Record<string, string>>({});
+
+  // Flatten all tasks across periods for insight generation
+  const allFlatTasks = useMemo(() => [
+    ...tasks.morning, ...tasks.afternoon, ...tasks.evening, ...tasks.night
+  ].map(t => ({ id: t.id, completed: t.completed, scheduled_date: t.scheduled_date || null })),
+  [tasks]);
+
+  const todayInsights = useMemo(() => generateTodayInsights(allFlatTasks), [allFlatTasks]);
 
   const fetchTasks = async () => {
     if (!user) return;
@@ -635,109 +645,107 @@ export default function TodayPage() {
             </div>
           </div>
 
-          <div className="bg-card/30 backdrop-blur-md rounded-3xl p-1 border border-border/20 shadow-sm">
+          <div className="bg-card/40 backdrop-blur-md rounded-3xl p-1 border border-border/20 shadow-sm">
             <CalendarScrubber selectedDate={selectedDate} onSelectDate={setSelectedDate} />
           </div>
+
+          {/* Adaptive Daily Message */}
+          <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+            className="px-1"
+          >
+            <p className="text-sm font-medium text-muted-foreground/80 flex items-center gap-2">
+              <Sparkles className="w-3.5 h-3.5 text-primary/60" />
+              {(() => {
+                const hour = new Date().getHours();
+                if (hour < 12) {
+                  if (completedTasks > 0) return "You're starting with great momentum.";
+                  return "Good morning. What's your main intention for today?";
+                }
+                if (hour < 17) {
+                  if (progressPercent >= 50) return "Solid progress so far. Keep this focused energy.";
+                  return "The afternoon is a fresh chance to move forward.";
+                }
+                if (progressPercent === 100) return "A truly intentional day. Rest well.";
+                return "The evening is for gentle reflection and winding down.";
+              })()}
+            </p>
+          </motion.div>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.1 }}
-          className="space-y-8"
+        {/* Progress & Direction Layer */}
+        <motion.section
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="grid grid-cols-1 md:grid-cols-2 gap-4"
         >
-          {(dashboardConfig.modules.summary || dashboardConfig.modules.focus || dashboardConfig.modules.habits) && (
-            <Card className="overflow-hidden border-none shadow-soft glass-card">
-              <CardContent className="p-0">
-                <div className={`grid grid-cols-1 md:grid-cols-${[dashboardConfig.modules.summary, dashboardConfig.modules.focus, dashboardConfig.modules.habits].filter(Boolean).length
-                  } divide-y md:divide-y-0 md:divide-x divide-border/30`}>
-                  {dashboardConfig.order.filter(id => id !== 'insights').map((moduleId) => {
-                    if (!dashboardConfig.modules[moduleId as keyof DashboardConfig["modules"]]) return null;
-
-                    if (moduleId === "summary") {
-                      return (
-                        <div key="summary" className="p-6 flex flex-col items-center justify-center text-center bg-primary/5">
-                          <ProgressRing progress={progressPercent} size={120} strokeWidth={10} color="hsl(var(--primary))" />
-                          <div className="mt-4">
-                            <p className="text-xs font-medium text-muted-foreground tracking-wide uppercase">{t("dailyProgress")}</p>
-                            <p className="text-sm font-black text-foreground mt-1">
-                              {completedTasks} <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-70">of</span> {totalTasks}
-                            </p>
-                          </div>
-                        </div>
-                      );
-                    }
-
-                    if (moduleId === "focus") {
-                      return (
-                        <div key="focus" className="p-6 flex flex-col items-center justify-center text-center hover:bg-accent/5 transition-colors cursor-pointer" onClick={() => navigate("/focus")}>
-                          <div className="relative">
-                            <div className="absolute inset-0 bg-blue-500/10 blur-2xl rounded-full" />
-                            <div className="w-16 h-16 rounded-2xl bg-blue-500/10 flex items-center justify-center mb-4 relative ring-1 ring-blue-500/20">
-                              <Clock className="w-8 h-8 text-blue-500" />
-                            </div>
-                          </div>
-                          <div>
-                            <p className="text-xs font-medium text-muted-foreground tracking-wide uppercase">{t("focusTime")}</p>
-                            <p className="text-2xl font-black text-foreground mt-1">
-                              {todayFocusMinutes}<span className="text-sm font-bold ml-1 text-muted-foreground">m</span>
-                            </p>
-                          </div>
-                        </div>
-                      );
-                    }
-
-                    if (moduleId === "habits") {
-                      return (
-                        <div key="habits" className="p-6 flex flex-col items-center justify-center text-center hover:bg-accent/5 transition-colors cursor-pointer" onClick={() => navigate("/habits")}>
-                          <div className="relative">
-                            <div className="absolute inset-0 bg-orange-500/10 blur-2xl rounded-full" />
-                            <div className="w-16 h-16 rounded-2xl bg-orange-500/10 flex items-center justify-center mb-4 relative ring-1 ring-orange-500/20">
-                              <Flame className="w-8 h-8 text-orange-500" />
-                            </div>
-                          </div>
-                          <div>
-                            <p className="text-xs font-medium text-muted-foreground tracking-wide uppercase">{t("habits")}</p>
-                            <div className="flex items-center justify-center gap-2 mt-1">
-                              <p className="text-2xl font-black text-foreground">
-                                {currentStreak}<span className="text-sm font-bold ml-1 text-muted-foreground uppercase tracking-tight">d</span>
-                              </p>
-                              <div className="h-4 w-px bg-border/50 mx-1" />
-                              <p className="text-lg font-bold text-muted-foreground">
-                                {completedHabits}<span className="text-xs font-semibold">/{totalHabits}</span>
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    }
-
-                    return null;
-                  })}
+          <Card className="border-border/30 shadow-soft bg-card/40 overflow-hidden group">
+            <CardContent className="p-5 flex items-center gap-5">
+              <div className="relative">
+                <ProgressRing progress={progressPercent} size={64} strokeWidth={6} color="hsl(var(--primary))" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <CheckCircle2 className="w-5 h-5 text-primary/60" />
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Daily Progress</p>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-2xl font-black text-foreground">{completedTasks}</p>
+                  <p className="text-sm font-bold text-muted-foreground">of {totalTasks} tasks done</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/30 shadow-soft bg-card/40 overflow-hidden group hover:bg-accent/5 transition-colors cursor-pointer" onClick={() => navigate("/habits")}>
+            <CardContent className="p-5 flex items-center gap-5">
+              <div className="w-16 h-16 rounded-2xl bg-orange-500/10 flex items-center justify-center ring-1 ring-orange-500/20">
+                <Flame className={`w-8 h-8 ${completedHabits > 0 ? "text-orange-500 fill-orange-500/20" : "text-orange-300"}`} />
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Momentum</p>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-2xl font-black text-foreground">{completedHabits}</p>
+                  <p className="text-sm font-bold text-muted-foreground">habits completed today</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.section>
+
+        {/* Contextual Today Insights */}
+        {todayInsights.length > 0 && (
+          <InsightCarousel insights={todayInsights} label="Self-Awareness" compact />
+        )}
+
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="space-y-6"
+        >
+          {/* Awareness Layer — Simple Mood Prompt if no reflections yet */}
+          {!loading && allTasksEmpty && (
+            <div className="bg-primary/5 rounded-3xl p-6 text-center border border-primary/10">
+              <Smile className="w-8 h-8 text-primary/40 mx-auto mb-3" />
+              <h3 className="text-sm font-bold text-primary/80 uppercase tracking-widest mb-1">Direction</h3>
+              <p className="text-muted-foreground text-sm max-w-[240px] mx-auto leading-relaxed">
+                No tasks planned yet. Small intentional actions create long-term growth.
+              </p>
+              <Button onClick={handleAddTask} variant="link" className="text-primary mt-2 font-bold p-0 h-auto">
+                Start your day intentionally
+              </Button>
+            </div>
           )}
 
-          <div className="space-y-2">
+          <div className="space-y-4">
             {renderTaskSection("morning", tasks.morning)}
             {renderTaskSection("afternoon", tasks.afternoon)}
             {renderTaskSection("evening", tasks.evening)}
             {renderTaskSection("night", tasks.night)}
-            
-            {allTasksEmpty && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="py-12 text-center"
-              >
-                <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
-                  <ListTodo className="w-8 h-8 text-muted-foreground/50" />
-                </div>
-                <h3 className="text-lg font-medium text-foreground mb-1">{t('noTasks')}</h3>
-                <p className="text-sm text-muted-foreground">{t('noTasksDesc')}</p>
-              </motion.div>
-            )}
           </div>
         </motion.div>
 

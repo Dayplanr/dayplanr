@@ -542,3 +542,171 @@ export function generateWeeklySummary(
     tasksCompleted: completedThisWeek,
   };
 }
+
+// ─── Growth Summary (Narrative) ───────────────────────────────────────────────
+
+export type TimeRange = 'weekly' | 'monthly' | 'yearly';
+
+export interface GrowthSummary {
+  headline: string;       // e.g. "A strong week with consistent mornings"
+  narrative: string;      // 2–3 sentence human-readable summary
+  trend: 'improving' | 'steady' | 'declining' | 'new';
+  highlights: string[];   // 2–3 short bullet highlights
+}
+
+export function generateGrowthSummary(
+  reflections: Reflection[],
+  tasks: Task[],
+  habits: Habit[],
+  goals: Goal[],
+  range: TimeRange
+): GrowthSummary {
+  const now = new Date();
+
+  // ── Date window ──
+  let windowDays = range === 'weekly' ? 7 : range === 'monthly' ? 30 : 365;
+  const cutoff = subDays(now, windowDays);
+  const prevCutoff = subDays(now, windowDays * 2);
+
+  const windowTasks = tasks.filter(t =>
+    t.scheduled_date && new Date(t.scheduled_date) >= cutoff
+  );
+  const prevTasks = tasks.filter(t =>
+    t.scheduled_date &&
+    new Date(t.scheduled_date) >= prevCutoff &&
+    new Date(t.scheduled_date) < cutoff
+  );
+
+  const windowReflections = reflections.filter(r =>
+    new Date(r.created_at) >= cutoff
+  );
+  const prevReflections = reflections.filter(r =>
+    new Date(r.created_at) >= prevCutoff && new Date(r.created_at) < cutoff
+  );
+
+  const doneCurrent = windowTasks.filter(t => t.completed).length;
+  const donePrev = prevTasks.filter(t => t.completed).length;
+
+  // ── Trend ──
+  let trend: GrowthSummary['trend'] = 'new';
+  if (donePrev > 0 || doneCurrent > 0) {
+    if (doneCurrent > donePrev) trend = 'improving';
+    else if (doneCurrent < donePrev) trend = 'declining';
+    else trend = 'steady';
+  }
+
+  // ── Best day of week ──
+  const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const tasksByDay: Record<number, number> = {};
+  windowTasks.filter(t => t.completed && t.scheduled_date).forEach(t => {
+    const d = getDay(new Date(t.scheduled_date!));
+    tasksByDay[d] = (tasksByDay[d] || 0) + 1;
+  });
+  const bestDayNum = Object.entries(tasksByDay).sort((a, b) => +b[1] - +a[1])[0];
+  const bestDayName = bestDayNum ? DAY_NAMES[+bestDayNum[0]] : null;
+
+  // ── Dominant mood ──
+  const moodCount: Record<string, number> = {};
+  windowReflections.filter(r => r.mood).forEach(r => {
+    moodCount[r.mood!] = (moodCount[r.mood!] || 0) + 1;
+  });
+  const dominantMood = Object.entries(moodCount).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+  const dominantMoodLabel = dominantMood ? MOOD_LABELS[dominantMood] || dominantMood : null;
+
+  // ── Strongest habit ──
+  const recentDates = Array.from({ length: windowDays }, (_, i) =>
+    format(subDays(now, i), 'yyyy-MM-dd')
+  );
+  const habitScores = habits.map(h => ({
+    title: h.title,
+    score: h.completedDates.filter(d => recentDates.includes(d)).length,
+    pct: recentDates.length > 0 ? Math.round((h.completedDates.filter(d => recentDates.includes(d)).length / recentDates.length) * 100) : 0,
+  })).sort((a, b) => b.score - a.score);
+  const topHabit = habitScores[0];
+
+  // ── Challenge theme ──
+  const allChallengeText = windowReflections
+    .filter(r => r.challenge).map(r => r.challenge!.toLowerCase()).join(' ');
+  const challengeKeywords = [
+    { label: 'phone & social media', keys: ['phone', 'social', 'instagram', 'tiktok', 'scroll'] },
+    { label: 'sleep & low energy', keys: ['sleep', 'tired', 'exhausted', 'bed', 'fatigue'] },
+    { label: 'focus & procrastination', keys: ['focus', 'procrastinat', 'distract', 'motivat'] },
+    { label: 'feeling overwhelmed', keys: ['overwhelm', 'stress', 'anxious', 'burnout'] },
+  ];
+  let topChallenge: string | null = null;
+  let maxHits = 0;
+  challengeKeywords.forEach(c => {
+    const hits = c.keys.reduce((s, k) => s + (allChallengeText.split(k).length - 1), 0);
+    if (hits > maxHits) { maxHits = hits; topChallenge = c.label; }
+  });
+
+  // ─────────────────────────────────────────────────────
+  // Build narrative by range
+  // ─────────────────────────────────────────────────────
+  let headline = '';
+  let narrative = '';
+  const highlights: string[] = [];
+
+  if (range === 'weekly') {
+    if (trend === 'improving') headline = 'A stronger week than the last';
+    else if (trend === 'declining') headline = 'A quieter week — room to rebuild';
+    else if (trend === 'steady') headline = 'Staying consistent this week';
+    else headline = 'Starting to build your patterns';
+
+    const parts: string[] = [];
+    if (doneCurrent > 0 && donePrev > 0) {
+      if (trend === 'improving') {
+        parts.push(`You completed ${doneCurrent} tasks this week — more than the ${donePrev} last week.`);
+      } else if (trend === 'declining') {
+        parts.push(`You completed ${doneCurrent} tasks, slightly less than last week's ${donePrev}. Every week is a fresh start.`);
+      } else {
+        parts.push(`Consistent pace: ${doneCurrent} tasks completed, similar to last week.`);
+      }
+    } else if (doneCurrent > 0) {
+      parts.push(`You completed ${doneCurrent} tasks this week.`);
+    }
+
+    if (bestDayName) parts.push(`${bestDayName} was your most productive day.`);
+    if (topHabit && topHabit.score >= 2) parts.push(`"${topHabit.title}" was consistent — routines compound powerfully.`);
+    if (topChallenge && maxHits > 0) parts.push(`${topChallenge} appeared as your main obstacle.`);
+
+    narrative = parts.slice(0, 3).join(' ');
+    if (bestDayName) highlights.push(`Most productive: ${bestDayName}`);
+    if (topHabit && topHabit.score >= 1) highlights.push(`Top habit: ${topHabit.title}`);
+    if (topChallenge) highlights.push(`Main blocker: ${topChallenge}`);
+    if (dominantMoodLabel) highlights.push(`Mood: ${dominantMoodLabel}`);
+
+  } else if (range === 'monthly') {
+    if (trend === 'improving') headline = 'Growing stronger this month';
+    else if (trend === 'declining') headline = 'A reflective month';
+    else if (trend === 'steady') headline = 'Reliable consistency';
+    else headline = 'Your first month of growth';
+
+    const parts: string[] = [];
+    if (doneCurrent > 0) parts.push(`Over the past 30 days you completed ${doneCurrent} tasks.`);
+    if (topHabit && topHabit.pct >= 50) parts.push(`"${topHabit.title}" was your anchor, completed on ${topHabit.pct}% of days.`);
+    if (dominantMoodLabel) parts.push(`Your dominant emotional tone was "${dominantMoodLabel}".`);
+
+    narrative = parts.slice(0, 3).join(' ');
+    if (topHabit) highlights.push(`${topHabit.title}: ${topHabit.pct}%`);
+    if (doneCurrent > 0) highlights.push(`Tasks done: ${doneCurrent}`);
+    if (topChallenge) highlights.push(`Challenge: ${topChallenge}`);
+
+  } else {
+    headline = trend === 'improving' ? 'A year of meaningful growth' : 'Reflecting on your year';
+    const parts: string[] = [];
+    if (doneCurrent > 0) parts.push(`This year you completed ${doneCurrent} tasks.`);
+    const completedGoals = goals.filter(g => g.progress >= 100).length;
+    if (completedGoals > 0) parts.push(`You finished ${completedGoals} goals.`);
+    if (reflections.length >= 5) parts.push(`You've built a record of ${reflections.length} reflections.`);
+
+    narrative = parts.slice(0, 3).join(' ');
+    if (doneCurrent > 0) highlights.push(`Total tasks: ${doneCurrent}`);
+    if (completedGoals > 0) highlights.push(`Goals finished: ${completedGoals}`);
+    if (reflections.length > 0) highlights.push(`Reflections: ${reflections.length}`);
+  }
+
+  if (!narrative) narrative = "Keep going — patterns take time to form. Every small action builds self-awareness.";
+
+  return { headline, narrative, trend, highlights: highlights.slice(0, 4) };
+}
