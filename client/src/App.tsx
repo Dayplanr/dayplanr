@@ -20,7 +20,6 @@ import AddTaskPage from "@/pages/AddTaskPage";
 import ReflectPage from "@/pages/ReflectPage";
 import InsightsPage from "@/pages/InsightsPage";
 import SettingsPage from "@/pages/SettingsPage";
-import CoachPage from "@/pages/CoachPage";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { AuthProvider, useAuth } from "./lib/auth";
 import { Redirect } from "wouter";
@@ -63,9 +62,6 @@ function AppRouter() {
       </Route>
       <Route path="/app/insights">
         <ProtectedRoute component={InsightsPage} />
-      </Route>
-      <Route path="/app/coach">
-        <ProtectedRoute component={CoachPage} />
       </Route>
     </Switch>
   );

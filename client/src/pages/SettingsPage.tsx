@@ -10,7 +10,6 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
 import { useToast } from "@/hooks/use-toast";
-import { useNotifications } from "@/hooks/useNotifications";
 import {
   Select,
   SelectContent,
@@ -39,9 +38,6 @@ import {
   ChevronRight,
   ChevronDown,
   Check,
-  Bell,
-  Sparkles,
-  RefreshCcw,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -57,7 +53,6 @@ import {
 
 export default function SettingsPage() {
   const { t } = useTranslation();
-  const notifications = useNotifications();
   const { user, signOut } = useAuth();
   const { darkMode, setDarkMode, themeColor, setThemeColor } = useTheme();
   const { toast } = useToast();
@@ -67,17 +62,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [coachProfile, setCoachProfile] = useState<any>(null);
-  const [isResettingCoach, setIsResettingCoach] = useState(false);
 
-  const [notifSettings, setNotifSettings] = useState({
-    enabled: true,
-    tasks: true,
-    habits: true,
-    incomplete: true,
-    timing: "30min",
-    style: "gentle",
-  });
 
   const themeColors = [
     { name: "Violet", value: "#8b5cf6" },
@@ -91,7 +76,6 @@ export default function SettingsPage() {
   useEffect(() => {
     if (user) {
       loadSettings();
-      loadCoachProfile();
     }
   }, [user]);
 
@@ -128,15 +112,6 @@ export default function SettingsPage() {
         console.log("🔧 Loaded existing settings:", data);
         setDisplayName(user?.user_metadata?.full_name || "");
         
-        setNotifSettings({
-          enabled: data.notifications_enabled ?? true,
-          tasks: data.task_reminders ?? true,
-          habits: data.habit_reminders ?? true,
-          incomplete: data.incomplete_nudges ?? true,
-          timing: data.reminder_timing ?? "30min",
-          style: data.reminder_style ?? "gentle",
-        });
-        notifications.updateSettings(data);
       }
     } catch (error) {
       console.error("Error loading settings:", error);
@@ -147,43 +122,6 @@ export default function SettingsPage() {
     }
   };
 
-  const loadCoachProfile = async () => {
-    try {
-      const { data } = await supabase
-        .from("coach_profile")
-        .select("*")
-        .eq("user_id", user?.id)
-        .single();
-      
-      if (data) {
-        setCoachProfile(data.data);
-      }
-    } catch (err) {
-      console.error("Error loading coach profile:", err);
-    }
-  };
-
-  const handleResetCoach = async () => {
-    if (!user) return;
-    setIsResettingCoach(true);
-    try {
-      await supabase.from("coach_profile").delete().eq("user_id", user.id);
-      await supabase.from("coach_conversations").delete().eq("user_id", user.id);
-      setCoachProfile(null);
-      toast({
-        title: "Coach Reset",
-        description: "Your AI Coach has been reset and is ready for a fresh start.",
-      });
-    } catch (err) {
-      toast({
-        title: "Error",
-        description: "Failed to reset AI Coach.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsResettingCoach(false);
-    }
-  };
 
   const playPreviewSound = async (soundValue: string) => {
     try {
@@ -306,15 +244,6 @@ export default function SettingsPage() {
       if (error) throw error;
       console.log(`🔧 Setting ${key} updated successfully`);
 
-      // Sync with notification service
-      if (["notifications_enabled", "task_reminders", "habit_reminders", "focus_reminders", "incomplete_nudges", "reminder_timing", "reminder_style"].includes(key)) {
-        const { data: updatedSettings } = await supabase
-          .from("user_settings")
-          .select("*")
-          .eq("user_id", user.id)
-          .single();
-        if (updatedSettings) notifications.updateSettings(updatedSettings);
-      }
     } catch (error) {
       console.error(`Error updating setting ${key}:`, error);
       toast({
@@ -577,161 +506,7 @@ export default function SettingsPage() {
         </Card>
 
 
-        <Card className="bg-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">Notifications</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-1 p-0">
-            <div className="flex items-center justify-between px-4 py-3">
-              <div className="flex items-center gap-3">
-                <Bell className="w-5 h-5 text-amber-500" />
-                <span className="text-foreground">Enable Notifications</span>
-              </div>
-              <Switch
-                checked={notifSettings.enabled}
-                onCheckedChange={(val) => {
-                  setNotifSettings(prev => ({ ...prev, enabled: val }));
-                  updateSetting("notifications_enabled", val);
-                }}
-              />
-            </div>
-
-            {notifSettings.enabled && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                className="space-y-1"
-              >
-                <Separator />
-                <div className="flex items-center justify-between px-4 py-3">
-                  <span className="text-sm font-medium">Task Reminders</span>
-                  <Switch
-                    checked={notifSettings.tasks}
-                    onCheckedChange={(val) => {
-                      setNotifSettings(prev => ({ ...prev, tasks: val }));
-                      updateSetting("task_reminders", val);
-                    }}
-                  />
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between px-4 py-3">
-                  <span className="text-sm font-medium">Habit Reminders</span>
-                  <Switch
-                    checked={notifSettings.habits}
-                    onCheckedChange={(val) => {
-                      setNotifSettings(prev => ({ ...prev, habits: val }));
-                      updateSetting("habit_reminders", val);
-                    }}
-                  />
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between px-4 py-3">
-                  <span className="text-sm font-medium">End-of-Day Nudges</span>
-                  <Switch
-                    checked={notifSettings.incomplete}
-                    onCheckedChange={(val) => {
-                      setNotifSettings(prev => ({ ...prev, incomplete: val }));
-                      updateSetting("incomplete_nudges", val);
-                    }}
-                  />
-                </div>
-                <Separator />
-                <div className="px-4 py-3 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Reminder Timing</span>
-                    <Select
-                      value={notifSettings.timing}
-                      onValueChange={(val) => {
-                        setNotifSettings(prev => ({ ...prev, timing: val }));
-                        updateSetting("reminder_timing", val);
-                      }}
-                    >
-                      <SelectTrigger className="w-[120px] h-8 text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="attime">At time</SelectItem>
-                        <SelectItem value="10min">10 min before</SelectItem>
-                        <SelectItem value="30min">30 min before</SelectItem>
-                        <SelectItem value="1hour">1 hour before</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Notification Style</span>
-                    <Select
-                      value={notifSettings.style}
-                      onValueChange={(val) => {
-                        setNotifSettings(prev => ({ ...prev, style: val }));
-                        updateSetting("reminder_style", val);
-                      }}
-                    >
-                      <SelectTrigger className="w-[120px] h-8 text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="gentle">Gentle</SelectItem>
-                        <SelectItem value="important">Important</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </CardContent>
-        </Card>
         
-        {coachProfile && (
-          <Card className="bg-card">
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base font-semibold flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-amber-500" />
-                  Growth Coach Blueprint
-                </CardTitle>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-8 text-xs text-muted-foreground hover:text-destructive">
-                      Reset
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Reset AI Coach?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This will clear your growth profile and all chat history. You will need to complete the onboarding again.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleResetCoach} className="bg-destructive text-destructive-foreground">
-                        Reset Coach
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4 pt-2">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Ideal Self</p>
-                  <p className="text-sm font-medium line-clamp-2 italic font-serif">"{coachProfile.ideal_self || 'Growth oriented'}"</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Core Blocker</p>
-                  <p className="text-sm font-medium line-clamp-2">"{coachProfile.blockers || 'None identified'}"</p>
-                </div>
-              </div>
-              <Separator />
-              <div className="space-y-1">
-                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Main Aspirations</p>
-                <p className="text-sm">{coachProfile.goals || 'Focusing on general growth.'}</p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
         <Card className="bg-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-semibold">{t("general")}</CardTitle>

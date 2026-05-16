@@ -21,7 +21,6 @@ export function AppSidebar() {
     { title: t("habits"),  url: "/app/habits",    icon: TrendingUp },
     { title: t("reflect"), url: "/app/focus",     icon: Leaf },
     { title: "Insights",   url: "/app/insights",  icon: Brain },
-    { title: "Coach",      url: "/app/coach",     icon: Sparkles },
     { title: t("settings"),url: "/app/settings",  icon: Settings },
   ];
 
