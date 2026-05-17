@@ -2238,3 +2238,8 @@ export function useTranslation() {
   }
   return context;
 }
+
+export function useLanguage() {
+  return useTranslation();
+}
+

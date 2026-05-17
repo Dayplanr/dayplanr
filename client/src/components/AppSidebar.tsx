@@ -20,7 +20,7 @@ export function AppSidebar() {
     { title: t("goals"),   url: "/app/goals",     icon: Target },
     { title: t("habits"),  url: "/app/habits",    icon: TrendingUp },
     { title: t("reflect"), url: "/app/focus",     icon: Leaf },
-    { title: "Insights",   url: "/app/insights",  icon: Brain },
+    { title: t("insights"),url: "/app/insights",  icon: Brain },
     { title: t("settings"),url: "/app/settings",  icon: Settings },
   ];
 
