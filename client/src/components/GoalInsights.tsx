@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -204,6 +205,7 @@ const getProductivityScoreByTimeframe = (goals: Goal[], timeframe: 'week' | 'mon
 };
 
 export default function GoalInsights({ goals, open, onOpenChange }: GoalInsightsProps) {
+  const { t } = useTranslation();
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "MMMM"));
   const [selectedYear, setSelectedYear] = useState(2026);
   const [selectedWeek, setSelectedWeek] = useState(1);

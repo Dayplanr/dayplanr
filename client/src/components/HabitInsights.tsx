@@ -246,6 +246,7 @@ const getProductivityScoreByTimeframe = (habits: Habit[], timeframe: 'week' | 'm
 };
 
 export default function HabitInsights({ habits, open, onOpenChange }: HabitInsightsProps) {
+  const { t } = useTranslation();
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "MMMM"));
   const [selectedYear, setSelectedYear] = useState(2026);
   const [selectedWeek, setSelectedWeek] = useState(1);

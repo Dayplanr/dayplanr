@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useLocation } from "wouter";
+import { motion, AnimatePresence } from "framer-motion";
 import { Plus, TrendingUp, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
