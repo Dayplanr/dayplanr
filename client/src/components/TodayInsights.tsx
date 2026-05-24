@@ -28,7 +28,7 @@ import {
   Line,
   Legend,
 } from "recharts";
-import { format, subDays, startOfMonth, eachDayOfInterval, getDay, startOfWeek, endOfWeek, eachWeekOfInterval, startOfYear, endOfYear, type Locale } from "date-fns";
+import { format, subDays, startOfMonth, eachDayOfInterval, getDay, startOfWeek, endOfWeek, eachWeekOfInterval, startOfYear, endOfYear, addDays, type Locale } from "date-fns";
 import { enUS, tr, ru } from "date-fns/locale";
 import { useTranslation } from "@/lib/i18n";
 

@@ -46,15 +46,6 @@ const steps = [
 
 const languages: { code: Language; name: string; flag: string }[] = [
   { code: "en", name: "English", flag: "🇬🇧" },
-  { code: "de", name: "Deutsch", flag: "🇩🇪" },
-  { code: "es", name: "Español", flag: "🇪🇸" },
-  { code: "fr", name: "Français", flag: "🇫🇷" },
-  { code: "it", name: "Italiano", flag: "🇮🇹" },
-  { code: "pt", name: "Português", flag: "🇵🇹" },
-  { code: "nl", name: "Nederlands", flag: "🇳🇱" },
-  { code: "pl", name: "Polski", flag: "🇵🇱" },
-  { code: "tr", name: "Türkçe", flag: "🇹🇷" },
-  { code: "ru", name: "Русский", flag: "🇷🇺" },
 ];
 
 export function OnboardingModal({ open, onOpenChange, onComplete }: OnboardingModalProps) {
