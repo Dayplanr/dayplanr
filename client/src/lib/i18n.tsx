@@ -62,7 +62,7 @@ export type TranslationKey =
   | "goal_deleted" | "error_deleting_goal" | "habit_insights" | "error_fetching_habits" | "day_unmarked" | "day_marked"
   | "error_updating_habit" | "habit_updated" | "habit_deleted" | "error_deleting_habit" | "delete_habit" | "delete_habit_confirm"
   | "overall_progress" | "category_breakdown" | "fastest_progressing" | "consistency_score" | "productivity_score"
-  | "select_week" | "select_date" | "total_goals" | "total_habits" | "completed_goals" | "goals_in_progress"
+  | "select_week" | "select_date" | "select_month" | "select_year" | "total_goals" | "total_habits" | "completed_goals" | "goals_in_progress"
   | "active_streaks" | "avg_completion" | "avg_success_rate" | "milestones_rate" | "completed_milestones"
   | "pending_milestones" | "best_performing" | "goals_at_risk" | "habits_at_risk" | "no_activity_detected"
   | "out_of_100" | "days_with_progress" | "best_streak" | "last_activity" | "milestoneRateDesc" | "milestone_completion"
@@ -366,6 +366,8 @@ const translations: Record<Language, Translations> = {
     productivity_score: "Productivity Score",
     select_week: "Select Week",
     select_date: "Select Date",
+    select_month: "Select Month",
+    select_year: "Select Year",
     total_goals: "Total Goals",
     total_habits: "Total Habits",
     completed_goals: "Completed Goals",
@@ -423,6 +425,11 @@ const translations: Record<Language, Translations> = {
     mood_summary: "Mood Summary",
     mood_distribution: "Mood Distribution",
     no_mood_data: "No mood data for this month.",
+    mood_great: "Great",
+    mood_okay: "Okay",
+    mood_stressed: "Stressed",
+    mood_tired: "Tired",
+    mood_bad: "Bad",
   },
 };
 
