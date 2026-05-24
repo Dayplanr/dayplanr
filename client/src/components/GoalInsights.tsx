@@ -39,7 +39,6 @@ import {
   getFastestProgressingGoal,
   calculateProductivityScore,
 } from "@/types/goals";
-import { useTranslation } from "@/lib/i18n";
 
 interface GoalInsightsProps {
   goals: Goal[];
@@ -52,6 +51,11 @@ const localeMap: Record<string, Locale> = {
   tr: tr,
   ru: ru,
 };
+
+const months = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
 
 // Dynamic colors for pie chart - no predefined colors as requested
 const generateColors = (count: number) => {
@@ -464,7 +468,7 @@ export default function GoalInsights({ goals, open, onOpenChange }: GoalInsights
               </div>
 
               {(() => {
-                const weeks = generateWeeks(selectedYear);
+                const weeks = generateWeeks(selectedYear, t);
                 const currentWeek = weeks.find(w => w.value === selectedWeek);
                 return (
                   <div className="p-3 bg-muted/50 rounded-lg text-center">

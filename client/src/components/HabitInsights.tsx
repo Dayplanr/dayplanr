@@ -53,6 +53,11 @@ const localeMap: Record<string, Locale> = {
   ru: ru,
 };
 
+const months = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
+
 // Dynamic colors for pie chart
 const generateColors = (count: number) => {
   const colors = [];
@@ -529,7 +534,7 @@ export default function HabitInsights({ habits, open, onOpenChange }: HabitInsig
               </div>
 
               {(() => {
-                const weeks = generateWeeks(selectedYear);
+                const weeks = generateWeeks(selectedYear, t);
                 const currentWeek = weeks.find(w => w.value === selectedWeek);
                 return (
                   <div className="p-3 bg-muted/50 rounded-lg text-center">
