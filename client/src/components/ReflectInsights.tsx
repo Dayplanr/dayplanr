@@ -47,8 +47,8 @@ interface ReflectInsightsProps {
 }
 
 export default function ReflectInsights({ open, onOpenChange, history }: ReflectInsightsProps) {
-  const { t, language } = useTranslation();
-  const currentLocale = language === "tr" ? tr : language === "ru" ? ru : enUS;
+  const { t } = useTranslation();
+  const currentLocale = enUS;
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("timeline");
   
@@ -83,7 +83,7 @@ export default function ReflectInsights({ open, onOpenChange, history }: Reflect
           const habits = (habitsRes.data || []) as Habit[];
           const goals = (goalsRes.data || []) as Goal[];
           
-          const generated = generatePatternInsights(history, tasks, sessions, habits, goals);
+          const generated = generatePatternInsights(history, tasks, habits, goals, t);
           setPatternInsights(generated);
         } catch (error) {
           console.error("Error generating insights:", error);
@@ -93,7 +93,7 @@ export default function ReflectInsights({ open, onOpenChange, history }: Reflect
       };
       fetchRelatedData();
     } else if (open && history.length === 0) {
-      setPatternInsights(generatePatternInsights([], [], [], [], []));
+      setPatternInsights(generatePatternInsights([], [], [], [], t));
     }
   }, [open, user, history]);
 

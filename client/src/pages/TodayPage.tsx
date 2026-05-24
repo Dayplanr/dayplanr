@@ -374,14 +374,14 @@ export default function TodayPage() {
           .single();
         
         if (linkedHabit?.goal_id) {
-          await updateGoalProgress(linkedHabit.goal_id, user.id);
+          await updateGoalProgress(linkedHabit.goal_id, user!.id);
         }
       }
     }
 
     // Sync with goal if linked directly
     if (task.goal_id) {
-      await updateGoalProgress(task.goal_id, user.id);
+      await updateGoalProgress(task.goal_id, user!.id);
     }
 
     setTasks((prev: TaskGroups) => ({
@@ -650,19 +650,20 @@ export default function TodayPage() {
             </div>
             <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
               {[
-                t("mood_pill_great"), 
-                t("mood_pill_calm"), 
-                t("mood_pill_productive"), 
-                t("mood_pill_focused"), 
-                t("mood_pill_tired"), 
-                t("mood_pill_stressed")
+                { emoji: "✨", label: t("mood_great") },
+                { emoji: "🧘", label: t("mood_focused") },
+                { emoji: "😐", label: t("mood_okay") },
+                { emoji: "😰", label: t("mood_stressed") },
+                { emoji: "😴", label: t("mood_tired") },
+                { emoji: "👎", label: t("mood_bad") },
               ].map((mood) => (
                 <button
-                  key={mood}
-                  onClick={() => navigate("/app/focus")} // Navigate to reflect page for now
-                  className="flex-shrink-0 px-4 py-2.5 rounded-2xl bg-card border border-border/40 text-xs font-semibold text-foreground hover:bg-primary/5 hover:border-primary/20 hover:shadow-soft transition-all active:scale-95"
+                  key={mood.label}
+                  onClick={() => navigate("/app/focus")}
+                  className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-card border border-border/40 text-xs font-semibold text-foreground hover:bg-primary/5 hover:border-primary/20 hover:shadow-soft transition-all active:scale-95"
                 >
-                  {mood}
+                  <span>{mood.emoji}</span>
+                  <span>{mood.label}</span>
                 </button>
               ))}
             </div>

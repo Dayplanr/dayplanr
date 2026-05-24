@@ -72,7 +72,7 @@ export type TranslationKey =
   | "goal_progress" | "focus_insights" | "sessions" | "no_sessions" | "pomodoro" | "deep_work" | "custom" | "top_timer"
   | "view_insights" | "active_days" | "timer_ranking" | "best_focus_month" | "sessions_by_timer" | "focus_trend" | "total_minutes"
   | "timeline" | "pattern_insights" | "reflection_history" | "no_reflections_yet" | "mood_summary" | "mood_distribution" | "no_mood_data"
-  | "mood_great" | "mood_good" | "mood_okay" | "mood_stressed" | "mood_tired" | "mood_bad" | "completion_rate"
+  | "mood_great" | "mood_good" | "mood_okay" | "mood_stressed" | "mood_tired" | "mood_bad" | "mood_focused" | "completion_rate"
   | "challenge" | "next_step" | "selected_week_range" | "tasks" | "activity" | "no_habits"
   | "no_goals_yet" | "challenge_habits" | "total" | "no_habits_yet" | "success_rate" | "current_streak";
 
@@ -432,6 +432,7 @@ const translations: Record<Language, Translations> = {
     mood_stressed: "Stressed",
     mood_tired: "Tired",
     mood_bad: "Bad",
+    mood_focused: "Focused",
     deep_work: "Deep Work",
     mood_good: "Good",
     completion_rate: "Completion Rate",

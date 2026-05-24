@@ -25,8 +25,8 @@ const MOOD_EMOJIS: Record<string, string> = {
 
 export default function InsightsPage() {
   const { user } = useAuth();
-  const { t, language } = useTranslation();
-  const currentLocale = language === "tr" ? tr : language === "ru" ? ru : enUS;
+  const { t } = useTranslation();
+  const currentLocale = enUS;
   const [timeRange, setTimeRange] = useState<TimeRange>('weekly');
 
   const TREND_ICONS = {

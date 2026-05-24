@@ -34,6 +34,7 @@ export default function ReflectPage() {
   
   const MOODS = [
     { id: "great", emoji: "✨", label: t("mood_great") },
+    { id: "focused", emoji: "🧘", label: t("mood_focused") },
     { id: "okay", emoji: "😐", label: t("mood_okay") },
     { id: "stressed", emoji: "😰", label: t("mood_stressed") },
     { id: "tired", emoji: "😴", label: t("mood_tired") },
