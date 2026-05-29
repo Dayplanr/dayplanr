@@ -1,4 +1,4 @@
-import { Calendar, Target, TrendingUp, Leaf } from "lucide-react";
+import { Calendar, Target, TrendingUp, Leaf, Brain, Settings } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useTranslation } from "@/lib/i18n";
 
@@ -11,11 +11,13 @@ export default function MobileTabBar() {
     { icon: Target,     label: t("goals"),    path: "/app/goals" },
     { icon: TrendingUp, label: t("habits"),   path: "/app/habits" },
     { icon: Leaf,       label: t("reflect"),  path: "/app/focus" },
+    { icon: Brain,      label: t("insights"), path: "/app/insights" },
+    { icon: Settings,   label: t("settings"), path: "/app/settings" },
   ];
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-card-border z-50">
-      <div className="flex items-center justify-around h-16 px-4">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-md border-t border-card-border z-50">
+      <div className="flex items-center justify-between h-16 px-2 max-w-md mx-auto">
         {tabs.map((tab) => {
           const isActive = location === tab.path;
           const Icon = tab.icon;
@@ -24,16 +26,17 @@ export default function MobileTabBar() {
               key={tab.path}
               href={tab.path}
               data-testid={`link-tab-${tab.label.toLowerCase()}`}
+              className="flex-1"
             >
-              <button className="flex flex-col items-center justify-center gap-1 hover-elevate active-elevate-2 rounded-md px-3 py-2">
+              <button className="w-full flex flex-col items-center justify-center gap-1 hover-elevate active-elevate-2 rounded-md py-1 px-0.5">
                 <Icon
-                  className={`w-5 h-5 ${
-                    isActive ? "text-primary fill-current" : "text-muted-foreground"
+                  className={`w-5 h-5 transition-all duration-200 ${
+                    isActive ? "text-primary scale-110" : "text-muted-foreground"
                   }`}
                 />
                 <span
-                  className={`text-xs ${
-                    isActive ? "text-foreground font-medium" : "text-muted-foreground"
+                  className={`text-[9px] xs:text-[10px] tracking-tight transition-colors duration-200 ${
+                    isActive ? "text-foreground font-semibold" : "text-muted-foreground font-medium"
                   }`}
                 >
                   {tab.label}
@@ -46,3 +49,4 @@ export default function MobileTabBar() {
     </div>
   );
 }
+
