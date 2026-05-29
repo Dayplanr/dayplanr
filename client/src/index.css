@@ -268,14 +268,48 @@
     /* sits in front of content */
   }
 
-  .hover-elevate:hover:not(.no-default-hover-elevate)::after,
+  /* Active states on all devices (mouse and touch) */
   .active-elevate:active:not(.no-default-active-elevate)::after {
     background-color: var(--elevate-1);
   }
 
-  .hover-elevate-2:hover:not(.no-default-hover-elevate)::after,
   .active-elevate-2:active:not(.no-default-active-elevate)::after {
     background-color: var(--elevate-2);
+  }
+
+  /* Hover states only on devices supporting hover to prevent sticky touch delay */
+  @media (hover: hover) {
+    .hover-elevate:hover:not(.no-default-hover-elevate)::after {
+      background-color: var(--elevate-1);
+    }
+
+    .hover-elevate-2:hover:not(.no-default-hover-elevate)::after {
+      background-color: var(--elevate-2);
+    }
+  }
+
+  /* Optimize scrolling and touch responsiveness globally for mobile layout systems */
+  .overflow-y-auto {
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior-y: contain !important;
+    touch-action: pan-y !important;
+    will-change: scroll-position;
+  }
+
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior-x: contain !important;
+    touch-action: pan-x !important;
+    will-change: scroll-position;
+  }
+
+  /* Snap touch button interactions instantly without gesture delay click-lock */
+  button, 
+  [role="button"],
+  input,
+  select,
+  textarea {
+    touch-action: manipulation !important;
   }
 
   /* If there's a 1px border, adjust the inset so that it covers that parent's border */
